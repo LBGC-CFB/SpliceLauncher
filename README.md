@@ -193,7 +193,7 @@ the generated file is an sjdb file that will use by STAR to get the junction rea
 
 This file is provide in this repository at [refExons.bed](http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline/tree/master/refData/refExons.bed "tittle")  
 
-At this step you can also define a list of transcripts to get only the splicing junctions on these transcripts (especially for targeted RNAseq). An list example is provide in *./dataTest/transcriptsToSelect.txt*.
+At this step you can also define a list of transcripts to get only the splicing junctions on these transcripts (especially for targeted RNAseq). An list example is provide in [transcriptsToSelect.txt](http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline/tree/master/dataTest/transcriptsToSelect.txt "tittle").
 If you wish to generate new exon BED annotations, you can use the RefSeqAnnot.bed file generated in the **STAR genome** section.  
 the command is:
 
