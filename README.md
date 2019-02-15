@@ -32,7 +32,7 @@ The reference files:
 * the exons annotations  
 * the transcripts information  
 
-An example of these two last files is provide in the [refData folder](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData "tittle")
+An example of these two last files is provide in the [refData folder](http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline/tree/master/refData "tittle")
 
 ### install STAR, samtools, BEDtools  
 
@@ -108,8 +108,8 @@ Open the R console:
 
 ---
 
-    git clone https://github.com/raphaelleman/SpliceLauncher
-    cd ./SpliceLauncher
+    git clone http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline
+    cd ./splicelauncherpipeline
 
 ## Make the reference files  
 
@@ -127,6 +127,7 @@ To create STAR genome you will need :
 From [UCSC](http://hgdownload.soe.ucsc.edu/downloads.html#human "tittle"), with hg19 example:
 
     #the ftp URL depends on your assembly genome choice
+    cd /path/to/splicelauncherpipeline/
     mkdir ./fastaGenome
     cd ./fastaGenome
     `wget --timestamping ftp://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/chromFa.tar.gz -O chromFa.tar.gz`
@@ -173,7 +174,7 @@ After download the file, uncompress it by `gunzip RefSeqAnnot.bed.gz`
 **First step, we create the intron coordinates file from BED RefSeq file**
 the generated file is an sjdb file that will use by STAR to get the junction reads
 
-    cd /path/to/SpliceLauncher/
+    cd /path/to/splicelauncherpipeline/
     Rscript ./scripts/generateRefSeqsjdb.r -i /path/to/RefSeqAnnot.bed -o ./RefSeqAnnot.sjdb
 
 **Second step, we create the genome STAR files**
@@ -190,19 +191,19 @@ the generated file is an sjdb file that will use by STAR to get the junction rea
 
 ### create exon BED annotations
 
-This file is provide in this repository at */refData/refExons.bed*  
+This file is provide in this repository at [refExons.bed](http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline/tree/master/refData/refExons.bed "tittle")  
 
 At this step you can also define a list of transcripts to get only the splicing junctions on these transcripts (especially for targeted RNAseq). An list example is provide in *./dataTest/transcriptsToSelect.txt*.
 If you wish to generate new exon BED annotations, you can use the RefSeqAnnot.bed file generated in the **STAR genome** section.  
 the command is:
 
-    Rscript ./scripts/generateExonBEDRef.r -i /path/to/RefSeqAnnot.bed \
-     -o ./RefExons.bed \
-     -t /path/to/transcriptsList.txt #optional, the list of selected trasncript (example of list in ./dataTest/transcriptsToSelect.txt)
+    `Rscript ./scripts/generateExonBEDRef.r -i /path/to/RefSeqAnnot.bed \`
+     `-o ./RefExons.bed \`
+     `-t /path/to/transcriptsList.txt #optional, the list of selected trasncript (example of list in ./dataTest/transcriptsToSelect.txt)`
 
 ### create the transcripts information
 
-This file is provide in this repository at */refData/RefSpliceLauncher.txt*  
+This file is provide in this repository at [RefSpliceLauncher.txt](http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline/tree/master/refData/RefSpliceLauncher.txt "tittle")  
 
 If you wish to generate new transcripts information file, **at first step** you need to download the RefSeq annotation database from [UCSC table browser](https://genome.ucsc.edu/cgi-bin/hgTables "tittle"), with hg19 example:
 
@@ -222,7 +223,7 @@ After download the file, uncompress it by `gunzip RefSeqAnnot.txt.gz`
 
 **In the second step**, convert this file in the transcript information file by the command:
 
-    Rscript ./scripts/generateSpliceLauncherRef.r -i /path/to/RefSeqAnnot.txt -o ./RefSpliceLauncher.txt
+    `Rscript ./scripts/generateSpliceLauncherRef.r -i /path/to/RefSeqAnnot.txt -o ./RefSpliceLauncher.txt`
 
 
 ## Run SpliceLauncher Pipeline
@@ -254,13 +255,13 @@ After running, two folders and one file are created in the directory output. The
 
 ---
 
-To launch SpliceLauncher analysis, you need the matrix count and the transcript information file. An example of these two files is provide in *./dataTest/MatrixCountExample.txt* and *./refData/RefSpliceLauncher.txt* respectively.
+To launch SpliceLauncher analysis, you need the matrix count and the transcript information file. An example of these two files is provide in [MatrixCountExample.txt](http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline/tree/master/dataTest/MatrixCountExample.txt "tittle") and [RefSpliceLauncher.txt](http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline/tree/master/refData/RefSpliceLauncher.txt "tittle") respectively.
 
 An example of SpliceLauncher command:
 
-    cd /path/to/SpliceLauncher/
-    Rscript ./SpliceLauncher -I ./dataTest/MatrixCountExample.txt -R ./refData/RefSpliceLauncher.txt -O ./testSpliceLauncher
+    cd /path/to/splicelauncherpipeline/
+    `Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/RefSpliceLauncher.txt -O ./`
 
- All results (Excel file and pdf illustrations) are save in the folder *testSpliceLauncher_results*.
+ All results (Excel file and pdf illustrations) are save in the folder *MatrixCountExample_results*.
 
 
