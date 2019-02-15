@@ -130,7 +130,7 @@ From [UCSC](http://hgdownload.soe.ucsc.edu/downloads.html#human "tittle"), with 
     cd /path/to/splicelauncherpipeline/
     mkdir ./fastaGenome
     cd ./fastaGenome
-    `wget --timestamping ftp://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/chromFa.tar.gz -O chromFa.tar.gz`
+    wget --timestamping ftp://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/chromFa.tar.gz -O chromFa.tar.gz
     tar xvzf ./chromFa.tar.gz
     cd ..
 
@@ -197,9 +197,9 @@ At this step you can also define a list of transcripts to get only the splicing 
 If you wish to generate new exon BED annotations, you can use the RefSeqAnnot.bed file generated in the **STAR genome** section.  
 the command is:
 
-    `Rscript ./scripts/generateExonBEDRef.r -i /path/to/RefSeqAnnot.bed \`
-     `-o ./RefExons.bed \`
-     `-t /path/to/transcriptsList.txt #optional, the list of selected trasncript (example of list in ./dataTest/transcriptsToSelect.txt)`
+    Rscript ./scripts/generateExonBEDRef.r -i /path/to/RefSeqAnnot.bed \
+     -o ./RefExons.bed \
+     -t /path/to/transcriptsList.txt #optional, the list of selected trasncript (example of list in ./dataTest/transcriptsToSelect.txt)
 
 ### create the transcripts information
 
@@ -223,7 +223,7 @@ After download the file, uncompress it by `gunzip RefSeqAnnot.txt.gz`
 
 **In the second step**, convert this file in the transcript information file by the command:
 
-    `Rscript ./scripts/generateSpliceLauncherRef.r -i /path/to/RefSeqAnnot.txt -o ./RefSpliceLauncher.txt`
+    Rscript ./scripts/generateSpliceLauncherRef.r -i /path/to/RefSeqAnnot.txt -o ./RefSpliceLauncher.txt
 
 
 ## Run SpliceLauncher Pipeline
@@ -260,7 +260,7 @@ To launch SpliceLauncher analysis, you need the matrix count and the transcript 
 An example of SpliceLauncher command:
 
     cd /path/to/splicelauncherpipeline/
-    `Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/RefSpliceLauncher.txt -O ./`
+    Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/RefSpliceLauncher.txt -O ./
 
  All results (Excel file and pdf illustrations) are save in the folder *MatrixCountExample_results*.
 
