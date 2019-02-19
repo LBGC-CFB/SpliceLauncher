@@ -39,6 +39,8 @@ helpMessage="Usage: SpliceLauncher.r\n
         \t\tSample names, '|'-separated, by default use the sample file names\n
         \t[-t|--MergeTranscrit]
         \t\tMerge transcripts to have one transcript by gene\n
+        \t[-b|--BEDannot]
+        \t\tget the output in BED format\n
         \t[-g|--Graphics]
         \t\tDisplay graphics of alternative junctions\n
         \t[--threshold 1]
@@ -61,6 +63,7 @@ if (length(args)<3){message(helpMessage);stop()}
 #default Parameters
 EchName=NULL
 mergeTranscrit='NO'
+checkBEDannot="NO"
 DisplayGraph='NO'
 thr=1
 StatAnalysis='NO'
@@ -80,6 +83,8 @@ while (i <= length(args)){
         EchName=args[i+1];i = i+2
     }else if(args[i]=="-t"|args[i]=="--MergeTranscrit"){
         mergeTranscrit="YES";i = i+1
+    }else if(args[i]=="-b"|args[i]=="--BEDannot"){
+        checkBEDannot="YES";i = i+1
     }else if(args[i]=="-g"|args[i]=="--Graphics"){
         DisplayGraph="YES";i = i+1
     }else if(args[i]=="--threshold"){
@@ -107,6 +112,7 @@ message(paste("Sample Name:",EchName))
 message(paste("RefSeq Annot:",RefFile))
 message(paste("Output directory:",outputDir))
 message(paste("Merge Transcript:",mergeTranscrit))
+message(paste("BED annotation:",checkBEDannot))
 message(paste("Display graphics:",DisplayGraph))
 message(paste("Threshold:",thr))
 message(paste("Statistical analysis:",StatAnalysis))
@@ -1050,6 +1056,48 @@ nbTimes <- function(x){length(x[x!=0])}
 data_junction$nbSamp = apply(data_junction[,input],1,nbTimes)
 
 name_output=paste(run,"_outputR.xlsx",sep="")
+
+#get BED annot Junctions
+getBEDannot<-function(chr,start,end,name,strand,cStart,cEnd,meanP,rowSamples,calcul){
+    #get RGB
+    ind=1:length(chr)
+    ind=ind[order(meanP,decreasing = TRUE)]
+    sortCalc = calcul[order(meanP,decreasing = TRUE)]
+    nJunc=table(calcul)
+    intCol = seq(from=240,to=0,by=-10)
+    sizeSE = ceiling(as.numeric(nJunc["b"])/length(intCol))
+    sizeSA = ceiling(as.numeric(nJunc["e"])/length(intCol))
+    sizeSD = ceiling(as.numeric(nJunc["d"])/length(intCol))
+    rangSE = rep(intCol,each=sizeSE)
+    rangSA = rep(intCol,each=sizeSA)
+    rangSD = rep(intCol,each=sizeSD)
+    rgbSE = paste(max(intCol)-rangSE,max(intCol)-rangSE,255,sep=",")[1:nJunc["b"]]
+    rgbSA = paste(max(intCol)-rangSA,255,max(intCol)-rangSA,sep=",")[1:nJunc["e"]]
+    rgbSD = paste(255,max(intCol)-rangSD,max(intCol)-rangSD,sep=",")[1:nJunc["d"]]
+    rgb = rep("0,0,0",length(chr))
+    rgb[ind[sortCalc=="b"]]=rgbSE
+    rgb[ind[sortCalc=="e"]]=rgbSA
+    rgb[ind[sortCalc=="d"]]=rgbSD
+    #get annot
+    annot = apply(rowSamples,1,function(x){paste(paste(SampleOutput,x,sep=": "),collapse="|")})
+    #get BED
+    bedAnnot = c(paste("track name=",run,
+                    " type=bedDetail description=\"Alternative junction from ",run,
+                    " RNAseq\" db=hg19 itemRgb=\"On\" visibility=\"full\"",sep=""),
+                paste(as.character(chr), start, end,name,meanP,as.character(strand),start,end,rgb,1,
+                    paste(cStart,cEnd,sep="_"),annot,sep="\t"))
+    return(bedAnnot)
+}
+
+if(checkBEDannot=="YES"){
+    message("Get BED annot...")
+    bedAnnot = getBEDannot(data_junction$chr[calcul!="Physio"&calcul!="NoData"],data_junction$start[calcul!="Physio"&calcul!="NoData"],
+                            data_junction$end[calcul!="Physio"&calcul!="NoData"],data_junction$AnnotJuncs[calcul!="Physio"&calcul!="NoData"],
+                            data_junction$strand[calcul!="Physio"&calcul!="NoData"],data_junction$cStart[calcul!="Physio"&calcul!="NoData"],
+                            data_junction$cEnd[calcul!="Physio"&calcul!="NoData"],data_junction$mean_pourcentage[calcul!="Physio"&calcul!="NoData"],
+                            data_junction[calcul!="Physio"&calcul!="NoData",SampleOutput],data_junction$calcul[calcul!="Physio"&calcul!="NoData"])
+    cat(bedAnnot,file=paste(chem_results,run,".bed",sep=""),sep="\n")
+}
 
 checkSizeOutput <- function(data){
 	if (nrow(data)>1000000){
