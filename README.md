@@ -1,4 +1,4 @@
-# SpliceLauncher  
+# SpliceLauncher
 
 ---
 
@@ -7,7 +7,7 @@ The RNAseq pipeline tool to study the alternative splicing
 > **Cite as:** SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data. *Raphaël Leman, Grégoire Davy, Antoine Rousselain, Alexandre Atkinson, Sophie Krieger*
 
 
-## Repository contents  
+## Repository contents
 
 ---
 
@@ -19,30 +19,30 @@ The RNAseq pipeline tool to study the alternative splicing
 
 ---
 
-The SpliceLauncher pipeline needs to start from fastq files  
+The SpliceLauncher pipeline needs to start from fastq files
 The tools:
 
-* STAR  
-* samtools  
-* BEDtools  
+* STAR
+* samtools
+* BEDtools
 
 The reference files:
 
-* the human genome assembly  
-* the exons annotations  
-* the transcripts information  
+* the human genome assembly
+* the exons annotations
+* the transcripts information
 
 An example of these two last files is provide in the [refData folder](http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline/tree/master/refData "tittle")
 
-### install STAR, samtools, BEDtools  
+### install STAR, samtools, BEDtools
 
 ---
 
 To use SpliceLauncher pipeline please install the three tools: STAR, samtools, BEDtools
 
-### STAR  
+### STAR
 
-#### these following instruction were from the [STAR manual](https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf "Title")  
+#### these following instruction were from the [STAR manual](https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf "Title")
 
 Get the g++ compiler for linux
 
@@ -50,13 +50,13 @@ Get the g++ compiler for linux
     sudo apt-get install g++
     sudo apt-get install make
 
-Download the [latest release](https://github.com/alexdobin/STAR/releases "Title") from and uncompress it 
+Download the [latest release](https://github.com/alexdobin/STAR/releases "Title") from and uncompress it
 
     # Get latest STAR source from releases
     wget https://github.com/alexdobin/STAR/archive/2.7.0c.tar.gz
     tar -xzf 2.7.0c.tar.gz
     cd STAR-2.7.0c
-    
+
     # Alternatively, get STAR source using git
     git clone https://github.com/alexdobin/STAR.git
 
@@ -66,9 +66,9 @@ Compile under Linux
     cd STAR/source
     make STAR
 
-### Samtools  
+### Samtools
 
-Download the samtools package at: http://www.htslib.org/download/  
+Download the samtools package at: http://www.htslib.org/download/
 
 Configure samtools for linux:
 
@@ -90,7 +90,7 @@ Installation of BEDtools for linux:
 
 For more information, please see the [BEDtools tutorial](http://quinlanlab.org/tutorials/bedtools/bedtools.html "tittle")
 
-## install R libraries  
+## install R libraries
 
 ---
 
@@ -98,20 +98,18 @@ Open the R console:
 
     install.packages("WriteXLS")
 
-    install.packages("optparse")
-
     install.packages("Cairo")
 
 **NB:** SpliceLauncher pipeline requires also the perl compiler but not particular perl libraries
 
-## Download SpliceLauncher pipeline  
+## Download SpliceLauncher pipeline
 
 ---
 
     git clone http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline
     cd ./splicelauncherpipeline
 
-## Make the reference files  
+## Make the reference files
 
 ---
 
@@ -180,7 +178,7 @@ the generated file is an sjdb file that will use by STAR to get the junction rea
 **Second step, we create the genome STAR files**
 
     mkdir ./genomeSTAR
-    /path/to/STAR \ 
+    /path/to/STAR \
      --runMode genomeGenerate \
      --runThreadN 5 #define here the number of thread to use \
      --genomeDir ./genomeSTAR \
@@ -191,10 +189,10 @@ the generated file is an sjdb file that will use by STAR to get the junction rea
 
 ### create exon BED annotations
 
-This file is provide in this repository at [refExons.bed](http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline/tree/master/refData/refExons.bed "tittle")  
+This file is provide in this repository at [refExons.bed](http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline/tree/master/refData/refExons.bed "tittle")
 
 At this step you can also define a list of transcripts to get only the splicing junctions on these transcripts (especially for targeted RNAseq). An list example is provide in [transcriptsToSelect.txt](http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline/tree/master/dataTest/transcriptsToSelect.txt "tittle").
-If you wish to generate new exon BED annotations, you can use the RefSeqAnnot.bed file generated in the **get RefSeq annot BED file** section.  
+If you wish to generate new exon BED annotations, you can use the RefSeqAnnot.bed file generated in the **get RefSeq annot BED file** section.
 the command is:
 
     Rscript ./scripts/generateExonBEDRef.r -i /path/to/RefSeqAnnot.bed \
@@ -203,7 +201,7 @@ the command is:
 
 ### create the transcripts information
 
-This file is provide in this repository at [RefSpliceLauncher.txt](http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline/tree/master/refData/RefSpliceLauncher.txt "tittle")  
+This file is provide in this repository at [RefSpliceLauncher.txt](http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline/tree/master/refData/RefSpliceLauncher.txt "tittle")
 
 If you wish to generate new transcripts information file, **at first step** you need to download the RefSeq annotation database from [UCSC table browser](https://genome.ucsc.edu/cgi-bin/hgTables "tittle"), with hg19 example:
 
@@ -234,7 +232,7 @@ The pipeline works in two step, fisrt step is to get the read count matrix from 
 
 ### get the read count from fastq files
 
-This part of the pipeline is in the shell script **_pipelineRNAseq.sh_**  
+This part of the pipeline is in the shell script **_pipelineRNAseq.sh_**
 To see the different options of this script `pipelineRNAseq.sh --help`
 
 With the example data provided in this repository, single end RNAseq (2x75pb) on *BRCA1* and *BRCA2* transcripts:
@@ -263,5 +261,3 @@ An example of SpliceLauncher command:
     Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/RefSpliceLauncher.txt -O ./
 
  All results (Excel file and pdf illustrations) are save in the folder *MatrixCountExample_results*.
-
-
