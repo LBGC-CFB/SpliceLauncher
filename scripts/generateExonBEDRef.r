@@ -1,36 +1,45 @@
 #!/usr/bin/Rscript
 options(scipen=50)
 
-tryCatch({
-library("optparse")
-},
-	error=function(cond) {
-		message("Here's the original error message:")
-		message(cond)
-		message("*****You need to install \'optparse\' library")
-})
-
 #############################################################
 #Convert RefSeq BED file into BED file for BEDTools analysis#
 #############################################################
+helpMessage="Usage: generateExonBEDRef.r\n
+    [Mandatory] \n
+        \t[-i|--input /path/to/inputFile]
+        \t\tRefSeq BED database, downloadable at UCSC: https://genome.ucsc.edu/cgi-bin/hgTables\n
+        \t[-o|--output /path/to/outputFile]
+        \t\tOutput to exon BED file\n
+    [Options] \n
+        \t[-t|--transcript]
+        \t\tList of target transcripts in txt file\n
+        \t[-h|--help]
+        \t\tprint this help message and exit\n
+   You could : Rscript generateExonBEDRef.r -i ./RefSeqAnnot.bed -o ./RefExons.bed"
 
-option_list = list(make_option(opt_str = c("-i","--input"), action="store", type="character", default=NULL,
-						help="RefSeq BED database", metavar="character"),
-					make_option(c("-o",'--output'), type="character", default=NULL,
-						help="output to exon BED file", metavar="character"),
-					 make_option(c("-t",'--transcript'), type="character", default="no file",
-						help="target transcripts in txt file  [default= %default]", metavar="character")
-)
+#get script argument
+transcript=NULL
+args <- commandArgs(trailingOnly = TRUE)
 
-opt_parser = OptionParser(option_list=option_list)
-opt = parse_args(opt_parser)
-if(is.null(opt$input)|is.null(opt$output)){
-	print_help(opt_parser)
-	stop()
+if (length(args)<2){message(helpMessage);stop()}
+
+i=1
+while (i <= length(args)){
+    if(args[i]=="-i"|args[i]=="--input"){
+        inputFile=normalizePath(path=args[i+1]);i = i+2
+    }else if(args[i]=="-o"|args[i]=="--output"){
+        outputFile=args[i+1];i = i+2
+    }else if(args[i]=="-t"|args[i]=="--MergeTranscrit"){
+        transcript=normalizePath(args[i+1]);i = i+2
+    }else if(args[i]=="-h"|args[i]=="--help"){
+        message(helpMessage);stop()
+    }else{
+        message(paste("********Unknown option:",args[i],"\n"));message(helpMessage);stop()
+    }
 }
 
-inputFile <- opt$input
-outputFile <- opt$output
+message(paste("Input:",inputFile))
+message(paste("Output:",outputFile))
 
 message("import RefSeq BED file...")
 dataRefSeq = read.table(inputFile,header=F, sep="\t")
@@ -38,9 +47,9 @@ dataRefSeq[,4] = as.character(dataRefSeq[,4])
 a = unlist(strsplit(dataRefSeq[,4],".",fixed=T))
 dataRefSeq[,4] = a[grep("_",a)]
 
-if(opt$transcript!="no file"){
+if(!is.null(transcript)){
 	message("select the targeted transcripts...")
-	SelectTranscrit = readLines(opt$transcript)
+	SelectTranscrit = readLines(transcript)
 	dataRefSeq = dataRefSeq[which(dataRefSeq$V4%in%SelectTranscrit),]
 }
 

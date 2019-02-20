@@ -1,33 +1,39 @@
 #!/usr/bin/Rscript
 options(scipen=50)
 
-tryCatch({
-library("optparse")
-},
-	error=function(cond) {
-		message("Here's the original error message:")
-		message(cond)
-		message("*****You need to install \'optparse\' library")
-})
-
 ##########################################################
 #Convert RefSeq database into Ref file for SpliceLauncher#
 ##########################################################
+helpMessage="Usage: generateSpliceLauncherRef.r\n
+    [Mandatory] \n
+        \t[-i|--input /path/to/inputFile]
+        \t\tRefSeq txt database, downloadable at UCSC: https://genome.ucsc.edu/cgi-bin/hgTables\n
+        \t[-o|--output /path/to/outputFile]
+        \t\tOutput to SpliceLauncher reference file\n
+        \t[-h|--help]
+        \t\tprint this help message and exit\n
+   You could : Rscript generateSpliceLauncherRef.r -i ./RefSeqAnnot.txt -o ./RefSpliceLauncher.txt"
 
-option_list = list(make_option(opt_str = c("-i","--input"), action="store", type="character", default=NULL,
-						help="RefSeq txt database", metavar="character"),
-					make_option(c("-o",'--output'), type="character", default=NULL,
-						help="output to SpliceLauncher file", metavar="character")
-)
+#get script argument
+args <- commandArgs(trailingOnly = TRUE)
 
-opt_parser = OptionParser(option_list=option_list)
-opt = parse_args(opt_parser)
-if(is.null(opt$input)|is.null(opt$output)){
-	print_help(opt_parser)
-	stop()
+if (length(args)<2){message(helpMessage);stop()}
+
+i=1
+while (i <= length(args)){
+    if(args[i]=="-i"|args[i]=="--input"){
+        inputFile=normalizePath(path=args[i+1]);i = i+2
+    }else if(args[i]=="-o"|args[i]=="--output"){
+        outputFile=args[i+1];i = i+2
+    }else if(args[i]=="-h"|args[i]=="--help"){
+        message(helpMessage);stop()
+    }else{
+        message(paste("********Unknown option:",args[i],"\n"));message(helpMessage);stop()
+    }
 }
-inputFile <- opt$input
-outputFile <- opt$output
+
+message(paste("Input:",inputFile))
+message(paste("Output:",outputFile))
 
 message("Import RefSeq data...")
 dataRefSeq = read.table(inputFile,header=F, sep="\t")
