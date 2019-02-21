@@ -198,6 +198,7 @@ the command is:
     Rscript ./scripts/generateExonBEDRef.r -i /path/to/RefSeqAnnot.bed \
      -o ./RefExons.bed \
      -t /path/to/transcriptsList.txt #optional, the list of selected trasncript (example of list in ./dataTest/transcriptsToSelect.txt)
+    sort -k1,1 -k2,2n ./RefExons.bed > ./RefExons.bed
 
 ### create the transcripts information
 
