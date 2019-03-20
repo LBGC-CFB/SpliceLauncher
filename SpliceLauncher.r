@@ -138,12 +138,16 @@ message("######################")
 T1<-Sys.time()
 tmp=read.table(file=inputFile, sep="\t", header=T)
 
-SampleInput=names(tmp)[c(7:dim(tmp)[2])]
+SampleInput=names(tmp)[c(7:ncol(tmp))]
 
 if(!is.null(EchName)){
+    EchName = unlist(strsplit(EchName,"|",fixed=TRUE))
 	if(length(SampleInput)!=length(EchName)){
 		stop("***** All sample were not named")
-	}
+	}else{
+        SampleInput = EchName
+        names(tmp)[c(7:ncol(tmp))] = SampleInput
+    }
 }else{
 	EchName = SampleInput
 }
@@ -1060,6 +1064,7 @@ name_output=paste(run,"_outputR.xlsx",sep="")
 #get BED annot Junctions
 getBEDannot<-function(chr,start,end,name,strand,cStart,cEnd,meanP,rowSamples,calcul){
     #get RGB
+    meanP[is.na(meanP)]=0
     ind=1:length(chr)
     ind=ind[order(meanP,decreasing = TRUE)]
     sortCalc = calcul[order(meanP,decreasing = TRUE)]
