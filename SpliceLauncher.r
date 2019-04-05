@@ -401,7 +401,7 @@ getAnnotJuncs <- function(Start, End){
 					}
 					calcul="d"
 				}else{
-					nameJunc = "Too complex event"
+					nameJunc = "Event too complex"
 				}
 			}
 		}else if (strand == "-"){
@@ -515,7 +515,7 @@ getAnnotJuncs <- function(Start, End){
 					}
 					calcul="d"
 				}else{
-					nameJunc = "Too complex event"
+					nameJunc = "Event too complex"
 				}
 			}
 		}
