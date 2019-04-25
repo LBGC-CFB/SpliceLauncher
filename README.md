@@ -107,7 +107,7 @@ Open the R console:
 ---
 
     git clone https://github.com/raphaelleman/SpliceLauncher
-    cd ./splicelauncherpipeline
+    cd ./SpliceLauncher
 
 ## Make the reference files
 
@@ -125,7 +125,7 @@ To create STAR genome you will need :
 From [UCSC](http://hgdownload.soe.ucsc.edu/downloads.html#human "tittle"), with hg19 example:
 
     #the ftp URL depends on your assembly genome choice
-    cd /path/to/splicelauncherpipeline/
+    cd /path/to/SpliceLauncher/
     mkdir ./fastaGenome
     cd ./fastaGenome
     wget --timestamping ftp://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/chromFa.tar.gz -O chromFa.tar.gz
@@ -172,7 +172,7 @@ After download the file, uncompress it by `gunzip RefSeqAnnot.bed.gz`
 **First step, we create the intron coordinates file from BED RefSeq file**
 the generated file is an sjdb file that will use by STAR to get the junction reads
 
-    cd /path/to/splicelauncherpipeline/
+    cd /path/to/SpliceLauncher/
     Rscript ./scripts/generateRefSeqsjdb.r -i /path/to/RefSeqAnnot.bed -o ./RefSeqAnnot.sjdb
 
 **Second step, we create the genome STAR files**
@@ -258,7 +258,7 @@ To launch SpliceLauncher analysis, you need the matrix count and the transcript 
 
 An example of SpliceLauncher command:
 
-    cd /path/to/splicelauncherpipeline/
+    cd /path/to/SpliceLauncher/
     Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/RefSpliceLauncher.txt -O ./
 
  All results (Excel file and pdf illustrations) are save in the folder *MatrixCountExample_results*.
