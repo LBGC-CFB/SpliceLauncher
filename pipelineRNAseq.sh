@@ -1,21 +1,50 @@
+#########################
+#RNAseq pipeline
+#########################
+
+#author Raphael Leman r.leman@baclesse.unicancer.fr, Center François Baclesse and Normandie University, Unicaen, Inserm U1245
+#Copyright 2019 Center François Baclesse and Normandie University, Unicaen, Inserm U1245
+
+#This software was developed from the work:
+#SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data.
+#Raphaël Leman, Grégoire Davy, Valentin Harter, Antoine Rousselin, Alexandre Atkinson, Laurent Castéra, Dominique Vaur,
+#Fréderic Lemoine, Pierre De La Grange, Sophie Krieger
+
+#Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
+#to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute,
+#sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+#The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+#FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+#WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #!/usr/bin/bash
 
 ################
 #Set parameters#
 ################
+
+threads="1"
+endType="single"
+workFolder=$(readlink -f $(dirname $0))
+ScriptPath=${workFolder}/"scripts"
 messageHelp="Usage: $0\n
+
     [Mandatory] \n
-        \t[-F|--fastq /path/to/fastq/] \n
-        \t[-O|--output /path/to/output/] \n
-        \t[-g|--genome /path/to/genome] \n
-        \t[--star /path/to/STAR] \n
-        \t[--samtools /path/to/samtools] \n
-        \t[--bedtools /path/to/bedtoolsFolder/] \n
-        \t[--bedannot /path/to/bedannot] \n
-    [Options] \n
-        \t[-p paired-end analysis] \n
-        \t[-t|--threads <int>] \n
-        \t[--perlscript /path/to/perlscript/] \n
+        \t-F, --fastq /path/to/fastq/\n\t\trepository of the FASTQ files\n
+        \t-O, --output /path/to/output/\n\t\trepository of the output files\n
+        \t-g, --genome /path/to/genome\n\t\tpath to the STAR genome\n
+        \t--star /path/to/STAR\n\t\tpath to the STAR executable\n
+        \t--samtools /path/to/samtools\n\t\tpath to samtools executable\n
+        \t--bedtools /path/to/bedtoolsFolder/\n\t\tpath to repository of bedtools executables\n
+        \t--bedannot /path/to/bedannot\n\t\tpath to exon coordinates (in BED format)\n
+    [Options]\n
+        \t-p paired-end analysis\n\t\tprocesses to paired-end analysis [default: ${endType}]\n
+        \t-t, --threads N\n\t\tNb threads used for the alignment[default: ${threads}]\n
+        \t--perlscript /path/to/perlscript/\n\t\trepository of perl scripts used by the pipeline [default: ${ScriptPath}]\n\n
    You could : $0 -F /patho/to/FASTQfolder/ -O /path/to/output/ -g /path/to/STARgenome/ --star /path/to/STAR
    --samtools /path/to/samtools --bedtools /path/to/BEDtools/bin/ --bedannot /path/to/BEDannot"
 
@@ -23,11 +52,6 @@ if [ $# -lt 8 ]; then
     echo -e $messageHelp
     exit
 fi
-
-threads="1"
-endType="single"
-workFolder=$(readlink -f $(dirname $0))
-ScriptPath=${workFolder}/"scripts"
 
 while [[ $# -gt 0 ]]; do
    key=$1
@@ -154,17 +178,8 @@ else
 fi
 
 ###########################
-# Alignement STAR v.2.6.0 #
+# Alignment STAR
 ###########################
-
-##Parametres choisis##
-# outSAMstrandField : intronMotif
-# outFilterMismatchNmax : Nombre de mismatch autoris�s "2"
-# outFilterMultimapNmax : 10
-# runThreadN : Nombre de coeurs � allouer "2"
-# outSAMunmapped : les reads non mapp�s ne sont pas "transform�s" en fichier sam "Within"
-# outStd : Fichier de sortie ".sam" (NB : dans la nouvelle version de STAR, la sortie peut �tre en bam)
-# genomeLoad : Gestion de la m�moire lors du chargement du g�nome "LoadAndKeep"
 
 echo "###### Aligment process ######"
 
@@ -176,6 +191,7 @@ mkdir -p ${BamPath}
 
 cd ${pathToFastq}
 
+echo "###### FASTQ files ######"
 ls $pathToFastq
 
 # unload genome reference of any last run
@@ -238,7 +254,6 @@ fi
 # unload genome reference from shared memory
 ${STARPath} --genomeDir ${genomeDirectory} --genomeLoad Remove
 
-## Transformation des fichers sam en bam, trie, cr�ation de l'index
 echo "###### Make BAM index ######"
 
 cd $BamPath
@@ -248,7 +263,7 @@ for file in *sortedByCoord.out.bam; do
 done
 
 #######################################################
-#Creation fichier BAM sens et anti-sens et fichier BED#
+#Creating forward and reverse BAM and BED files
 #######################################################
 echo "###### Make BED file and junction count ######"
 
@@ -304,7 +319,7 @@ else
 fi
 
 #######################
-#fin comptage jonction#
+#Final count
 #######################
 echo "###### Merge the junction counts ######"
 
