@@ -17,7 +17,7 @@ library(Cairo)
 		message(cond)
 		message("*****You need to install \'Cairo\' library")
 })
-message("SpliceLauncherV0.3")
+message("SpliceLauncherV1.0")
 
 #####################
 #import of arguments#
@@ -28,32 +28,20 @@ message("SpliceLauncherV0.3")
 
 helpMessage="Usage: SpliceLauncher.r\n
     [Mandatory] \n
-        \t[-I|--input /path/to/inputFile]
-        \t\tRead count matrix (.txt)\n
-        \t[-R|--RefSeqAnnot /path/to/RefSpliceLauncher.txt]
-        \t\tRefSeq annotation file name\n
-        \t[-O|--output /path/to/output/]
-        \t\tDirectory to save the results\n
+        -I, --input /path/to/inputFile\n\t\tRead count matrix (.txt)
+        -R, --RefSeqAnnot /path/to/RefSpliceLauncher.txt\n\t\tRefSeq annotation file name
+        -O, --output /path/to/output/\n\t\tDirectory to save the results\n
     [Options] \n
-        \t[-S|--SampleNames name1|name2|name3]
-        \t\tSample names, '|'-separated, by default use the sample file names\n
-        \t[-t|--MergeTranscrit]
-        \t\tMerge transcripts to have one transcript by gene\n
-        \t[-b|--BEDannot]
-        \t\tget the output in BED format\n
-        \t[-g|--Graphics]
-        \t\tDisplay graphics of alternative junctions\n
-        \t[--threshold 1]
-        \t\tIf graphics, threshold to shown junctions (%) [default= 1]\n
-        \t[-s|--Statistical]
-        \t\tPerformed statistical analysis, requiers more than 5 samples\n
-        \t[-a|--Adjust TRUE]
-        \t\tIf statistics, adjustment of p-value ('TRUE'/'FALSE') [default= TRUE]\n
-        \t[-n|--NbIntervals 10]
-        \t\tIf statistics, Nb interval of Neg Binom (Integer) [default= 10]\n
-        \t[-h|--help]
-        \t\tprint this help message and exit\n
-   You could : Rscript SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/RefSpliceLauncher.txt -O ./outTestCrypt.txt"
+        -S, --SampleNames name1|name2|name3\n\t\tSample names, '|'-separated, by default use the sample file names
+        -t, --MergeTranscrit\n\t\tMerge transcripts to have one transcript by gene
+        -b, --BEDannot\n\t\tget the output in BED format
+        -g, --Graphics\n\t\tDisplay graphics of alternative junctions (Warnings: increase the runtime)
+        --threshold 1\n\t\tIf graphics, threshold to shown junctions (%) [default= 1]
+        -s, --Statistical\n\t\tPerformed statistical analysis, requiers more than 5 samples
+        -a, --Adjust TRUE\n\t\tIf statistics, adjustment of p-value ('TRUE'/'FALSE') [default= TRUE]
+        -n, --NbIntervals 10\n\t\tIf statistics, Nb interval of Neg Binom (Integer) [default= 10]\n
+    h, --help\n\t\tprint this help message and exit\n
+   You could : Rscript SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/RefSpliceLauncher.txt -O ./"
 
 #get script argument
 args <- commandArgs(trailingOnly = TRUE)
