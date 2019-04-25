@@ -32,7 +32,7 @@ The reference files:
 * the exons annotations
 * the transcripts information
 
-An example of these two last files is provide in the [refData folder](http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline/tree/master/refData "tittle")
+An example of these two last files is provide in the [refData folder](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData "tittle")
 
 ### install STAR, samtools, BEDtools
 
@@ -106,7 +106,7 @@ Open the R console:
 
 ---
 
-    git clone http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline
+    git clone https://github.com/raphaelleman/SpliceLauncher
     cd ./splicelauncherpipeline
 
 ## Make the reference files
@@ -189,9 +189,9 @@ the generated file is an sjdb file that will use by STAR to get the junction rea
 
 ### create exon BED annotations
 
-This file is provide in this repository at [refExons.bed](http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline/tree/master/refData/refExons.bed "tittle")
+This file is provide in this repository at [refExons.bed](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/refExons.bed "tittle")
 
-At this step you can also define a list of transcripts to get only the splicing junctions on these transcripts (especially for targeted RNAseq). An list example is provide in [transcriptsToSelect.txt](http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline/tree/master/dataTest/transcriptsToSelect.txt "tittle").
+At this step you can also define a list of transcripts to get only the splicing junctions on these transcripts (especially for targeted RNAseq). An list example is provide in [transcriptsToSelect.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/dataTest/transcriptsToSelect.txt "tittle").
 If you wish to generate new exon BED annotations, you can use the RefSeqAnnot.bed file generated in the **get RefSeq annot BED file** section.
 the command is:
 
@@ -202,7 +202,7 @@ the command is:
 
 ### create the transcripts information
 
-This file is provide in this repository at [RefSpliceLauncher.txt](http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline/tree/master/refData/RefSpliceLauncher.txt "tittle")
+This file is provide in this repository at [RefSpliceLauncher.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/RefSpliceLauncher.txt "tittle")
 
 If you wish to generate new transcripts information file, **at first step** you need to download the RefSeq annotation database from [UCSC table browser](https://genome.ucsc.edu/cgi-bin/hgTables "tittle"), with hg19 example:
 
@@ -254,7 +254,7 @@ After running, two folders and one file are created in the directory output. The
 
 ---
 
-To launch SpliceLauncher analysis, you need the matrix count and the transcript information file. An example of these two files is provide in [MatrixCountExample.txt](http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline/tree/master/dataTest/MatrixCountExample.txt "tittle") and [RefSpliceLauncher.txt](http://gitlab.baclesse.fr/LEMRAP/splicelauncherpipeline/tree/master/refData/RefSpliceLauncher.txt "tittle") respectively.
+To launch SpliceLauncher analysis, you need the matrix count and the transcript information file. An example of these two files is provide in [MatrixCountExample.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/dataTest/MatrixCountExample.txt "tittle") and [RefSpliceLauncher.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/RefSpliceLauncher.txt "tittle") respectively.
 
 An example of SpliceLauncher command:
 
