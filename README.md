@@ -320,7 +320,30 @@ An example of SpliceLauncher command:
     cd /path/to/SpliceLauncher/
     Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/RefSpliceLauncher.txt -O ./
 
- The results are saved in the folder *MatrixCountExample_results*.
+ The results are saved in the folder *MatrixCountExample_results*. The scheme of this report is:
+
+| Column names | Example | Description |
+|------------:|:--------:|:------------:|
+| Conca | chr13_32915333_32920963 | The junction id (chr_start_end) |
+| chr | chr13 | Chromosome number |
+| start | 32915333 | Genomic coordinate of start junction<br/>End if on reverse strand |
+| end | 32920963 | Genomic coordinate of end junction<br/>Start if on reverse strand |
+| strand | + | Strand of the junction ('+': forward;<br/> '-':reverse) |
+| brin | forward | Strand of transcript |
+| NM | NM_000059 | The transcript id according RefSeq nomenclature |
+| Gene | BRCA2 | Gene symbol |
+| *Sample* | 2250 | Read count |
+| *P_Sample* | 15.25659623 | % of relative expression |
+| constitutive | NoPhysio | If junction supports the reference transcripts, Physio else NoPhyio |
+| calcul | SkipEx | The nature of junction:<br/>Physio: Natural junction<br/>SkipEx: Exon skipping<br/>5AS: Donor splice site shift<br/>3AS: Acceptor splice site shift<br/>NoData: Unannotated juntion |
+| AnnotJuncs | ∆12 | The junction names |
+| cStart | c.6841 | Transcriptomic start coordinate of the junction |
+| cEnd | c.6938 | Transcriptomic end coordinate of the junction |
+| mean_pourcentage | 12.60242 | Average in % of relative expression across samples |
+| read_mean | 2683.769231 | Average of read count across samples |
+| nbSamp | 11 | Number of time that the junction has been seen in samples |
+| DistribAjust | - | The Distribution of junction expression (Gamma/N.binom) |
+| Significative | NO | If a sample shown an abnormal expression of the junction |
 
 #### SpliceLauncher Options <a id="17"></a>
 
