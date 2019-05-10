@@ -7,10 +7,23 @@ The RNAseq pipeline tool to study the alternative splicing
 > **Cite as:** SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data. *Raphaël Leman, Grégoire Davy, Valentin Harter, Antoine Rousselin, Alexandre Atkinson, Laurent Castéra, Fréderic Lemoine, Pierre de la Grange, Dominique Vaur, Sophie Krieger*
 
 
-# Table
+**Table**
 
-## [Repository contents](#1)
-## [Install and configure SpliceLauncher pipeline](#2)
+* [Repository contents](#1)
+* [Install and configure SpliceLauncher pipeline](#2)
+    * [Install STAR, samtools, BEDtools](#3)
+        * [STAR](#4)
+        * [Samtools](#5)
+        * [BEDtools](#6)
+    * [Install R libraries](#7)
+    * [Download SpliceLauncher pipeline](#8)
+    * [Make the reference files](#9)
+        * [STAR genome](#10)
+        * [Create exon BED annotations](#11)
+        * [Create the transcripts information](#12)
+* [Run SpliceLauncher Pipeline](#13)
+    * [RNAseq pipeline, get the read count from fastq files](#14)
+    * [SpliceLauncher analysis](#15)
 
 ## Repository contents<a id="1"></a>
 
@@ -39,15 +52,15 @@ The reference files:
 
 An example of these two last files is provide in the [refData folder](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData "tittle")
 
-### install STAR, samtools, BEDtools
+### Install STAR, samtools, BEDtools <a id="3"></a>
 
 ---
 
 To use SpliceLauncher pipeline please install the three tools: STAR, samtools, BEDtools
 
-### STAR
+#### STAR <a id="4"></a>
 
-#### these following instruction were from the [STAR manual](https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf "Title")
+these following instruction were from the [STAR manual](https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf "Title")
 
 Get the g++ compiler for linux
 
@@ -71,7 +84,7 @@ Compile under Linux
     cd STAR/source
     make STAR
 
-### Samtools
+#### Samtools <a id="5"></a>
 
 Download the samtools package at: http://www.htslib.org/download/
 
@@ -84,7 +97,7 @@ Configure samtools for linux:
 
 For more information, please see the [samtools manual](http://www.htslib.org/doc/samtools.html "tittle")
 
-### BEDtools
+#### BEDtools <a id="6"></a>
 
 Installation of BEDtools for linux:
 
@@ -95,7 +108,7 @@ Installation of BEDtools for linux:
 
 For more information, please see the [BEDtools tutorial](http://quinlanlab.org/tutorials/bedtools/bedtools.html "tittle")
 
-## install R libraries
+### Install R libraries <a id="7"></a>
 
 ---
 
@@ -107,25 +120,25 @@ Open the R console:
 
 **NB:** SpliceLauncher pipeline requires also the perl compiler but not particular perl libraries
 
-## Download SpliceLauncher pipeline
+### Download SpliceLauncher pipeline <a id="8"></a>
 
 ---
 
     git clone https://github.com/raphaelleman/SpliceLauncher
     cd ./SpliceLauncher
 
-## Make the reference files
+### Make the reference files <a id="9"></a>
 
 ---
 
-### STAR genome
+#### STAR genome <a id="10"></a>
 To create STAR genome you will need :
 
 * genome fasta file
 * RefSeq annot GTF file
 * RefSeq annot BED file
 
-#### get genome fasta file
+##### Get genome fasta file
 
 From [UCSC](http://hgdownload.soe.ucsc.edu/downloads.html#human "tittle"), with hg19 example:
 
@@ -137,7 +150,7 @@ From [UCSC](http://hgdownload.soe.ucsc.edu/downloads.html#human "tittle"), with 
     tar xvzf ./chromFa.tar.gz
     cd ..
 
-#### get RefSeq annot GTF file
+##### Get RefSeq annot GTF file
 
 From [UCSC table browser](https://genome.ucsc.edu/cgi-bin/hgTables "tittle"), with hg19 example:
 
@@ -154,7 +167,7 @@ Options setting:
 
 After download the file, uncompress it by `gunzip RefSeqAnnot.gtf.gz`
 
-#### get RefSeq annot BED file
+##### Get RefSeq annot BED file
 
 From [UCSC table browser](https://genome.ucsc.edu/cgi-bin/hgTables "tittle"), with hg19 example:
 
@@ -172,7 +185,7 @@ Options setting:
 
 After download the file, uncompress it by `gunzip RefSeqAnnot.bed.gz`
 
-#### create STAR genome
+##### Create STAR genome
 
 **First step, generation of the intron coordinates file from BED RefSeq file**
 the generated file is an sjdb file that will use by STAR to get the junction reads
@@ -192,7 +205,7 @@ the generated file is an sjdb file that will use by STAR to get the junction rea
      --sjdbGTFfile /path/to/RefSeqAnnot.gtf \
      --sjdbOverhang 99
 
-### create exon BED annotations
+#### Create exon BED annotations <a id="11"></a>
 
 An example is provide in this repository at [refExons.bed](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/refExons.bed "tittle")
 
@@ -202,7 +215,7 @@ The command is:
     Rscript ./scripts/generateExonBEDRef.r -i /path/to/RefSeqAnnot.bed -o ./refExons.bed
     sort -k1,1 -k2,2n ./refExons.bed > ./refExons.bed
 
-### create the transcripts information
+#### Create the transcripts information <a id="12"></a>
 
 An example is provide in this repository at [RefSpliceLauncher.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/RefSpliceLauncher.txt "tittle")
 
@@ -227,13 +240,13 @@ After download the file, uncompress it by `gunzip RefSeqAnnot.txt.gz`
     Rscript ./scripts/generateSpliceLauncherRef.r -i /path/to/RefSeqAnnot.txt -o ./RefSpliceLauncher.txt
 
 
-## Run SpliceLauncher Pipeline
+## Run SpliceLauncher Pipeline <a id="13"></a>
 
 ---
 
 The pipeline works in two step, fisrt step is to get the read count matrix from fastq files, the second step is to process to SpliceLauncher analysis
 
-### get the read count from fastq files
+### RNAseq pipeline, get the read count from fastq files <a id="14"></a>
 
 This part of the pipeline is in the shell script **_pipelineRNAseq.sh_**
 To see the different options of this script `pipelineRNAseq.sh --help`
@@ -252,7 +265,7 @@ With the example data provided in this repository, single end RNAseq (2x75pb) on
 
 After running, two folders and one file are created in the directory output. The *Bam* folder contains the BAM files with their index and STAR log files. The folder *getClosestExons* contains the BED files and txt files that correspond to the junction coordinates and junction counts respectively. The file is the matrix count could be use by SpliceLauncher tool.
 
-### SpliceLauncher analysis
+### SpliceLauncher analysis <a id="15"></a>
 
 ---
 
