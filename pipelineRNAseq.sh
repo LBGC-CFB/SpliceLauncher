@@ -31,6 +31,7 @@ threads="1"
 endType="single"
 workFolder=$(readlink -f $(dirname $0))
 ScriptPath=${workFolder}/"scripts"
+BEDrefPath=${workFolder}/"refData/refExons.bed"
 messageHelp="Usage: $0\n
 
     [Mandatory] \n
@@ -40,10 +41,10 @@ messageHelp="Usage: $0\n
         \t--star /path/to/STAR\n\t\tpath to the STAR executable\n
         \t--samtools /path/to/samtools\n\t\tpath to samtools executable\n
         \t--bedtools /path/to/bedtoolsFolder/\n\t\tpath to repository of bedtools executables\n
-        \t--bedannot /path/to/bedannot\n\t\tpath to exon coordinates (in BED format)\n
     [Options]\n
         \t-p paired-end analysis\n\t\tprocesses to paired-end analysis [default: ${endType}]\n
         \t-t, --threads N\n\t\tNb threads used for the alignment[default: ${threads}]\n
+        \t--bedannot /path/to/bedannot\n\t\tpath to exon coordinates (in BED format) [default: ${BEDrefPath}]\n
         \t--perlscript /path/to/perlscript/\n\t\trepository of perl scripts used by the pipeline [default: ${ScriptPath}]\n\n
    You could : $0 -F /patho/to/FASTQfolder/ -O /path/to/output/ -g /path/to/STARgenome/ --star /path/to/STAR
    --samtools /path/to/samtools --bedtools /path/to/BEDtools/bin/ --bedannot /path/to/BEDannot"
@@ -110,9 +111,7 @@ while [[ $# -gt 0 ]]; do
        POSITIONAL+=("$key") # save it in an array for later
        echo -e "    Unknown option ${key}"
        shift # shift past argument
-#        exit # end of prog... here, bash
       ;;
-
    esac
 done
 
@@ -134,15 +133,15 @@ echo -e "    name of run = ${runName}"
 echo -e "    threads = ${threads}"
 echo -e "    end type analysis = ${endType}"
 
-chech_error=0 #stop program if chech_error = 1
-
 #check depository
-echo "####Check your option"
+check_error=0 #stop program if check_error = 1
+
+echo "####Check your options"
 for depository in ${pathToFastq} ${genomeDirectory}; do
     if [ ! -d $depository ]
         then
         echo -e "****You must define the depository : ${depository}****"
-        ${chech_error}=1
+        ${check_error}=1
     else
         echo "    The depository: ${depository}... OK"
     fi
@@ -151,8 +150,8 @@ done
 #check BED exon annotation
 if [ ! -e $BEDrefPath ]
 then
-   echo -e "****We cannot found the bedtools annot file at ${BEDrefPath}****"
-   ${chech_error}=1
+   echo -e "****We cannot find the bedtools annot file at ${BEDrefPath}****"
+   ${check_error}=1
 else
     echo "    The bedtools annot file: ${BEDrefPath}... OK"
 fi
@@ -164,10 +163,10 @@ for soft in ${SamtoolsPath} \
  "${ScriptPath}/joinJuncFiles.pl" \
  "${BEDtoolsPath}/bamToBed" \
  "${BEDtoolsPath}/closestBed" ; do
-    command -v ${soft} >/dev/null 2>&1 || { ${chech_error}=1; echo >&2 "I require ${soft} but it's not installed. Aborting.";}
+    command -v ${soft} >/dev/null 2>&1 || { ${check_error}=1; echo >&2 "****The ${soft} is required but it's not installed. Aborting.****";}
 done
 
-if [ ${chech_error} -eq 1 ]; then
+if [ ${check_error} -eq 1 ]; then
     echo -e $messageHelp
     exit 1;
 else
@@ -181,7 +180,7 @@ fi
 # Alignment STAR
 ###########################
 
-echo "###### Aligment process ######"
+echo "###### Alignment process ######"
 
 mkdir -p $RunPath
 
@@ -203,7 +202,7 @@ then
     for file in *1.fastq.gz; do
         if [ -e $file ]
         then
-            echo "traitement de $file..."
+            echo "treatment of $file..."
             ${STARPath} \
                 --outSAMstrandField intronMotif \
                 --outFilterMismatchNmax 2 \
@@ -219,7 +218,7 @@ then
                 --outFileNamePrefix ${BamPath}/${file%1.fastq.gz}. \
                 --genomeLoad LoadAndKeep > ${BamPath}/${file%1.fastq.gz}.log 2>&1
         else
-            echo -e "****the file $file dosn't exist, Please rename your file in XXXXX1(2).fastq.gz format****\n****XXXXX1.fastq.gz for R1 read and XXXXX2.fastq.gz for R2 read****"
+            echo -e "****the file $file doesn't exist, Please rename your file in XXXXX1(2).fastq.gz format****\n****XXXXX1.fastq.gz for R1 read and XXXXX2.fastq.gz for R2 read****"
             echo -e $messageHelp
             exit
         fi
@@ -229,7 +228,7 @@ else
     for file in *.fastq.gz; do
         if [ -e $file ]
         then
-            echo "traitement de $file..."
+            echo "treatment of $file..."
             ${STARPath} \
                 --outSAMstrandField intronMotif \
                 --outFilterMismatchNmax 2 \
@@ -245,7 +244,7 @@ else
                 --outFileNamePrefix ${BamPath}/${file%.fastq.gz}. \
                 --genomeLoad LoadAndKeep > ${BamPath}/${file%.fastq.gz}.log 2>&1
         else
-            echo "****the file $file don't exist, Please rename your file in XXXXX.fastq.gz****"
+            echo "****the file $file doesn't exist, Please rename your file in XXXXX.fastq.gz****"
             echo -e $messageHelp
             exit
         fi
@@ -258,14 +257,14 @@ echo "###### Make BAM index ######"
 
 cd $BamPath
 for file in *sortedByCoord.out.bam; do
-    echo "traitement de $file..."
+    echo "treatment of $file..."
     ${SamtoolsPath} index $file
 done
 
-#######################################################
-#Creating forward and reverse BAM and BED files
-#######################################################
-echo "###### Make BED file and junction count ######"
+#####################
+#Creating BED files
+#####################
+echo "###### Make BED files and junction count ######"
 
 ClosestExPath="${RunPath}getClosestExons"
 mkdir -p ${ClosestExPath}
@@ -275,13 +274,13 @@ cd $BamPath
 if [ $endType = "paired" ]
 then
     for file in *.Aligned.sortedByCoord.out.bam; do
-        echo "traitement de $file for forward read..."
+        echo "treatment of $file for forward read..."
         ${SamtoolsPath} view -b -f 0x40 $file | \
             ${BEDtoolsPath}/bamToBed -bed12 -i stdin | \
             awk '{if($10>1){print $0}}' | \
             perl ${ScriptPath}/bedBlocks2IntronsCoords.pl y - | \
             awk '{if($5==255){print $0}}'  > ${file%.Aligned.sortedByCoord.out.bam}_juncs.bed
-        echo "traitement de $file for reverse read..."
+        echo "treatment of $file for reverse read..."
         ${SamtoolsPath} view -b -f 0x80 $file | \
             ${BEDtoolsPath}/bamToBed -bed12 -i stdin | \
             awk '{if($10>1){print $0}}' | \
@@ -291,7 +290,7 @@ then
 
     echo "###### count junctions ######"
     for file in *_juncs.bed; do
-        echo "traitement de $file..."
+        echo "treatment of $file..."
         sort -k1,1 -k2,2n $file | \
             uniq -c | \
             awk 'BEGIN{OFS="\t"}{print $2,$3,$4,$5 "_" $1,$6,$7}' | \
@@ -302,7 +301,7 @@ then
     done
 else
     for file in *.Aligned.sortedByCoord.out.bam; do
-        echo "traitement de $file..."
+        echo "treatment of $file..."
         ${BEDtoolsPath}/bamToBed -bed12 -i $file | \
             awk '{if($10>1){print $0}}' | \
             perl ${ScriptPath}/bedBlocks2IntronsCoords.pl y - | \
