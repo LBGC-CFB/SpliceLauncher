@@ -7,7 +7,12 @@ The RNAseq pipeline tool to study the alternative splicing
 > **Cite as:** SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data. *Raphaël Leman, Grégoire Davy, Valentin Harter, Antoine Rousselin, Alexandre Atkinson, Laurent Castéra, Fréderic Lemoine, Pierre de la Grange, Dominique Vaur, Sophie Krieger*
 
 
-## Repository contents
+# Table
+
+## [Repository contents](#1)
+## [Install and configure SpliceLauncher pipeline](#2)
+
+## Repository contents<a id="1"></a>
 
 ---
 
@@ -15,7 +20,7 @@ The RNAseq pipeline tool to study the alternative splicing
 * refData: reference files that SpliceLauncher needs
 * scripts: complementary scripts to run SpliceLauncher pipeline
 
-## install and configure SpliceLauncher pipeline
+## Install and configure SpliceLauncher pipeline<a id="2"></a>
 
 ---
 
@@ -189,20 +194,17 @@ the generated file is an sjdb file that will use by STAR to get the junction rea
 
 ### create exon BED annotations
 
-This file is provide in this repository at [refExons.bed](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/refExons.bed "tittle")
+An example is provide in this repository at [refExons.bed](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/refExons.bed "tittle")
 
-At this step you can also define a list of transcripts to get only the splicing junctions on these transcripts (especially for targeted RNAseq). An list example is provide in [transcriptsToSelect.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/dataTest/transcriptsToSelect.txt "tittle").
 The exon BED annatations uses the RefSeqAnnot.bed file generated in the **get RefSeq annot BED file** section.
 The command is:
 
-    Rscript ./scripts/generateExonBEDRef.r -i /path/to/RefSeqAnnot.bed \
-     -o ./RefExons.bed \
-     -t /path/to/transcriptsList.txt #optional, the list of selected trasncript (example of list in ./dataTest/transcriptsToSelect.txt)
-    sort -k1,1 -k2,2n ./RefExons.bed > ./RefExons.bed
+    Rscript ./scripts/generateExonBEDRef.r -i /path/to/RefSeqAnnot.bed -o ./refExons.bed
+    sort -k1,1 -k2,2n ./refExons.bed > ./refExons.bed
 
 ### create the transcripts information
 
-This file is provide in this repository at [RefSpliceLauncher.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/RefSpliceLauncher.txt "tittle")
+An example is provide in this repository at [RefSpliceLauncher.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/RefSpliceLauncher.txt "tittle")
 
 **In first step**, you need to download the RefSeq annotation database from [UCSC table browser](https://genome.ucsc.edu/cgi-bin/hgTables "tittle"), with hg19 example:
 
@@ -262,3 +264,9 @@ An example of SpliceLauncher command:
     Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/RefSpliceLauncher.txt -O ./
 
  The results are saved in the folder *MatrixCountExample_results*.
+
+#### SpliceLauncher Options
+
+**-I, --input**
+The read count matrix used by SpliceLauncher
+**-O, --output**
