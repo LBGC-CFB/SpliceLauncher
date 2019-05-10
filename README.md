@@ -23,7 +23,9 @@ The RNAseq pipeline tool to study the alternative splicing
         * [Create the transcripts information](#12)
 * [Run SpliceLauncher Pipeline](#13)
     * [RNAseq pipeline, get the read count from fastq files](#14)
-    * [SpliceLauncher analysis](#15)
+        * [RNAseq pipeline Options](#15)
+    * [SpliceLauncher analysis](#16)
+        * [SpliceLauncher Options](#17)
 
 ## Repository contents<a id="1"></a>
 
@@ -138,7 +140,7 @@ To create STAR genome you will need :
 * RefSeq annot GTF file
 * RefSeq annot BED file
 
-##### Get genome fasta file
+**Get genome fasta file**
 
 From [UCSC](http://hgdownload.soe.ucsc.edu/downloads.html#human "tittle"), with hg19 example:
 
@@ -150,7 +152,7 @@ From [UCSC](http://hgdownload.soe.ucsc.edu/downloads.html#human "tittle"), with 
     tar xvzf ./chromFa.tar.gz
     cd ..
 
-##### Get RefSeq annot GTF file
+**Get RefSeq annot GTF file**
 
 From [UCSC table browser](https://genome.ucsc.edu/cgi-bin/hgTables "tittle"), with hg19 example:
 
@@ -167,7 +169,7 @@ Options setting:
 
 After download the file, uncompress it by `gunzip RefSeqAnnot.gtf.gz`
 
-##### Get RefSeq annot BED file
+**Get RefSeq annot BED file**
 
 From [UCSC table browser](https://genome.ucsc.edu/cgi-bin/hgTables "tittle"), with hg19 example:
 
@@ -185,7 +187,7 @@ Options setting:
 
 After download the file, uncompress it by `gunzip RefSeqAnnot.bed.gz`
 
-##### Create STAR genome
+**Create STAR genome**
 
 **First step, generation of the intron coordinates file from BED RefSeq file**
 the generated file is an sjdb file that will use by STAR to get the junction reads
@@ -265,7 +267,49 @@ With the example data provided in this repository, single end RNAseq (2x75pb) on
 
 After running, two folders and one file are created in the directory output. The *Bam* folder contains the BAM files with their index and STAR log files. The folder *getClosestExons* contains the BED files and txt files that correspond to the junction coordinates and junction counts respectively. The file is the matrix count could be use by SpliceLauncher tool.
 
-### SpliceLauncher analysis <a id="15"></a>
+#### RNAseq pipeline Options <a id="15"></a>
+
+**-F, --fastq**
+
++ The directory of FastQ files in *.fastq.gz format. If paired end analysis please names the files: XXXXXXX1.fastq.gz for read 1 and XXXXXXX2.fastq.gz for read 2.
+
+**-O, --output**
+
++ Directory of output files. If inexisting it creates the Directory.
+
+**--star**
+
++ Path to the STAR executable
+
+**-g, --genome**
+
++ Directory to the STAR genome (see [STAR genome](#10) section).
+
+**--samtools**
+
++ Directory to the SAMtools executable.
+
+**--bedtools**
+
++ Directory of the folder with BEDtools executables (pipeline used bamToBed and closestBed).
+
+**--bedannot**
+
++ Exon coordinates of transcripts described in RefSeq database (see [Create exon BED annotations](#11) section).
+
+**-p**
+
++ Process to a paired-end analysis
+
+**-t, --threads**
+
++ Number of CPUs used for the STAR alignment.
+
+**--perlscript**
+
++ Path to the Perl script used by the pipeline, by default they are in [scripts](https://github.com/raphaelleman/SpliceLauncher/tree/master/scripts "tittle") folder.
+
+### SpliceLauncher analysis <a id="16"></a>
 
 ---
 
@@ -278,8 +322,56 @@ An example of SpliceLauncher command:
 
  The results are saved in the folder *MatrixCountExample_results*.
 
-#### SpliceLauncher Options
+#### SpliceLauncher Options <a id="17"></a>
 
 **-I, --input**
-The read count matrix used by SpliceLauncher
+
++ The read count matrix file (see an example [MatrixCountExample.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/dataTest/MatrixCountExample.txt "tittle")) used by SpliceLauncher.
+
 **-O, --output**
+
++ The ouput directory. If inexisting SpliceLauncher create the Directory.
+
+**-R, --RefSeqAnnot**
+
++ The RefSeq database withe the transcript details (used by default: [RefSpliceLauncher.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/RefSpliceLauncher.txt "tittle")). To change this database please refer to [Create the transcripts information](#12) section.
+
+**-S, --SampleNames**
+
++ Permit to set the name of samples, used for the pdf files.
+
+**-m, --MergeTranscrit**
+
++ Set one transcripts per gene as reference to determine the alternative splicing.
+
+**-t, --TranscriptList**
+
++ Permits to set the reference transcripts to study the alternative splicing. Does not support several transcripts by gene (see an example [transcriptsToSelect.txt](https://github.com/raphaelleman/SpliceLauncher/blob/master/dataTest/transcriptsToSelect.txt "tittle")). The option *-m, --MergeTranscrit* cann't affect the gene with the selected transcripts.
+
+**--removeOther**
+
++ Remove genes that the transcripts are not in the list of reference transcripts.
+
+**-b, --BEDannot**
+
++ Generate a BED file of alternative splicing events, permits to plot the junction on a genome browser such as [UCSC Genome browser](https://genome.ucsc.edu/ "tittle").
+
+**-g, --Graphics**
+
++ Generate pdf file for each sample, plots the alternative splicing junctions on the reference transcripts. Warning, this option increases significantly the runtime.
+
+**--threshold**
+
++ Threshold (in percentage of relative expression) to display the alternative junctions in the pdf RefFiles
+
+**-s, --Statistical**
+
++ Launch the statistical analysis to detect junctions abnomarly expressed acroos samples, needs at least 5 samples in all to work.
+
+**-a, --Adjust**
+
++ Adjust the p-value by Bonferroni method.
+
+**-n, --NbIntervals**
+
++ Number of intervals used in estimation of Negative Binomial distribution
