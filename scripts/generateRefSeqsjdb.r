@@ -6,12 +6,12 @@ options(scipen=50)
 ###################################################################
 helpMessage="Usage: generateRefSeqsjdb.r\n
     [Mandatory] \n
-        \t[-i|--input /path/to/inputFile]
-        \t\tRefSeq BED database, downloadable at UCSC: https://genome.ucsc.edu/cgi-bin/hgTables\n
-        \t[-o|--output /path/to/outputFile]
-        \t\tOutput to the sjdb file\n
-        \t[-h|--help]
-        \t\tprint this help message and exit\n
+        -i, --input /path/to/inputFile
+            RefSeq BED database, downloadable at UCSC: https://genome.ucsc.edu/cgi-bin/hgTables\n
+        -o, --output /path/to/outputFile
+            Output to the sjdb file\n
+    -h, --help
+        print this help message and exit\n
    You could : Rscript generateRefSeqsjdb.r -i ./RefSeqAnnot.bed -o ./RefSeqAnnot.sjdb"
 
 #get script argument

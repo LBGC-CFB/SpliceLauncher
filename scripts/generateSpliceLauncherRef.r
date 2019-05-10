@@ -6,12 +6,12 @@ options(scipen=50)
 ##########################################################
 helpMessage="Usage: generateSpliceLauncherRef.r\n
     [Mandatory] \n
-        \t[-i|--input /path/to/inputFile]
-        \t\tRefSeq txt database, downloadable at UCSC: https://genome.ucsc.edu/cgi-bin/hgTables\n
-        \t[-o|--output /path/to/outputFile]
-        \t\tOutput to SpliceLauncher reference file\n
-        \t[-h|--help]
-        \t\tprint this help message and exit\n
+        -i, --input /path/to/inputFile
+            RefSeq txt database, downloadable at UCSC: https://genome.ucsc.edu/cgi-bin/hgTables\n
+        -o, --output /path/to/outputFile
+            Output to SpliceLauncher reference file\n
+    -h, --help
+        print this help message and exit\n
    You could : Rscript generateSpliceLauncherRef.r -i ./RefSeqAnnot.txt -o ./RefSpliceLauncher.txt"
 
 #get script argument

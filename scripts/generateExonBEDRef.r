@@ -6,15 +6,12 @@ options(scipen=50)
 #############################################################
 helpMessage="Usage: generateExonBEDRef.r\n
     [Mandatory] \n
-        \t[-i|--input /path/to/inputFile]
-        \t\tRefSeq BED database, downloadable at UCSC: https://genome.ucsc.edu/cgi-bin/hgTables\n
-        \t[-o|--output /path/to/outputFile]
-        \t\tOutput to exon BED file\n
-    [Options] \n
-        \t[-t|--transcript]
-        \t\tList of target transcripts in txt file\n
-        \t[-h|--help]
-        \t\tprint this help message and exit\n
+        -i, --input /path/to/inputFile
+            RefSeq BED database, downloadable at UCSC: https://genome.ucsc.edu/cgi-bin/hgTables\n
+        -o, --output /path/to/outputFile
+            Output to exon BED file\n
+    -h, --help
+        print this help message and exit\n
    You could : Rscript generateExonBEDRef.r -i ./RefSeqAnnot.bed -o ./RefExons.bed"
 
 #get script argument
@@ -29,8 +26,6 @@ while (i <= length(args)){
         inputFile=normalizePath(path=args[i+1]);i = i+2
     }else if(args[i]=="-o"|args[i]=="--output"){
         outputFile=args[i+1];i = i+2
-    }else if(args[i]=="-t"|args[i]=="--MergeTranscrit"){
-        transcript=normalizePath(args[i+1]);i = i+2
     }else if(args[i]=="-h"|args[i]=="--help"){
         message(helpMessage);stop()
     }else{
@@ -46,12 +41,6 @@ dataRefSeq = read.table(inputFile,header=F, sep="\t")
 dataRefSeq[,4] = as.character(dataRefSeq[,4])
 a = unlist(strsplit(dataRefSeq[,4],".",fixed=T))
 dataRefSeq[,4] = a[grep("_",a)]
-
-if(!is.null(transcript)){
-	message("select the targeted transcripts...")
-	SelectTranscrit = readLines(transcript)
-	dataRefSeq = dataRefSeq[which(dataRefSeq$V4%in%SelectTranscrit),]
-}
 
 Chr=NULL
 strand=NULL
