@@ -215,7 +215,7 @@ The exon BED annatations uses the RefSeqAnnot.bed file generated in the **get Re
 The command is:
 
     Rscript ./scripts/generateExonBEDRef.r -i /path/to/RefSeqAnnot.bed -o ./refExons.bed
-    sort -k1,1 -k2,2n ./refExons.bed > ./refExons.bed
+    sort -k1,1 -k2,2n ./refExons.bed > ./refExonsSort.bed
 
 #### Create the transcripts information <a id="12"></a>
 
