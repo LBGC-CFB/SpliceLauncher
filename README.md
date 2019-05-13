@@ -269,31 +269,31 @@ After running, two folders and one file are created in the directory output. The
 
 #### RNAseq pipeline Options <a id="15"></a>
 
-**-F, --fastq**
+**-F, --fastq** /path/to/Fastq files
 
 + The directory of FastQ files in *.fastq.gz format. If paired end analysis please names the files: XXXXXXX1.fastq.gz for read 1 and XXXXXXX2.fastq.gz for read 2.
 
-**-O, --output**
+**-O, --output** /path/to/output
 
 + Directory of output files. If inexisting it creates the Directory.
 
-**--star**
+**--star** /path/to/STAR
 
 + Path to the STAR executable
 
-**-g, --genome**
+**-g, --genome** /path/to/STAR genome
 
 + Directory to the STAR genome (see [STAR genome](#10) section).
 
-**--samtools**
+**--samtools** /path/to/samtools
 
 + Directory to the SAMtools executable.
 
-**--bedtools**
+**--bedtools** /path/to/bedtools/bin/
 
 + Directory of the folder with BEDtools executables (pipeline used bamToBed and closestBed).
 
-**--bedannot**
+**--bedannot** /path/to/BEDannot.bed
 
 + Exon coordinates of transcripts described in RefSeq database (see [Create exon BED annotations](#11) section).
 
@@ -301,11 +301,11 @@ After running, two folders and one file are created in the directory output. The
 
 + Process to a paired-end analysis
 
-**-t, --threads**
+**-t, --threads** N
 
 + Number of CPUs used for the STAR alignment.
 
-**--perlscript**
+**--perlscript** /path/to/perl scripts
 
 + Path to the Perl script used by the pipeline, by default they are in [scripts](https://github.com/raphaelleman/SpliceLauncher/tree/master/scripts "tittle") folder.
 
@@ -334,7 +334,7 @@ An example of SpliceLauncher command:
 | Gene | BRCA2 | Gene symbol |
 | *Sample* | 2250 | Read count |
 | *P_Sample* | 15.25659623 | % of relative expression |
-| constitutive | NoPhysio | If junction supports the reference transcripts, Physio else NoPhyio |
+| constitutive | NoPhysio | If junction supports the reference transcripts, Physio else NoPhysio |
 | calcul | SkipEx | The nature of junction:<br/>Physio: Natural junction<br/>SkipEx: Exon skipping<br/>5AS: Donor splice site shift<br/>3AS: Acceptor splice site shift<br/>NoData: Unannotated juntion |
 | AnnotJuncs | ∆12 | The junction names |
 | cStart | c.6841 | Transcriptomic start coordinate of the junction |
@@ -347,19 +347,19 @@ An example of SpliceLauncher command:
 
 #### SpliceLauncher Options <a id="17"></a>
 
-**-I, --input**
+**-I, --input** /path/to/matrix of read count
 
 + The read count matrix file (see an example [MatrixCountExample.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/dataTest/MatrixCountExample.txt "tittle")) used by SpliceLauncher.
 
-**-O, --output**
+**-O, --output** /path/to/output/
 
 + The ouput directory. If inexisting SpliceLauncher create the Directory.
 
-**-R, --RefSeqAnnot**
+**-R, --RefSeqAnnot** /path/to/RefSeannot.txt
 
 + The RefSeq database withe the transcript details (used by default: [RefSpliceLauncher.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/RefSpliceLauncher.txt "tittle")). To change this database please refer to [Create the transcripts information](#12) section.
 
-**-S, --SampleNames**
+**-S, --SampleNames** sample1|sample2|sample3|...
 
 + Permit to set the name of samples, used for the pdf files.
 
@@ -367,7 +367,7 @@ An example of SpliceLauncher command:
 
 + Set one transcripts per gene as reference to determine the alternative splicing.
 
-**-t, --TranscriptList**
+**-t, --TranscriptList** /path/to/transcriptList.txt
 
 + Permits to set the reference transcripts to study the alternative splicing. Does not support several transcripts by gene (see an example [transcriptsToSelect.txt](https://github.com/raphaelleman/SpliceLauncher/blob/master/dataTest/transcriptsToSelect.txt "tittle")). The option *-m, --MergeTranscrit* cann't affect the gene with the selected transcripts.
 
@@ -383,7 +383,7 @@ An example of SpliceLauncher command:
 
 + Generate pdf file for each sample, plots the alternative splicing junctions on the reference transcripts. Warning, this option increases significantly the runtime.
 
-**--threshold**
+**--threshold** N
 
 + Threshold (in percentage of relative expression) to display the alternative junctions in the pdf RefFiles
 
@@ -391,10 +391,10 @@ An example of SpliceLauncher command:
 
 + Launch the statistical analysis to detect junctions abnomarly expressed acroos samples, needs at least 5 samples in all to work.
 
-**-a, --Adjust**
+**-a, --Adjust** TRUE
 
-+ Adjust the p-value by Bonferroni method.
++ Adjust the p-value by Bonferroni method (TRUE/FALSE).
 
-**-n, --NbIntervals**
+**-n, --NbIntervals** N
 
 + Number of intervals used in estimation of Negative Binomial distribution
