@@ -41,7 +41,7 @@ library(Cairo)
 		message(cond)
 		message("*****You need to install \'Cairo\' library")
 })
-message("SpliceLauncherV1.0")
+message("SpliceLauncherV1.1")
 
 #####################
 #import of arguments#
@@ -52,9 +52,11 @@ message("SpliceLauncherV1.0")
 
 #default Parameters
 EchName=NULL
+pathTranscript=NULL
 mergeTranscrit='NO'
 checkBEDannot="NO"
 DisplayGraph='NO'
+removeOther='NO'
 thr=1
 StatAnalysis='NO'
 adjust='TRUE'
@@ -64,6 +66,8 @@ argsFull <- commandArgs()
 
 scriptPath=dirname(normalizePath(sub("--file=","",argsFull[substr(argsFull,1,7)=="--file="])))
 RefFile= paste(scriptPath,"refData/RefSpliceLauncher.txt",sep="/")
+if(!file.exists(RefFile)){RefFile="***WARNING: REFSEQ FILE NOT FIND***"}
+
 helpMessage=paste("Usage: SpliceLauncher.r\n
     [Mandatory] \n
         -I, --input /path/to/inputFile\n\t\tRead count matrix (.txt)
@@ -71,12 +75,16 @@ helpMessage=paste("Usage: SpliceLauncher.r\n
     [Options] \n
         -R, --RefSeqAnnot /path/to/RefSpliceLauncher.txt\n\t\tRefSeq annotation file name [default=",RefFile,"]
         -m, --MergeTranscrit\n\t\tMerge transcripts to have one transcript by gene
+        -t, --TranscriptList /path/to/transcriptList.txt\n\t\tSet the list of transcripts to use as reference
+                If used, the option \'-m, --MergeTrancript\' doesn't affect these transcripts
         -b, --BEDannot\n\t\tget the output in BED format
         -g, --Graphics\n\t\tDisplay graphics of alternative junctions (Warnings: increase the runtime)
         -s, --Statistical\n\t\tPerformed statistical analysis, requiers more than 5 samples
-        If graphics (-g):
+        If list of transcripts (-t, --TranscriptList):
+            --removeOther\n\t\tRemove the genes with unselected transcripts to improve runtime
+        If graphics (-g, --Graphics):
             --threshold 1\n\t\tThreshold to shown junctions (%) [default=",thr,"]
-        If statistics (-s):
+        If statistics (-s, --Statistical):
             -a, --Adjust TRUE\n\t\tadjustment of p-value ('TRUE'/'FALSE') [default=",adjust,"]
             -n, --NbIntervals 10\n\t\tIf statistics, Nb interval of Neg Binom (Integer) [default=",negbinom.n,"]
         --SampleNames name1|name2|name3\n\t\tSample names, '|'-separated, by default use the sample file names\n
@@ -96,6 +104,8 @@ while (i <= length(args)){
         run=sub(".txt","",basename(inputFile))
     }else if(args[i]=="-R"|args[i]=="--RefSeqAnnot"){
         RefFile=normalizePath(args[i+1]);i = i+2
+    }else if(args[i]=="-t"|args[i]=="--TranscriptList"){
+        pathTranscript=normalizePath(args[i+1]);i = i+2
     }else if(args[i]=="-O"|args[i]=="--output"){
         outputDir=args[i+1];i = i+2
     }else if(args[i]=="--SampleNames"){
@@ -110,6 +120,8 @@ while (i <= length(args)){
         thr=args[i+1];i = i+2
     }else if(args[i]=="-s"|args[i]=="--Statistical"){
         StatAnalysis="YES";i = i+1
+    }else if(args[i]=="--removeOther"){
+        removeOther="YES";i = i+1
     }else if(args[i]=="-a"|args[i]=="--Adjust"){
         adjust=args[i+1];i = i+2
     }else if(args[i]=="-n"|args[i]=="--NbIntervals"){
@@ -134,6 +146,8 @@ message(paste("Run name:",run))
 message(paste("Sample Name:",EchName))
 message(paste("RefSeq Annot:",RefFile))
 message(paste("Merge Transcript:",mergeTranscrit))
+message(paste("List of transcripts:",pathTranscript))
+message(paste("Remove the other genes:",removeOther))
 message(paste("BED annotation:",checkBEDannot))
 message(paste("Display graphics:",DisplayGraph))
 message(paste("Threshold:",thr))
@@ -158,6 +172,7 @@ message("######################")
 #import of data
 
 T1<-Sys.time()
+message("   Import matrix count...")
 tmp=read.table(file=inputFile, sep="\t", header=T)
 
 SampleInput=names(tmp)[c(7:ncol(tmp))]
@@ -179,7 +194,6 @@ tmp$Conca=paste(tmp$chr,tmp$start,tmp$end,sep="_")
 message("   Download RefSeq File...")
 
 tableConvert=read.table(file = RefFile, sep="\t", header=T)
-tableConvert$transcrit = tableConvert$transcrit
 
 message("   Get gene name...")
 
@@ -200,6 +214,22 @@ tmp$brin[tmp$Strand=="-"] = "reverse"
 getTransMaj <- function (x){
 	trans = names(which(x==max(x)))
 	return(trans[1])
+}
+
+if(!is.null(pathTranscript)){
+    message('   Apply transcripts list...')
+    SelectTranscrit = readLines(pathTranscript)
+    tableSelect = tableTomerge[which(tableTomerge$transcrit%in%SelectTranscrit),c("Gene","transcrit")]
+    if(max(as.numeric(table(tableSelect[,"Gene"])))>1){
+        stop(paste("***** Multiple reference transcripts found for the",
+                names(table(tableSelect[,"Gene"]))[as.numeric(table(tableSelect[,"Gene"]))>1]))
+    }
+    if(removeOther=="YES"){
+        tmp = tmp[which(tmp$Gene%in%tableSelect[,"Gene"]),]
+    }
+    for(gene in tableSelect[,"Gene"]){
+        tmp$NM[tmp$Gene==gene] <- tableSelect[tableSelect$Gene==gene,"transcrit"]
+    }
 }
 
 if(mergeTranscrit =="YES"){
@@ -1469,11 +1499,16 @@ message(paste("   Following modeled junctions are not in the models:",(length(er
 data_junction_pvalue = read.table("output with adjustments.csv",header=T,dec=".",sep=";")
 data_junction_pvalue = data_junction_pvalue[order(data_junction_pvalue$Jonction),]
 data_junction = data_junction[order(data_junction$Conca),]
+getSign = function(v,n){
+    id = which(v<0.05)
+    if(length(id)==0){sign="No"}else{sign = paste("Yes",paste(n[id],collapse="; "),sep=": ")}
+    return(sign)
+}
+
 data_junction$DistribAjust = NA
 data_junction$DistribAjust[data_junction$Conca%in%data_junction_pvalue$Jonction] = data_junction_pvalue$Ajustement
-data_junction_sign = data_junction_pvalue[which(apply(data_junction_pvalue[,7:ncol(data_junction_pvalue)],1,min)<0.05),]
-data_junction$Significative = "NO"
-data_junction$Significative[data_junction$Conca%in%data_junction_sign$Jonction] = "YES"
+significative = apply(data_junction_pvalue[,7:ncol(data_junction_pvalue)],1,getSign,names(data_junction)[input])
+data_junction$Significative[data_junction$Conca%in%data_junction_pvalue$Jonction] = significative
 
 dataToPrint = subset( data_junction, select = -c(ID_gene))
 dataToPrint=dataToPrint[order(dataToPrint$Gene),]
@@ -1574,8 +1609,18 @@ if(DisplayGraph=="YES"){
 		return(Font)
 	}
 
+    maxReadCount = apply(data_junction[data_junction$constitutive=="Physio",input],1,max,na.rm=TRUE)
+    plottedGene = as.character(data_junction$Gene[data_junction$constitutive=="Physio"])
+    plottedGene = unique(plottedGene[maxReadCount>100])
+    countPhysio = table(data_junction$Gene[data_junction$constitutive=="Physio"])
+    plottedGene = c(plottedGene,names(countPhysio)[as.numeric(countPhysio)>2])
+    plottedGene = plottedGene[duplicated(plottedGene)]
+    message(paste("  ",length(plottedGene),"plotted gene(s)"))
+    data_junction = data_junction[which(data_junction$Gene %in% plottedGene),]
 	data_junction=data_junction[order(data_junction$start),]
 	lty='dotted'
+    id_gene = unique(data_junction$ID_gene)
+    id_gene = id_gene[order(id_gene)]
 
 	for(j in 1:length(EchName)){
 		message(paste("   Graphics for:",EchName[j]))
@@ -1584,18 +1629,15 @@ if(DisplayGraph=="YES"){
 
 		data_junction$mean_pourcentage = data_junction[,SampleOutput[j]]
 		data_junction$mean_pourcentage[data_junction$mean_pourcentage=='Inf']=100
-		GeneMis1 = NULL
-		GeneMis2 = NULL
-		for(i in 1:nb_gene){
+        GeneMis = 0
+		for(i in id_gene){
 			data_gene = data_junction[data_junction$ID_gene==i & data_junction$calcul!="NoData",]
 
-			if(max(data_gene$read_mean[data_gene$constitutive=="Physio"])<100){
-				GeneMis1 = c(GeneMis1,as.character(data_gene$Gene[1]))
-			}else if(length(data_gene$Conca[data_gene$constitutive=="Physio"])<=2){
-				GeneMis2 = c(GeneMis2,as.character(data_gene$Gene[1]))
-			}else{
+			if(max(data_gene[data_gene$constitutive=="Physio",input[j]])<100){
+				GeneMis = GeneMis+1
+            }else{
 
-				if(data_gene$brin[1]=="forward"){
+                if(data_gene$brin[1]=="forward"){
 
 					start_physio=data_gene$start[data_gene$constitutive=="Physio"]
 					lab_physio=c(1:(length(start_physio)+1))
@@ -1746,8 +1788,7 @@ if(DisplayGraph=="YES"){
 				}
 			}
 		}
-		message(paste("    Not enough read on physiological junctions for",if(length(GeneMis1)>=1){length(GeneMis1)}else{"NONE"},"gene(s)"))
-		message(paste("    Not enough physiological junction to draw graphics for",if(length(GeneMis2)>=1){length(GeneMis2)}else{"NONE"},"gene(s)"))
+        message(paste("    Not enough read on physiological junctions for",if(GeneMis!=0){GeneMis}else{"NONE"},"gene(s)"))
 		dev.off()
 	}
 }
