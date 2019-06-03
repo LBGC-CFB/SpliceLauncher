@@ -752,15 +752,13 @@ data_junction$calcul = ""
 data_junction$AnnotJuncs = ""
 data_junction$cStart = ""
 data_junction$cEnd = ""
-T1bis<-as.numeric(format(Sys.time(), "%s"))
+pb = txtProgressBar(min = 0, max = nbTrans, initial = prog, char = "=", style = 3)
 
 for (i in unique(data_junction$NM)){
 
 	prog = prog+1
-	if( prog/100 == as.integer(prog/100)){
-		T2bis<-as.numeric(format(Sys.time(), "%s"))
-		message(paste(round((prog/nbTrans)*100,3),"%",round((T2bis-T1bis)/prog*(nbTrans-prog)/60,1),"minutes remain"))
-	}
+	setTxtProgressBar(pb,prog)
+
 	strand = data_junction$brin[data_junction$NM==i][1]
 	tableConvertAnnot = tableConvert[tableConvert$transcrit==i,]
 	tmpIdTrans = which(data_junction$NM==i)
@@ -797,7 +795,7 @@ data_junction$cEnd[IdTrans] = cEnd
 #######################################
 #perrcentage calculation of junctions #
 #######################################
-message("######################")
+message("\n######################")
 message("#Calcul Junction...")
 message("######################")
 
@@ -1038,15 +1036,13 @@ calcJuncToMultiSampleRev <- function(Conca,calcul, start, end){
 
 prog=0
 nbTrans = length(unique(data_junction$NM))
-T1bis<-as.numeric(format(Sys.time(), "%s"))
+pb1 = txtProgressBar(min = 0, max = nbTrans, initial = prog, char = "=", style = 3)
 
 if(n_ech==1){
 	for( i in unique(data_junction$NM)){
 		prog = prog+1
-		if( prog/100 == as.integer(prog/100)){
-			T2bis<-as.numeric(format(Sys.time(), "%s"))
-			message(paste(round((prog/nbTrans)*100,3),"%",round((T2bis-T1bis)/prog*(nbTrans-prog)/60,1),"minutes remain"))
-		}
+        setTxtProgressBar(pb1,prog)
+
 		tmpIdTrans = which(data_junction$NM==i)
 		strand = data_junction$brin[tmpIdTrans][1]
 		dataTmp = data_junction[tmpIdTrans,]
@@ -1068,10 +1064,8 @@ if(n_ech==1){
 }else{
 	for( i in unique(data_junction$NM)){
 		prog = prog+1
-		if( prog/100 == as.integer(prog/100)){
-			T2bis<-as.numeric(format(Sys.time(), "%s"))
-			message(paste(round((prog/nbTrans)*100,3),"%",round((T2bis-T1bis)/prog*(nbTrans-prog)/60,1),"minutes remain"))
-		}
+        setTxtProgressBar(pb1,prog)
+
 		tmpIdTrans = which(data_junction$NM==i)
 
 		strand = data_junction$brin[tmpIdTrans][1]
@@ -1144,7 +1138,7 @@ getBEDannot<-function(chr,start,end,name,strand,cStart,cEnd,meanP,rowSamples,cal
 }
 
 if(checkBEDannot=="YES"){
-    message("Get BED annot...")
+    message("\nGet BED annot...")
     bedAnnot = getBEDannot(data_junction$chr[calcul!="Physio"&calcul!="NoData"],data_junction$start[calcul!="Physio"&calcul!="NoData"],
                             data_junction$end[calcul!="Physio"&calcul!="NoData"],data_junction$AnnotJuncs[calcul!="Physio"&calcul!="NoData"],
                             data_junction$strand[calcul!="Physio"&calcul!="NoData"],data_junction$cStart[calcul!="Physio"&calcul!="NoData"],
@@ -1166,7 +1160,7 @@ dataToPrint = subset( data_junction, select = -c(ID_gene))
 dataToPrint = checkSizeOutput(dataToPrint)
 
 if(StatAnalysis=="NO"){
-	message("   Data are saving...")
+	message("\n   Data are saving...")
 	tryCatch({
 		WriteXLS(dataToPrint, ExcelFileName =paste(chem_results,name_output,sep=""),row.names=F,SheetNames=run,Encoding = "UTF-8",na="")
 	},
@@ -1183,7 +1177,7 @@ if(StatAnalysis=="NO"){
 			write.table(dataToPrint,file=paste(chem_results,name_output,sep=""),row.names=F,dec=",",sep=";")
 	})
 }else{
-message("######################")
+message("\n######################")
 message("#Statistical analysis...")
 message("######################")
 
