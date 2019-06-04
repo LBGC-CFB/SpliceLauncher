@@ -2,11 +2,9 @@
 
 ---
 
-The RNAseq pipeline tool to study the alternative splicing
-![SpliceLauncher](https://github.com/raphaelleman/SpliceLauncher/blob/master/refData/Figure1.png)
+The RNAseq pipeline tool to study the alternative splicing. The pipeline works in two step, fisrt step is to get the read count matrix from fastq files, the second step is to process to SpliceLauncher analysis.
 
-> **Cite as:** SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data.
-*Raphaël Leman, Grégoire Davy, Valentin Harter, Antoine Rousselin, Etienne Muller, Alexandre Atkinson, Laurent Castéra, Fréderic Lemoine, Pierre de la Grange, Marine Guillaud-Bataille, Dominique Vaur, Sophie Krieger*
+![SpliceLauncher](https://github.com/raphaelleman/SpliceLauncher/blob/master/refData/Figure1.png)
 
 **Table**
 
@@ -18,48 +16,39 @@ The RNAseq pipeline tool to study the alternative splicing
         * [BEDtools](#6)
         * [Install R libraries](#7)
     * [Installing SpliceLauncher](#8)
-        * [Make the reference files](#9)
-            * [Create genome](#10)
-            * [Create exon BED annotations](#11)
-            * [Create the transcripts information](#12)
-* [Run SpliceLauncher Pipeline](#13)
-    * [RNAseq pipeline, get the read count from fastq files](#14)
-        * [RNAseq pipeline Options](#15)
-    * [SpliceLauncher analysis](#16)
-        * [SpliceLauncher Options](#17)
+        * [Creating the reference files](#9)
+            * [Reference files used by the RNAseq pipeline](#10)
+            * [Reference file used by SpliceLauncher](#11)
+* [Running the SpliceLauncher tests](#12)
+    * [RNAseq pipeline, get the read count from fastq files](#13)
+    * [SpliceLauncher analysis](#14)
+* [RNAseq pipeline Options](#15)
+* [SpliceLauncher Options](#16)
+* [Authors](#17)
+* [License](#18)
 
 ## Repository contents<a id="1"></a>
 
 ---
 
 * dataTest: example of input files
-* refData: reference files that SpliceLauncher needs
+* refData: reference files that SpliceLauncher needs, here in hg19 assambly
 * scripts: complementary scripts to run SpliceLauncher pipeline
 
-## Install and configure SpliceLauncher pipeline<a id="2"></a>
+## Getting started<a id="2"></a>
 
 ---
 
+### Prerequisites<a id="3"></a>
 The SpliceLauncher pipeline needs to start from fastq files
 The tools:
 
 * STAR (v2.6 or later)
 * samtools (v1.3 or later)
 * BEDtools (v2.17 or later)
+* R librairies *WriteXLS* and *Cairo*
 
-The reference files:
-
-* Human genome assembly (STAR)
-* Exons annotations
-* Transcripts information
-
-An example of these two last files is provide in the [refData folder](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData "tittle")
-
-### Install STAR, samtools, BEDtools <a id="3"></a>
-
----
-
-To use SpliceLauncher pipeline please install the three tools: STAR, samtools, BEDtools
+**NB:** SpliceLauncher pipeline requires also the perl compiler but not particular perl libraries
 
 #### STAR <a id="4"></a>
 
@@ -111,9 +100,7 @@ Installation of BEDtools for linux:
 
 For more information, please see the [BEDtools tutorial](http://quinlanlab.org/tutorials/bedtools/bedtools.html "tittle")
 
-### Install R libraries <a id="7"></a>
-
----
+#### Install R libraries <a id="7"></a>
 
 Open the R console:
 
@@ -121,104 +108,102 @@ Open the R console:
 
     install.packages("Cairo")
 
-**NB:** SpliceLauncher pipeline requires also the perl compiler but not particular perl libraries
-
-### Download SpliceLauncher pipeline <a id="8"></a>
+## Installing SpliceLauncher <a id="8"></a>
 
 ---
 
     git clone https://github.com/raphaelleman/SpliceLauncher
     cd ./SpliceLauncher
 
-### Make the reference files <a id="9"></a>
+### Creating the reference files <a id="9"></a>
 
----
+The RNAseq pipeline needs the reference genome and the coordinates of exon. SpliceLauncher needs the RefSeq database. The reference files used are:
 
-#### STAR genome <a id="10"></a>
-To create STAR genome you will need :
+* Human genome assembly, used by STAR
+* Exons annotations, used by BEDtools
+* Transcripts information, used by SpliceLauncher
 
-* genome fasta file
-* RefSeq annot GTF file
-* RefSeq annot BED file
+An example of these two last files is provide in the [refData folder](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData "tittle") with human genome, hg19 assembly
 
-**Get genome fasta file**
+#### Reference files used by the RNAseq pipeline <a id="10"></a>
 
-From [UCSC](http://hgdownload.soe.ucsc.edu/downloads.html#human "tittle"), with hg19 example:
+1. Donwload genome fasta file
+2. Donwload RefSeq annot GTF file
+3. Donwload RefSeq annot BED file
+4. Convert BED file into sjdb file and extract exon coordinates
+5. Compile STAR genome
 
-    #the ftp URL depends on your assembly genome choice
-    cd /path/to/SpliceLauncher/
-    mkdir ./fastaGenome
-    cd ./fastaGenome
-    wget --timestamping ftp://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/chromFa.tar.gz -O chromFa.tar.gz
-    tar xvzf ./chromFa.tar.gz
-    cd ..
 
-**Get RefSeq annot GTF file**
+1. Download Fasta genome: from [UCSC](http://hgdownload.soe.ucsc.edu/downloads.html#human "tittle"), with hg19 example:
 
-From [UCSC table browser](https://genome.ucsc.edu/cgi-bin/hgTables "tittle"), with hg19 example:
+        #the ftp URL depends on your assembly genome choice
+        cd /path/to/SpliceLauncher/
+        mkdir ./fastaGenome
+        cd ./fastaGenome
+        wget --timestamping ftp://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/chromFa.tar.gz -O chromFa.tar.gz
+        tar xvzf ./chromFa.tar.gz
+        cd ..
 
-Options setting:
+2. Donwload the GTF annotation file: from [UCSC table browser](https://genome.ucsc.edu/cgi-bin/hgTables "tittle"), with hg19 example:
 
-+ *clade:* Mammal
-+ *genome:* Human
-+ *assembly:* Feb. 2009 (GRCh37/hg19) #you can choice here your genome assembly
-+ *group:* Genes and Gene Predictions
-+ *track:* NCBI RefSeq
-+ *table:* RefSeq All (ncbiRefSeq)
-+ *output format:* GTF - gene transfer format (limited)
-+ *output file:* RefSeqAnnot.gtf.gz
+    Options setting:
 
-After download the file, uncompress it by `gunzip RefSeqAnnot.gtf.gz`
+    + *clade:* Mammal
+    + *genome:* Human
+    + *assembly:* Feb. 2009 (GRCh37/hg19) #you can choice here your genome assembly
+    + *group:* Genes and Gene Predictions
+    + *track:* NCBI RefSeq
+    + *table:* RefSeq All (ncbiRefSeq)
+    + *output format:* GTF - gene transfer format (limited)
+    + *output file:* RefSeqAnnot.gtf.gz
 
-**Get RefSeq annot BED file**
+    After download the file, uncompress it by `gunzip RefSeqAnnot.gtf.gz`
 
-From [UCSC table browser](https://genome.ucsc.edu/cgi-bin/hgTables "tittle"), with hg19 example:
+3. Donwload the BED annotation file: from [UCSC table browser](https://genome.ucsc.edu/cgi-bin/hgTables "tittle"), with hg19 example:
 
-Options setting:
+    Options setting:
 
-+ *clade:* Mammal
-+ *genome:* Human
-+ *assembly:* Feb. 2009 (GRCh37/hg19) #you can choice here your genome assembly
-+ *group:* Genes and Gene Predictions
-+ *track:* NCBI RefSeq
-+ *table:* RefSeq All (ncbiRefSeq)
-+ *output format:* BED - browser extensible data
-+ *output file:* RefSeqAnnot.bed.gz
-+ *Create one BED record per:* Whole gene
+    + *clade:* Mammal
+    + *genome:* Human
+    + *assembly:* Feb. 2009 (GRCh37/hg19) #you can choice here your genome assembly
+    + *group:* Genes and Gene Predictions
+    + *track:* NCBI RefSeq
+    + *table:* RefSeq All (ncbiRefSeq)
+    + *output format:* BED - browser extensible data
+    + *output file:* RefSeqAnnot.bed.gz
+    + *Create one BED record per:* Whole gene
 
-After download the file, uncompress it by `gunzip RefSeqAnnot.bed.gz`
+    After download the file, uncompress it by `gunzip RefSeqAnnot.bed.gz`.
 
-**Create STAR genome**
+4. Convert BED file into sjdb file and extract exon coordinates
 
-**First step, generation of the intron coordinates file from BED RefSeq file**
-the generated file is an sjdb file that will use by STAR to get the junction reads
+    The BED file is converted in a sjdb file
 
-    cd /path/to/SpliceLauncher/
-    Rscript ./scripts/generateRefSeqsjdb.r -i /path/to/RefSeqAnnot.bed -o ./RefSeqAnnot.sjdb
+            cd /path/to/SpliceLauncher/
+            Rscript ./scripts/generateRefSeqsjdb.r -i /path/to/RefSeqAnnot.bed -o ./RefSeqAnnot.sjdb
 
-**Second step, generation of the genome STAR files**
+    The BED annotation file is also used to obtain the exon coordinates, used by BEDtools.
+    The command is:
 
-    mkdir ./genomeSTAR
-    /path/to/STAR \
-     --runMode genomeGenerate \
-     --runThreadN 5 #define here the number of thread to use \
-     --genomeDir ./genomeSTAR \
-     --genomeFastaFiles ./fastaGenome/*.fa \
-     --sjdbFileChrStartEnd ./RefSeqAnnot.sjdb \
-     --sjdbGTFfile /path/to/RefSeqAnnot.gtf \
-     --sjdbOverhang 99
+            Rscript ./scripts/generateExonBEDRef.r -i /path/to/RefSeqAnnot.bed -o ./refExons.bed
+            sort -k1,1 -k2,2n ./refExons.bed > ./refExonsSort.bed
 
-#### Create exon BED annotations <a id="11"></a>
+    An example is provide in this repository at [refExons.bed](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/refExons.bed "tittle")
 
-An example is provide in this repository at [refExons.bed](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/refExons.bed "tittle")
+5. Compile STAR genome
 
-The exon BED annatations uses the RefSeqAnnot.bed file generated in the **get RefSeq annot BED file** section.
-The command is:
+        mkdir ./genomeSTAR
+        /path/to/STAR \
+         --runMode genomeGenerate \
+         --runThreadN 5 #define here the number of thread to use \
+         --genomeDir ./genomeSTAR \
+         --genomeFastaFiles ./fastaGenome/*.fa \
+         --sjdbFileChrStartEnd ./RefSeqAnnot.sjdb \
+         --sjdbGTFfile /path/to/RefSeqAnnot.gtf \
+         --sjdbOverhang 99
 
-    Rscript ./scripts/generateExonBEDRef.r -i /path/to/RefSeqAnnot.bed -o ./refExons.bed
-    sort -k1,1 -k2,2n ./refExons.bed > ./refExonsSort.bed
 
-#### Create the transcripts information <a id="12"></a>
+#### Reference file used by SpliceLauncher <a id="11"></a>
 
 An example is provide in this repository at [RefSpliceLauncher.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/RefSpliceLauncher.txt "tittle")
 
@@ -243,15 +228,15 @@ After download the file, uncompress it by `gunzip RefSeqAnnot.txt.gz`
     Rscript ./scripts/generateSpliceLauncherRef.r -i /path/to/RefSeqAnnot.txt -o ./RefSpliceLauncher.txt
 
 
-## Run SpliceLauncher Pipeline <a id="13"></a>
+## Running the SpliceLauncher tests<a id="12"></a>
 
 ---
 
-The pipeline works in two step, fisrt step is to get the read count matrix from fastq files, the second step is to process to SpliceLauncher analysis
+The example files are provided in [dataTest](https://github.com/raphaelleman/SpliceLauncher/tree/master/dataTest "tittle")
 
-### RNAseq pipeline, get the read count from fastq files <a id="14"></a>
+### RNAseq pipeline, get the read count from fastq files <a id="13"></a>
 
-This part of the pipeline is in the shell script **_pipelineRNAseq.sh_**
+This part uses the shell script **_pipelineRNAseq.sh_**
 To see the different options of this script `pipelineRNAseq.sh --help`
 
 With the example data provided in this repository, single end RNAseq (2x75pb) on *BRCA1* and *BRCA2* transcripts:
@@ -268,7 +253,44 @@ With the example data provided in this repository, single end RNAseq (2x75pb) on
 
 After running, two folders and one file are created in the directory output. The *Bam* folder contains the BAM files with their index and STAR log files. The folder *getClosestExons* contains the BED files and txt files that correspond to the junction coordinates and junction counts respectively. The file is the matrix count could be use by SpliceLauncher tool.
 
-#### RNAseq pipeline Options <a id="15"></a>
+### SpliceLauncher analysis <a id="14"></a>
+
+To launch SpliceLauncher analysis, you need the matrix count and the transcript information file. An example of these two files is provide in [MatrixCountExample.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/dataTest/MatrixCountExample.txt "tittle") and [RefSpliceLauncher.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/RefSpliceLauncher.txt "tittle") respectively.
+
+SpliceLauncher command:
+
+    cd /path/to/SpliceLauncher/
+    Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/RefSpliceLauncher.txt -O ./
+
+ The results are saved in the folder *MatrixCountExample_results*. The scheme of this report is:
+
+| Column names | Example | Description |
+|------------:|:--------:|:------------:|
+| Conca | chr13_32915333_32920963 | The junction id (chr_start_end) |
+| chr | chr13 | Chromosome number |
+| start | 32915333 | Genomic coordinate of start junction<br/>End if on reverse strand |
+| end | 32920963 | Genomic coordinate of end junction<br/>Start if on reverse strand |
+| strand | + | Strand of the junction ('+': forward;<br/> '-':reverse) |
+| brin | forward | Strand of transcript |
+| NM | NM_000059 | The transcript id according RefSeq nomenclature |
+| Gene | BRCA2 | Gene symbol |
+| *Sample* | 2250 | Read count |
+| *P_Sample* | 15.25659623 | % of relative expression |
+| constitutive | NoPhysio | If junction supports the reference transcripts, Physio else NoPhysio |
+| calcul | SkipEx | The nature of junction:<br/>Physio: Natural junction<br/>SkipEx: Exon skipping<br/>5AS: Donor splice site shift<br/>3AS: Acceptor splice site shift<br/>NoData: Unannotated juntion |
+| AnnotJuncs | ∆12 | The junction names |
+| cStart | c.6841 | Transcriptomic start coordinate of the junction |
+| cEnd | c.6938 | Transcriptomic end coordinate of the junction |
+| mean_pourcentage | 12.60242 | Average in % of relative expression across samples |
+| read_mean | 2683.769231 | Average of read count across samples |
+| nbSamp | 11 | Number of time that the junction has been seen in samples |
+| DistribAjust | - | The Distribution of junction expression (Gamma/N.binom) |
+| Significative | NO | If a sample shown an abnormal expression of the junction |
+
+
+## RNAseq pipeline Options <a id="15"></a>
+
+---
 
 **-F, --fastq** /path/to/Fastq files
 
@@ -310,43 +332,9 @@ After running, two folders and one file are created in the directory output. The
 
 + Path to the Perl script used by the pipeline, by default they are in [scripts](https://github.com/raphaelleman/SpliceLauncher/tree/master/scripts "tittle") folder.
 
-### SpliceLauncher analysis <a id="16"></a>
+## SpliceLauncher Options <a id="16"></a>
 
 ---
-
-To launch SpliceLauncher analysis, you need the matrix count and the transcript information file. An example of these two files is provide in [MatrixCountExample.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/dataTest/MatrixCountExample.txt "tittle") and [RefSpliceLauncher.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/RefSpliceLauncher.txt "tittle") respectively.
-
-An example of SpliceLauncher command:
-
-    cd /path/to/SpliceLauncher/
-    Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/RefSpliceLauncher.txt -O ./
-
- The results are saved in the folder *MatrixCountExample_results*. The scheme of this report is:
-
-| Column names | Example | Description |
-|------------:|:--------:|:------------:|
-| Conca | chr13_32915333_32920963 | The junction id (chr_start_end) |
-| chr | chr13 | Chromosome number |
-| start | 32915333 | Genomic coordinate of start junction<br/>End if on reverse strand |
-| end | 32920963 | Genomic coordinate of end junction<br/>Start if on reverse strand |
-| strand | + | Strand of the junction ('+': forward;<br/> '-':reverse) |
-| brin | forward | Strand of transcript |
-| NM | NM_000059 | The transcript id according RefSeq nomenclature |
-| Gene | BRCA2 | Gene symbol |
-| *Sample* | 2250 | Read count |
-| *P_Sample* | 15.25659623 | % of relative expression |
-| constitutive | NoPhysio | If junction supports the reference transcripts, Physio else NoPhysio |
-| calcul | SkipEx | The nature of junction:<br/>Physio: Natural junction<br/>SkipEx: Exon skipping<br/>5AS: Donor splice site shift<br/>3AS: Acceptor splice site shift<br/>NoData: Unannotated juntion |
-| AnnotJuncs | ∆12 | The junction names |
-| cStart | c.6841 | Transcriptomic start coordinate of the junction |
-| cEnd | c.6938 | Transcriptomic end coordinate of the junction |
-| mean_pourcentage | 12.60242 | Average in % of relative expression across samples |
-| read_mean | 2683.769231 | Average of read count across samples |
-| nbSamp | 11 | Number of time that the junction has been seen in samples |
-| DistribAjust | - | The Distribution of junction expression (Gamma/N.binom) |
-| Significative | NO | If a sample shown an abnormal expression of the junction |
-
-#### SpliceLauncher Options <a id="17"></a>
 
 **-I, --input** /path/to/matrix of read count
 
@@ -399,3 +387,19 @@ An example of SpliceLauncher command:
 **-n, --NbIntervals** N
 
 + Number of intervals used in estimation of Negative Binomial distribution
+
+## Authors <a id="17"></a>
+
+---
+
+* Raphael Leman - [raphaelleman](https://github.com/raphaelleman/ "tittle")
+    * You can contact me at: r.leman@baclesse.unicancer.fr or raphael.leman@orange.fr
+
+> **Cite as:** SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data.
+*Raphaël Leman, Grégoire Davy, Valentin Harter, Antoine Rousselin, Etienne Muller, Alexandre Atkinson, Laurent Castéra, Fréderic Lemoine, Pierre de la Grange, Marine Guillaud-Bataille, Dominique Vaur, Sophie Krieger*
+
+## License <a id="18"></a>
+
+---
+
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/raphaelleman/SpliceLauncher/blob/master/LICENSE "tittle") file for details
