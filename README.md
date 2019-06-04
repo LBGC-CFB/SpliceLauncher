@@ -133,7 +133,7 @@ An example of these two last files is provide in the [refData folder](https://gi
 4. Convert BED file into sjdb file and extract exon coordinates
 5. Compile STAR genome
 
-
+   
 
 1. Download Fasta genome: from [UCSC](http://hgdownload.soe.ucsc.edu/downloads.html#human "tittle"), with hg19 example:
 
