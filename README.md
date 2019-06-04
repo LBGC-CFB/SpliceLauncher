@@ -3,24 +3,25 @@
 ---
 
 The RNAseq pipeline tool to study the alternative splicing
+![SpliceLauncher](https://github.com/raphaelleman/SpliceLauncher/blob/master/refData/Figure1.png)
 
-> **Cite as:** SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data. *Raphaël Leman, Grégoire Davy, Valentin Harter, Antoine Rousselin, Alexandre Atkinson, Laurent Castéra, Fréderic Lemoine, Pierre de la Grange, Dominique Vaur, Sophie Krieger*
-
+> **Cite as:** SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data.
+*Raphaël Leman, Grégoire Davy, Valentin Harter, Antoine Rousselin, Etienne Muller, Alexandre Atkinson, Laurent Castéra, Fréderic Lemoine, Pierre de la Grange, Marine Guillaud-Bataille, Dominique Vaur, Sophie Krieger*
 
 **Table**
 
 * [Repository contents](#1)
-* [Install and configure SpliceLauncher pipeline](#2)
-    * [Install STAR, samtools, BEDtools](#3)
+* [Getting started](#2)
+    * [Prerequisites](#3)
         * [STAR](#4)
         * [Samtools](#5)
         * [BEDtools](#6)
-    * [Install R libraries](#7)
-    * [Download SpliceLauncher pipeline](#8)
-    * [Make the reference files](#9)
-        * [STAR genome](#10)
-        * [Create exon BED annotations](#11)
-        * [Create the transcripts information](#12)
+        * [Install R libraries](#7)
+    * [Installing SpliceLauncher](#8)
+        * [Make the reference files](#9)
+            * [Create genome](#10)
+            * [Create exon BED annotations](#11)
+            * [Create the transcripts information](#12)
 * [Run SpliceLauncher Pipeline](#13)
     * [RNAseq pipeline, get the read count from fastq files](#14)
         * [RNAseq pipeline Options](#15)
