@@ -282,7 +282,7 @@ To launch SpliceLauncher analysis, you need the matrix count and the transcript 
 
 SpliceLauncher command:
 
-```Bash
+```shell
 cd /path/to/SpliceLauncher/
 Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/RefSpliceLauncher.txt -O ./
 ```
