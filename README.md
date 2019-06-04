@@ -56,25 +56,31 @@ these following instruction were from the [STAR manual](https://github.com/alexd
 
 Get the g++ compiler for linux
 
-    sudo apt-get update
-    sudo apt-get install g++
-    sudo apt-get install make
+```Bash
+sudo apt-get update
+sudo apt-get install g++
+sudo apt-get install make
+```
 
 Download the [latest release](https://github.com/alexdobin/STAR/releases "Title") from and uncompress it
 
-    # Get latest STAR source from releases
-    wget https://github.com/alexdobin/STAR/archive/2.7.0c.tar.gz
-    tar -xzf 2.7.0c.tar.gz
-    cd STAR-2.7.0c
+```Bash
+# Get latest STAR source from releases
+wget https://github.com/alexdobin/STAR/archive/2.7.0c.tar.gz
+tar -xzf 2.7.0c.tar.gz
+cd STAR-2.7.0c
 
-    # Alternatively, get STAR source using git
-    git clone https://github.com/alexdobin/STAR.git
+# Alternatively, get STAR source using git
+git clone https://github.com/alexdobin/STAR.git
+```
 
 Compile under Linux
 
-    # Compile
-    cd STAR/source
-    make STAR
+```Bash
+# Compile
+cd STAR/source
+make STAR
+```
 
 #### Samtools <a id="5"></a>
 
@@ -82,10 +88,12 @@ Download the samtools package at: http://www.htslib.org/download/
 
 Configure samtools for linux:
 
-    cd samtools-1.x    # and similarly for bcftools and htslib
-    ./configure --prefix=/where/to/install
-    make
-    make install
+```Bash
+cd samtools-1.x    # and similarly for bcftools and htslib
+./configure --prefix=/where/to/install
+make
+make install
+```
 
 For more information, please see the [samtools manual](http://www.htslib.org/doc/samtools.html "tittle")
 
@@ -93,10 +101,12 @@ For more information, please see the [samtools manual](http://www.htslib.org/doc
 
 Installation of BEDtools for linux:
 
-    wget https://github.com/arq5x/bedtools2/releases/download/v2.25.0/bedtools-2.25.0.tar.gz
-    tar -zxvf bedtools-2.25.0.tar.gz
-    cd bedtools2
-    make
+```Bash
+wget https://github.com/arq5x/bedtools2/releases/download/v2.25.0/bedtools-2.25.0.tar.gz
+tar -zxvf bedtools-2.25.0.tar.gz
+cd bedtools2
+make
+```
 
 For more information, please see the [BEDtools tutorial](http://quinlanlab.org/tutorials/bedtools/bedtools.html "tittle")
 
@@ -104,16 +114,19 @@ For more information, please see the [BEDtools tutorial](http://quinlanlab.org/t
 
 Open the R console:
 
-    install.packages("WriteXLS")
-
-    install.packages("Cairo")
+```R
+install.packages("WriteXLS")
+install.packages("Cairo")
+```
 
 ## Installing SpliceLauncher <a id="8"></a>
 
 ---
 
-    git clone https://github.com/raphaelleman/SpliceLauncher
-    cd ./SpliceLauncher
+```Bash
+git clone https://github.com/raphaelleman/SpliceLauncher
+cd ./SpliceLauncher
+```
 
 ### Creating the reference files <a id="9"></a>
 
@@ -135,14 +148,15 @@ An example of these two last files is provide in the [refData folder](https://gi
 
 Steps:
 1. Download Fasta genome: from [UCSC](http://hgdownload.soe.ucsc.edu/downloads.html#human "tittle"), with hg19 example:
-
-        #the ftp URL depends on your assembly genome choice
-        cd /path/to/SpliceLauncher/
-        mkdir ./fastaGenome
-        cd ./fastaGenome
-        wget --timestamping ftp://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/chromFa.tar.gz -O chromFa.tar.gz
-        tar xvzf ./chromFa.tar.gz
-        cd ..
+    ```Bash
+    #the ftp URL depends on your assembly genome choice
+    cd /path/to/SpliceLauncher/
+    mkdir ./fastaGenome
+    cd ./fastaGenome
+    wget --timestamping ftp://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/chromFa.tar.gz -O chromFa.tar.gz
+    tar xvzf ./chromFa.tar.gz
+    cd ..
+    ```
 
 2. Donwload the GTF annotation file: from [UCSC table browser](https://genome.ucsc.edu/cgi-bin/hgTables "tittle"), with hg19 example:
 
@@ -179,28 +193,34 @@ Steps:
 
     The BED file is converted in a sjdb file
 
-            cd /path/to/SpliceLauncher/
-            Rscript ./scripts/generateRefSeqsjdb.r -i /path/to/RefSeqAnnot.bed -o ./RefSeqAnnot.sjdb
+    ```Bash
+    cd /path/to/SpliceLauncher/
+    Rscript ./scripts/generateRefSeqsjdb.r -i /path/to/RefSeqAnnot.bed -o ./RefSeqAnnot.sjdb
+    ```
 
     The BED annotation file is also used to obtain the exon coordinates, used by BEDtools.
     The command is:
 
-            Rscript ./scripts/generateExonBEDRef.r -i /path/to/RefSeqAnnot.bed -o ./refExons.bed
-            sort -k1,1 -k2,2n ./refExons.bed > ./refExonsSort.bed
+    ```Bash
+    Rscript ./scripts/generateExonBEDRef.r -i /path/to/RefSeqAnnot.bed -o ./refExons.bed
+    sort -k1,1 -k2,2n ./refExons.bed > ./refExonsSort.bed
+    ```
 
     An example is provide in this repository at [refExons.bed](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/refExons.bed "tittle")
 
 5. Compile STAR genome
 
-        mkdir ./genomeSTAR
-        /path/to/STAR \
-         --runMode genomeGenerate \
-         --runThreadN 5 #define here the number of thread to use \
-         --genomeDir ./genomeSTAR \
-         --genomeFastaFiles ./fastaGenome/*.fa \
-         --sjdbFileChrStartEnd ./RefSeqAnnot.sjdb \
-         --sjdbGTFfile /path/to/RefSeqAnnot.gtf \
-         --sjdbOverhang 99
+    ```Bash
+    mkdir ./genomeSTAR
+    /path/to/STAR \
+     --runMode genomeGenerate \
+     --runThreadN 5 #define here the number of thread to use \
+     --genomeDir ./genomeSTAR/ \
+     --genomeFastaFiles ./fastaGenome/*.fa \
+     --sjdbFileChrStartEnd ./RefSeqAnnot.sjdb \
+     --sjdbGTFfile /path/to/RefSeqAnnot.gtf \
+     --sjdbOverhang 99
+    ```
 
 
 #### Reference file used by SpliceLauncher <a id="11"></a>
@@ -225,8 +245,9 @@ After download the file, uncompress it by `gunzip RefSeqAnnot.txt.gz`
 
 **In the second step**, convert this file in the transcript information file by the command:
 
-    Rscript ./scripts/generateSpliceLauncherRef.r -i /path/to/RefSeqAnnot.txt -o ./RefSpliceLauncher.txt
-
+```Bash
+Rscript ./scripts/generateSpliceLauncherRef.r -i /path/to/RefSeqAnnot.txt -o ./RefSpliceLauncher.txt
+```
 
 ## Running the SpliceLauncher tests<a id="12"></a>
 
@@ -241,15 +262,17 @@ To see the different options of this script `pipelineRNAseq.sh --help`
 
 With the example data provided in this repository, single end RNAseq (2x75pb) on *BRCA1* and *BRCA2* transcripts:
 
-    cd /path/to/SpliceLauncher
-    bash ./pipelineRNAseq.sh \
-     -F ./dataTest/fastq/ \
-     -O ./testSpliceLauncher/ \
-     -g ./genomeSTAR/ \
-     --bedannot ./refData/refExons.bed \
-     --star /path/to/STAR \
-     --samtools /path/to/samtools \
-     --bedtools /path/to/BEDtools/bin/
+```Bash
+cd /path/to/SpliceLauncher
+bash ./pipelineRNAseq.sh \
+ -F ./dataTest/fastq/ \
+ -O ./testSpliceLauncher/ \
+ -g ./genomeSTAR/ \
+ --bedannot ./refData/refExons.bed \
+ --star /path/to/STAR \
+ --samtools /path/to/samtools \
+ --bedtools /path/to/BEDtools/bin/
+ ```
 
 After running, two folders and one file are created in the directory output. The *Bam* folder contains the BAM files with their index and STAR log files. The folder *getClosestExons* contains the BED files and txt files that correspond to the junction coordinates and junction counts respectively. The file is the matrix count could be use by SpliceLauncher tool.
 
@@ -259,8 +282,10 @@ To launch SpliceLauncher analysis, you need the matrix count and the transcript 
 
 SpliceLauncher command:
 
-    cd /path/to/SpliceLauncher/
-    Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/RefSpliceLauncher.txt -O ./
+```Bash
+cd /path/to/SpliceLauncher/
+Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/RefSpliceLauncher.txt -O ./
+```
 
  The results are saved in the folder *MatrixCountExample_results*. The scheme of this report is:
 
