@@ -199,7 +199,7 @@ ${STARPath} --genomeDir ${genomeDirectory} --genomeLoad Remove
 if [ $endType = "paired" ]
 then
     #paired-end
-    for file in *1.fastq.gz; do
+    for file in *_R1_001.fastq.gz; do
         if [ -e $file ]
         then
             echo "treatment of $file..."
@@ -208,17 +208,17 @@ then
                 --outFilterMismatchNmax 2 \
                 --outFilterMultimapNmax 10 \
                 --genomeDir ${genomeDirectory} \
-                --readFilesIn $file ${file%1.fastq.gz}2.fastq.gz\
+                --readFilesIn $file ${file%_R1_001.fastq.gz}_R2_001.fastq.gz\
                 --readFilesCommand zcat \
                 --runThreadN ${threads} \
                 --outSAMunmapped Within \
                 --outSAMtype BAM SortedByCoordinate \
                 --limitBAMsortRAM 15000000000 \
                 --outSAMheaderHD \@HD VN:1.4 SO:SortedByCoordinate \
-                --outFileNamePrefix ${BamPath}/${file%1.fastq.gz}. \
-                --genomeLoad LoadAndKeep > ${BamPath}/${file%1.fastq.gz}.log 2>&1
+                --outFileNamePrefix ${BamPath}/${file%_R1_001.fastq.gz}. \
+                --genomeLoad LoadAndKeep > ${BamPath}/${file%_R1_001.fastq.gz}.log 2>&1
         else
-            echo -e "****the file $file doesn't exist, Please rename your file in XXXXX1(2).fastq.gz format****\n****XXXXX1.fastq.gz for R1 read and XXXXX2.fastq.gz for R2 read****"
+            echo -e "****the file $file doesn't exist, Please rename your file in XXXXX_R1(2)_001.fastq.gz format****\n****XXXXX_R1_001.fastq.gz for R1 read and XXXXX_R2_001.fastq.gz for R2 read****"
             echo -e $messageHelp
             exit
         fi
