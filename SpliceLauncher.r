@@ -74,7 +74,6 @@ helpMessage=paste("Usage: SpliceLauncher.r\n
         -O, --output /path/to/output/\n\t\tDirectory to save the results\n
     [Options] \n
         -R, --RefSeqAnnot /path/to/RefSpliceLauncher.txt\n\t\tRefSeq annotation file name [default=",RefFile,"]
-        -m, --MergeTranscrit\n\t\tMerge transcripts to have one transcript by gene
         -t, --TranscriptList /path/to/transcriptList.txt\n\t\tSet the list of transcripts to use as reference
                 If used, the option \'-m, --MergeTrancript\' doesn't affect these transcripts
         -b, --BEDannot\n\t\tget the output in BED format
@@ -110,8 +109,6 @@ while (i <= length(args)){
         outputDir=args[i+1];i = i+2
     }else if(args[i]=="--SampleNames"){
         EchName=args[i+1];i = i+2
-    }else if(args[i]=="-m"|args[i]=="--MergeTranscrit"){
-        mergeTranscrit="YES";i = i+1
     }else if(args[i]=="-b"|args[i]=="--BEDannot"){
         checkBEDannot="YES";i = i+1
     }else if(args[i]=="-g"|args[i]=="--Graphics"){
@@ -232,16 +229,14 @@ if(!is.null(pathTranscript)){
     }
 }
 
-if(mergeTranscrit =="YES"){
-	message('   Merge transcrit...')
-	message(length(unique(tmp$NM)))
-	MatGeneTrans = table(tmp$NM,tmp$Gene)
-	TransMaj = apply(MatGeneTrans,2,getTransMaj)
-	convertTransMaj = data.frame(Gene = names(TransMaj),NMadjust = TransMaj,row.names=1:length(TransMaj))
-	tmp <- merge(tmp, convertTransMaj, by="Gene")
-	tmp$NM = tmp$NMadjust
-	message(length(unique(tmp$NM)))
-}
+message('   Merge transcrit...')
+message(length(unique(tmp$NM)))
+MatGeneTrans = table(tmp$NM,tmp$Gene)
+TransMaj = apply(MatGeneTrans,2,getTransMaj)
+convertTransMaj = data.frame(Gene = names(TransMaj),NMadjust = TransMaj,row.names=1:length(TransMaj))
+tmp <- merge(tmp, convertTransMaj, by="Gene")
+tmp$NM = tmp$NMadjust
+message(length(unique(tmp$NM)))
 
 message("   Generate matrix for SpliceLauncher calculation...")
 data_junction = tmp[,c("Conca","chr","start","end","strand","brin","NM","Gene",SampleInput)]
