@@ -377,10 +377,6 @@ Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/Ref
 
 + Permit to set the name of samples, used for the pdf files.
 
-**-m, --MergeTranscrit**
-
-+ Set one transcripts per gene as reference to determine the alternative splicing.
-
 **-t, --TranscriptList** /path/to/transcriptList.txt
 
 + Permits to set the reference transcripts to study the alternative splicing. Does not support several transcripts by gene (see an example [transcriptsToSelect.txt](https://github.com/raphaelleman/SpliceLauncher/blob/master/dataTest/transcriptsToSelect.txt "tittle")). The option *-m, --MergeTranscrit* cann't affect the gene with the selected transcripts.
