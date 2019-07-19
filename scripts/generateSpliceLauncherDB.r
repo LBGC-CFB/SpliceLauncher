@@ -232,7 +232,6 @@ getSpliceLauncherDB <- function(transcrit){
                 gCDSend = gCDSend2
             }
         }
-        if(!printInfo){print("Fasle in ending")}
         if(printInfo){
             result <<-data.frame(Gene=tmp$gene,Strand=tmp$strand,gCDSstart=rep(gCDSstart,length(tailleExon)),
                 gCDSend=rep(gCDSend,length(tailleExon)),transcrit=tmp$transcript_id,Chr = tmp$chr,
@@ -272,7 +271,6 @@ if(substr(gffData$chr[1],1,3)=="chr"){
     gffData = gffData[grep("chr",gffData$chr,fixed=TRUE),]
 }else if(substr(gffData$chr[1],1,3)=="NC_"){
     gffData = gffData[grep("NC_000",gffData$chr,fixed=TRUE),]
-    gffData$chr = convertNCtoChr(gffData$chr)
 }
 if(length(grep('gene_name',gffData$info[gffData$seqType=='exon'][1]))>0){
     message("Change gene tag ...")
@@ -336,9 +334,6 @@ mergeData$start_CDS = as.numeric(mergeData$start_CDS)
 mergeData$end_CDS = as.numeric(mergeData$end_CDS)
 mergeData$start_CDS[is.na(mergeData$start_CDS)] = mergeData$start[is.na(mergeData$start_CDS)]
 mergeData$end_CDS[is.na(mergeData$end_CDS)] = mergeData$end[is.na(mergeData$end_CDS)]
-
-T2<-as.numeric(format(Sys.time(), "%s"))
-print(T2-T1)
 
 message("   Get SpliceLauncher Reference file ...")
 trans = unique(mergeData$transcript_id)
