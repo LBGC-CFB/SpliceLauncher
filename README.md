@@ -41,9 +41,10 @@ The RNAseq pipeline tool to study the alternative splicing. The pipeline works i
 
 ### Prerequisites<a id="3"></a>
 The SpliceLauncher pipeline needs to start from fastq files
+
 The tools:
 
-* STAR (v2.6 or later)
+* STAR (v2.6 or later)<a id="4">
 * samtools (v1.3 or later)
 * BEDtools (v2.17 or later)
 * R librairies *WriteXLS* and *Cairo*
@@ -52,7 +53,7 @@ The tools:
 
 #### STAR <a id="4"></a>
 
-these following instruction were from the [STAR manual](https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf "Title")
+Following instruction were from the [STAR manual](https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf "Title")
 
 Get the g++ compiler for linux
 
@@ -62,7 +63,7 @@ sudo apt-get install g++
 sudo apt-get install make
 ```
 
-Download the [latest release](https://github.com/alexdobin/STAR/releases "Title") from and uncompress it
+Download the [latest release](https://github.com/alexdobin/STAR/releases/latest "Title") from and uncompress it
 
 ```Bash
 # Get latest STAR source from releases
