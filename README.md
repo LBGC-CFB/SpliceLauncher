@@ -2,7 +2,9 @@
 
 ---
 
-The RNAseq pipeline tool to study the alternative splicing. The pipeline works in two step, fisrt step is to get the read count matrix from fastq files, the second step is to process to SpliceLauncher analysis.
+SpliceLauncher is a pipeline tool to study the alternative splicing. The pipeline works in two step:
+* get a read count matrix from fastq files, aka RNAseq pipeline.
+* run SpliceLauncher from a read count matrix.
 
 ![SpliceLauncher](https://github.com/raphaelleman/SpliceLauncher/blob/master/refData/Figure1.png)
 
@@ -18,7 +20,7 @@ The RNAseq pipeline tool to study the alternative splicing. The pipeline works i
     * [Installing SpliceLauncher](#8)
         * [Creating the reference files](#9)
             * [Reference files used by the RNAseq pipeline](#10)
-            * [Reference file used by SpliceLauncher](#11)
+            * [Reference files used by SpliceLauncher](#11)
 * [Running the SpliceLauncher tests](#12)
     * [RNAseq pipeline, get the read count from fastq files](#13)
     * [SpliceLauncher analysis](#14)
@@ -32,7 +34,7 @@ The RNAseq pipeline tool to study the alternative splicing. The pipeline works i
 ---
 
 * dataTest: example of input files
-* refData: reference files that SpliceLauncher needs, here in hg19 assambly
+* refData: reference files that SpliceLauncher needs, here in hg19 assembly
 * scripts: complementary scripts to run SpliceLauncher pipeline
 
 ## Getting started<a id="2"></a>
@@ -40,16 +42,15 @@ The RNAseq pipeline tool to study the alternative splicing. The pipeline works i
 ---
 
 ### Prerequisites<a id="3"></a>
-The SpliceLauncher pipeline needs to start from fastq files
+The SpliceLauncher pipeline needs to start from fastq files.
 
 The tools:
 
-* STAR (v2.6 or later)<a id="4">
+* STAR (v2.6 or later)
 * samtools (v1.3 or later)
 * BEDtools (v2.17 or later)
-* R librairies *WriteXLS* and *Cairo*
-
-**NB:** SpliceLauncher pipeline requires also the perl compiler but not particular perl libraries
+* R with *WriteXLS* and *Cairo* packages
+* Perl
 
 #### STAR <a id="4"></a>
 
@@ -63,10 +64,10 @@ sudo apt-get install g++
 sudo apt-get install make
 ```
 
-Download the [latest release](https://github.com/alexdobin/STAR/releases/latest "Title") from and uncompress it
+Download the [latest release](https://github.com/alexdobin/STAR/releases/latest "Title") and uncompress it
 
 ```Bash
-# Get latest STAR source from releases
+# Get latest STAR source
 wget https://github.com/alexdobin/STAR/archive/2.7.0c.tar.gz
 tar -xzf 2.7.0c.tar.gz
 cd STAR-2.7.0c
@@ -85,18 +86,18 @@ make STAR
 
 #### Samtools <a id="5"></a>
 
-Download the samtools package at: http://www.htslib.org/download/
+Download the samtools package at: https://github.com/samtools/samtools/releases/latest
 
 Configure samtools for linux:
 
 ```Bash
-cd samtools-1.x    # and similarly for bcftools and htslib
+cd samtools-1.x
 ./configure --prefix=/where/to/install
 make
 make install
 ```
 
-For more information, please see the [samtools manual](http://www.htslib.org/doc/samtools.html "tittle")
+For more information, please see the [samtools manual](http://www.htslib.org/doc/samtools.html "Title")
 
 #### BEDtools <a id="6"></a>
 
@@ -109,7 +110,7 @@ cd bedtools2
 make
 ```
 
-For more information, please see the [BEDtools tutorial](http://quinlanlab.org/tutorials/bedtools/bedtools.html "tittle")
+For more information, please see the [BEDtools tutorial](http://quinlanlab.org/tutorials/bedtools/bedtools.html "Title")
 
 #### Install R libraries <a id="7"></a>
 
@@ -131,13 +132,13 @@ cd ./SpliceLauncher
 
 ### Creating the reference files <a id="9"></a>
 
-The RNAseq pipeline needs the reference genome and the coordinates of exon. SpliceLauncher needs the RefSeq database. The reference files used are:
+Reference files used are:
 
-* Human genome assembly, used by STAR
-* Exons annotations, used by BEDtools
-* Transcripts information, used by SpliceLauncher
+* reference genome in fasta format, used by STAR during RNAseq pipeline
+* exons annotations in GTF v3 format, used by BEDtools
+* transcripts information in BED, used by SpliceLauncher
 
-An example of these two last files is provide in the [refData folder](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData "tittle") with human genome, hg19 assembly
+An example of these two last files is provide in the [refData folder](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData "Title") with human genome, hg19 assembly
 
 #### Reference files used by the RNAseq pipeline <a id="10"></a>
 
@@ -145,10 +146,10 @@ An example of these two last files is provide in the [refData folder](https://gi
 2. Donwload RefSeq annot GTF file
 3. Donwload RefSeq annot BED file
 4. Convert BED file into sjdb file and extract exon coordinates
-5. Compile STAR genome
+5. Generate STAR genome index
 
 Steps:
-1. Download Fasta genome: from [UCSC](http://hgdownload.soe.ucsc.edu/downloads.html#human "tittle"), with hg19 example:
+1. Download Fasta genome: from [UCSC](http://hgdownload.soe.ucsc.edu/downloads.html#human "Title"), with hg19 example:
     ```Bash
     #the ftp URL depends on your assembly genome choice
     cd /path/to/SpliceLauncher/
@@ -159,7 +160,7 @@ Steps:
     cd ..
     ```
 
-2. Donwload the GTF annotation file: from [UCSC table browser](https://genome.ucsc.edu/cgi-bin/hgTables "tittle"), with hg19 example:
+2. Donwload the GTF annotation file: from [UCSC table browser](https://genome.ucsc.edu/cgi-bin/hgTables "Title"), with hg19 example:
 
     Options setting:
 
@@ -224,7 +225,7 @@ Steps:
     ```
 
 
-#### Reference file used by SpliceLauncher <a id="11"></a>
+#### Reference files used by SpliceLauncher <a id="11"></a>
 
 An example is provide in this repository at [RefSpliceLauncher.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/RefSpliceLauncher.txt "tittle")
 
