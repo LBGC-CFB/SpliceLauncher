@@ -41,7 +41,7 @@ library(Cairo)
 		message(cond)
 		message("*****You need to install \'Cairo\' library")
 })
-message("SpliceLauncherV1.2")
+message("SpliceLauncherV1.3")
 
 #####################
 #import of arguments#
@@ -61,6 +61,7 @@ thr=1
 StatAnalysis='NO'
 adjust='TRUE'
 negbinom.n=10
+printText=FALSE
 
 argsFull <- commandArgs()
 
@@ -76,7 +77,8 @@ helpMessage=paste("Usage: SpliceLauncher.r\n
         -R, --RefSeqAnnot /path/to/RefSpliceLauncher.txt\n\t\tRefSeq annotation file name [default=",RefFile,"]
         -t, --TranscriptList /path/to/transcriptList.txt\n\t\tSet the list of transcripts to use as reference
                 If used, the option \'-m, --MergeTrancript\' doesn't affect these transcripts
-        -b, --BEDannot\n\t\tget the output in BED format
+        --text\n\t\tPrint main output in txt instead of excel
+        -b, --BEDannot\n\t\tGet the output in BED format
         -g, --Graphics\n\t\tDisplay graphics of alternative junctions (Warnings: increase the runtime)
         -s, --Statistical\n\t\tPerformed statistical analysis, requiers more than 5 samples
         If list of transcripts (-t, --TranscriptList):
@@ -113,6 +115,8 @@ while (i <= length(args)){
         checkBEDannot="YES";i = i+1
     }else if(args[i]=="-g"|args[i]=="--Graphics"){
         DisplayGraph="YES";i = i+1
+    }else if(args[i]=="--text"){
+        printText=TRUE;i = i+1
     }else if(args[i]=="--threshold"){
         thr=args[i+1];i = i+2
     }else if(args[i]=="-s"|args[i]=="--Statistical"){
@@ -142,6 +146,7 @@ message(paste("Output directory:",outputDir))
 message(paste("Run name:",run))
 message(paste("Sample Name:",EchName))
 message(paste("RefSeq Annot:",RefFile))
+message(paste("Output format:",if(printText){"text"}else{"excel"}))
 message(paste("Merge Transcript:",mergeTranscrit))
 message(paste("List of transcripts:",pathTranscript))
 message(paste("Remove the other genes:",removeOther))
@@ -205,8 +210,8 @@ message(paste("   I don't find",length(missingNM),"transcrit(s) (",paste(missing
 
 tmp = tmp[!is.na(tmp$Gene),]
 
-tmp$brin[tmp$Strand=="+"] = "forward"
-tmp$brin[tmp$Strand=="-"] = "reverse"
+tmp$Strand_transcript[tmp$Strand=="+"] = "forward"
+tmp$Strand_transcript[tmp$Strand=="-"] = "reverse"
 
 getTransMaj <- function (x){
 	trans = names(which(x==max(x)))
@@ -239,7 +244,7 @@ tmp$NM = tmp$NMadjust
 message(length(unique(tmp$NM)))
 
 message("   Generate matrix for SpliceLauncher calculation...")
-data_junction = tmp[,c("Conca","chr","start","end","strand","brin","NM","Gene",SampleInput)]
+data_junction = tmp[,c("Conca","chr","start","end","strand","Strand_transcript","NM","Gene",SampleInput)]
 
 message("   Remove Opposite junctions...")
 
@@ -248,8 +253,8 @@ data_junctionUnique = data_junction[-idDoublon,]
 data_junctionDoublon = data_junction[idDoublon,]
 
 JuncNoFilt = nrow(data_junctionDoublon)
-data_junctionDoublon = data_junctionDoublon[(data_junctionDoublon$brin=="forward" & data_junctionDoublon$strand=="+")|
-						(data_junctionDoublon$brin=="reverse" & data_junctionDoublon$strand=="-"),]
+data_junctionDoublon = data_junctionDoublon[(data_junctionDoublon$Strand_transcript=="forward" & data_junctionDoublon$strand=="+")|
+						(data_junctionDoublon$Strand_transcript=="reverse" & data_junctionDoublon$strand=="-"),]
 JuncFilt = nrow(data_junctionDoublon)
 nbJuncOpp = JuncNoFilt-JuncFilt
 
@@ -743,7 +748,7 @@ AnnotJuncs = NULL
 cStart = NULL
 cEnd = NULL
 data_junction$constitutive = ""
-data_junction$calcul = ""
+data_junction$event_type = ""
 data_junction$AnnotJuncs = ""
 data_junction$cStart = ""
 data_junction$cEnd = ""
@@ -754,7 +759,7 @@ for (i in unique(data_junction$NM)){
 	prog = prog+1
 	setTxtProgressBar(pb,prog)
 
-	strand = data_junction$brin[data_junction$NM==i][1]
+	strand = data_junction$Strand_transcript[data_junction$NM==i][1]
 	tableConvertAnnot = tableConvert[tableConvert$transcrit==i,]
 	tmpIdTrans = which(data_junction$NM==i)
 	IdTrans = c(IdTrans,tmpIdTrans)
@@ -782,7 +787,7 @@ for (i in unique(data_junction$NM)){
 }
 
 data_junction$constitutive[IdTrans] = constitutive
-data_junction$calcul[IdTrans] = calcul
+data_junction$event_type[IdTrans] = calcul
 data_junction$AnnotJuncs[IdTrans] = AnnotJuncs
 data_junction$cStart[IdTrans] = cStart
 data_junction$cEnd[IdTrans] = cEnd
@@ -1039,22 +1044,22 @@ if(n_ech==1){
         setTxtProgressBar(pb1,prog)
 
 		tmpIdTrans = which(data_junction$NM==i)
-		strand = data_junction$brin[tmpIdTrans][1]
+		strand = data_junction$Strand_transcript[tmpIdTrans][1]
 		dataTmp = data_junction[tmpIdTrans,]
 		row.names(dataTmp) = dataTmp$Conca
 		dataTmpPhysio = dataTmp[dataTmp$constitutive=="Physio",]
 		tableTranscrit = tableConvert[tableConvert$transcrit==i,]
 
 		if(strand=="forward"){
-			tmp = mapply(calcJuncTo1sampleFor,Conca = dataTmp$Conca,calcul = dataTmp$calcul, start = dataTmp$start, end = dataTmp$end)
+			tmp = mapply(calcJuncTo1sampleFor,Conca = dataTmp$Conca,calcul = dataTmp$event_type, start = dataTmp$start, end = dataTmp$end)
 		}else{
-			tmp = mapply(calcJuncTo1sampleRev,Conca = dataTmp$Conca,calcul = dataTmp$calcul, start = dataTmp$start, end = dataTmp$start)
+			tmp = mapply(calcJuncTo1sampleRev,Conca = dataTmp$Conca,calcul = dataTmp$event_type, start = dataTmp$start, end = dataTmp$start)
 		}
-		dataTmp[,"calcul"]  = unlist(tmp[1,])
+		dataTmp[,"event_type"]  = unlist(tmp[1,])
 		dataTmp[,SampleOutput] = unlist(tmp[2,])
-		data_junction[tmpIdTrans,c(SampleOutput,"calcul")] = dataTmp[,c(SampleOutput,"calcul")]
+		data_junction[tmpIdTrans,c(SampleOutput,"event_type")] = dataTmp[,c(SampleOutput,"event_type")]
 	}
-	data_junction$mean_pourcentage = data_junction[,output]
+	data_junction$mean_percent = data_junction[,output]
 	data_junction$read_mean = data_junction[,input]
 }else{
 	for( i in unique(data_junction$NM)){
@@ -1063,23 +1068,23 @@ if(n_ech==1){
 
 		tmpIdTrans = which(data_junction$NM==i)
 
-		strand = data_junction$brin[tmpIdTrans][1]
+		strand = data_junction$Strand_transcript[tmpIdTrans][1]
 		dataTmp = data_junction[tmpIdTrans,]
 		row.names(dataTmp) = dataTmp$Conca
 		dataTmpPhysio = dataTmp[dataTmp$constitutive=="Physio",]
 		tableTranscrit = tableConvert[tableConvert$transcrit==i,]
 
 		if(strand=="forward"){
-			tmp = mapply(calcJuncToMultiSampleFor,Conca = dataTmp$Conca,calcul = dataTmp$calcul, start = dataTmp$start, end = dataTmp$end)
+			tmp = mapply(calcJuncToMultiSampleFor,Conca = dataTmp$Conca,calcul = dataTmp$event_type, start = dataTmp$start, end = dataTmp$end)
 		}else{
-			tmp = mapply(calcJuncToMultiSampleRev,Conca = dataTmp$Conca,calcul = dataTmp$calcul, start = dataTmp$start, end = dataTmp$end)
+			tmp = mapply(calcJuncToMultiSampleRev,Conca = dataTmp$Conca,calcul = dataTmp$event_type, start = dataTmp$start, end = dataTmp$end)
 		}
-		dataTmp[,"calcul"]  = unlist(tmp[1,])
+		dataTmp[,"event_type"]  = unlist(tmp[1,])
 		dataTmp[,SampleOutput] = matrix(unlist(tmp[2,]),ncol=n_ech,byrow=TRUE)
-		data_junction[tmpIdTrans,c(SampleOutput,"calcul")] = dataTmp[,c(SampleOutput,"calcul")]
+		data_junction[tmpIdTrans,c(SampleOutput,"event_type")] = dataTmp[,c(SampleOutput,"event_type")]
 		T2bis<-as.numeric(format(Sys.time(), "%s"))
 	}
-	data_junction$mean_pourcentage = as.numeric(rowMeans(data_junction[,output]))
+	data_junction$mean_percent = as.numeric(rowMeans(data_junction[,output]))
 	data_junction$read_mean = as.numeric(rowMeans(data_junction[,input]))
 }
 
@@ -1089,7 +1094,7 @@ eval(parse(text=paste("data_junction[,",output,"] <- as.numeric(data_junction[,"
 
 #infinite value are fixed to 100 %
 
-data_junction$mean_pourcentage[data_junction$mean_pourcentage=='Inf']=100
+data_junction$mean_percent[data_junction$mean_percent=='Inf']=100
 
 data_junction=data_junction[order(data_junction$Gene),]
 
@@ -1124,6 +1129,8 @@ getBEDannot<-function(chr,start,end,name,strand,cStart,cEnd,meanP,rowSamples,cal
     #get annot
     annot = apply(rowSamples,1,function(x){paste(paste(SampleOutput,x,sep=": "),collapse="|")})
     #get BED
+    name = sub(BlackInvTriangle,"ins_",name)
+    name = sub(DeltaSymb,"del_",name)
     bedAnnot = c(paste("track name=",run,
                     " type=bedDetail description=\"Alternative junction from ",run,
                     " RNAseq\" db=hg19 itemRgb=\"On\" visibility=\"full\"",sep=""),
@@ -1137,8 +1144,8 @@ if(checkBEDannot=="YES"){
     bedAnnot = getBEDannot(data_junction$chr[calcul!="Physio"&calcul!="NoData"],data_junction$start[calcul!="Physio"&calcul!="NoData"],
                             data_junction$end[calcul!="Physio"&calcul!="NoData"],data_junction$AnnotJuncs[calcul!="Physio"&calcul!="NoData"],
                             data_junction$strand[calcul!="Physio"&calcul!="NoData"],data_junction$cStart[calcul!="Physio"&calcul!="NoData"],
-                            data_junction$cEnd[calcul!="Physio"&calcul!="NoData"],data_junction$mean_pourcentage[calcul!="Physio"&calcul!="NoData"],
-                            data_junction[calcul!="Physio"&calcul!="NoData",SampleOutput],data_junction$calcul[calcul!="Physio"&calcul!="NoData"])
+                            data_junction$cEnd[calcul!="Physio"&calcul!="NoData"],data_junction$mean_percent[calcul!="Physio"&calcul!="NoData"],
+                            data_junction[calcul!="Physio"&calcul!="NoData",SampleOutput],data_junction$event_type[calcul!="Physio"&calcul!="NoData"])
     cat(bedAnnot,file=paste(chem_results,run,".bed",sep=""),sep="\n")
 }
 
@@ -1151,26 +1158,37 @@ checkSizeOutput <- function(data){
 	return(data)
 }
 
-dataToPrint = subset( data_junction, select = -c(ID_gene))
+printInText <- function(data,path,name){
+    data$AnnotJuncs = sub(BlackInvTriangle,"ins_",data$AnnotJuncs)
+    data$AnnotJuncs = sub(DeltaSymb,"del_",data$AnnotJuncs)
+    write.table(data,file=paste(path,name,sep=""),row.names=F,dec=".",sep="\t",quote=FALSE)
+}
+
+dataToPrint = subset( data_junction, select = -c(ID_gene, constitutive))
 dataToPrint = checkSizeOutput(dataToPrint)
 
 if(StatAnalysis=="NO"){
 	message("\n   Data are saving...")
-	tryCatch({
-		WriteXLS(dataToPrint, ExcelFileName =paste(chem_results,name_output,sep=""),row.names=F,SheetNames=run,Encoding = "UTF-8",na="")
-	},
-		error=function(cond) {
-			message("Here's the original error message:")
-			message(cond)
-			name_output=paste(run,"_outputSpliceLauncher.csv",sep="")
-			write.table(dataToPrint,file=paste(chem_results,name_output,sep=""),row.names=F,dec=",",sep=";")
-	},
-		warning=function(cond) {
-			message("Here's the original warning message:")
-			message(cond)
-			name_output=paste(run,"_outputSpliceLauncher.csv",sep="")
-			write.table(dataToPrint,file=paste(chem_results,name_output,sep=""),row.names=F,dec=",",sep=";")
-	})
+    if(!printText){
+        tryCatch({
+         WriteXLS(dataToPrint, ExcelFileName =paste(chem_results,name_output,sep=""),row.names=F,SheetNames=run,Encoding = "UTF-8",na="")
+        },
+         error=function(cond) {
+             message("Here's the original error message:")
+             message(cond)
+             name_output=paste(run,"_outputSpliceLauncher.csv",sep="")
+             write.table(dataToPrint,file=paste(chem_results,name_output,sep=""),row.names=F,dec=".",sep=";")
+         },
+         warning=function(cond) {
+             message("Here's the original warning message:")
+             message(cond)
+             name_output=paste(run,"_outputSpliceLauncher.csv",sep="")
+             write.table(dataToPrint,file=paste(chem_results,name_output,sep=""),row.names=F,dec=".",sep=";")
+         })
+    }else if(printText){
+        printInText(dataToPrint,chem_results,paste(run,"_outputSpliceLauncher.txt",sep=""))
+    }
+
 }else{
 message("\n######################")
 message("#Statistical analysis...")
@@ -1294,7 +1312,7 @@ js2sj<-function(a, sid, jid.column){
     stop("***** The junctions were not identify in unique way")
   }
   a = a[a$constitutive!='Physio',]
-  a = a[a$calcul!='NoData',]
+  a = a[a$event_type!='NoData',]
   a = a[a$nbSamp>=5,]
 
   for(i in 1:n_ech){
@@ -1490,7 +1508,7 @@ data_junction_pvalue = data_junction_pvalue[order(data_junction_pvalue$Jonction)
 data_junction = data_junction[order(data_junction$Conca),]
 getSign = function(v,n){
     id = which(v<0.05)
-    if(length(id)==0){sign="No"}else{sign = paste("Yes",paste(n[id],collapse="; "),sep=": ")}
+    if(length(id)==0){sign="No"}else{sign = paste("Yes",paste(n[id],v[id],collapse="; ",sep=", p-value = "),sep=": ")}
     return(sign)
 }
 
@@ -1499,25 +1517,33 @@ data_junction$DistribAjust[data_junction$Conca%in%data_junction_pvalue$Jonction]
 significative = apply(data_junction_pvalue[,7:ncol(data_junction_pvalue)],1,getSign,names(data_junction)[input])
 data_junction$Significative[data_junction$Conca%in%data_junction_pvalue$Jonction] = significative
 
-dataToPrint = subset( data_junction, select = -c(ID_gene))
+dataToPrint = subset( data_junction, select = -c(ID_gene, constitutive))
 dataToPrint=dataToPrint[order(dataToPrint$Gene),]
 dataToPrint = checkSizeOutput(dataToPrint)
+message("   Data are saving...")
 
-tryCatch({
-	message("   Data are saving...")
-	WriteXLS(dataToPrint, ExcelFileName =paste(chem_results,name_output,sep=""),row.names=F,SheetNames=run,Encoding = "UTF-8",na="")
-},
-	error=function(cond) {
-		message("Here's the original error message:")
-		message(cond)
-		name_output=paste(run,"_outputSpliceLauncher.csv",sep="")
-		write.table(dataToPrint,file=paste(chem_results,name_output,sep=""),row.names=F,dec=",",sep=";")
-},
-	warning=function(cond) {
-		message("Here's the original warning message:")
-		message(cond)
-		write.table(dataToPrint,file=paste(chem_results,name_output,sep=""),row.names=F,dec=",",sep=";")
-})
+file.remove("output with adjustments.csv")
+file.remove("output without adjustment.csv")
+
+if(!printText){
+    tryCatch({
+     WriteXLS(dataToPrint, ExcelFileName =paste(chem_results,name_output,sep=""),row.names=F,SheetNames=run,Encoding = "UTF-8",na="")
+    },
+     error=function(cond) {
+         message("Here's the original error message:")
+         message(cond)
+         name_output=paste(run,"_outputSpliceLauncher.csv",sep="")
+         write.table(dataToPrint,file=paste(chem_results,name_output,sep=""),row.names=F,dec=".",sep=";")
+     },
+     warning=function(cond) {
+         message("Here's the original warning message:")
+         message(cond)
+         name_output=paste(run,"_outputSpliceLauncher.csv",sep="")
+         write.table(dataToPrint,file=paste(chem_results,name_output,sep=""),row.names=F,dec=".",sep=";")
+     })
+}else if(printText){
+    printInText(dataToPrint,chem_results,paste(run,"_outputSpliceLauncher.txt",sep=""))
+}
 }
 
 if(DisplayGraph=="YES"){
@@ -1616,17 +1642,17 @@ if(DisplayGraph=="YES"){
 
 		CairoPDF(file=paste(chem_dessin,run,"_",EchName[j],".pdf",sep=""),width =60, height = 12)
 
-		data_junction$mean_pourcentage = data_junction[,SampleOutput[j]]
-		data_junction$mean_pourcentage[data_junction$mean_pourcentage=='Inf']=100
+		data_junction$mean_percent = data_junction[,SampleOutput[j]]
+		data_junction$mean_percent[data_junction$mean_percent=='Inf']=100
         GeneMis = 0
 		for(i in id_gene){
-			data_gene = data_junction[data_junction$ID_gene==i & data_junction$calcul!="NoData",]
+			data_gene = data_junction[data_junction$ID_gene==i & data_junction$event_type!="NoData",]
 
 			if(max(data_gene[data_gene$constitutive=="Physio",input[j]])<100){
 				GeneMis = GeneMis+1
             }else{
 
-                if(data_gene$brin[1]=="forward"){
+                if(data_gene$Strand_transcript[1]=="forward"){
 
 					start_physio=data_gene$start[data_gene$constitutive=="Physio"]
 					lab_physio=c(1:(length(start_physio)+1))
@@ -1634,31 +1660,31 @@ if(DisplayGraph=="YES"){
 					mean_read_physio=data_gene[data_gene$constitutive=="Physio",SampleInput[j]]
 					h_physio=log(mean_read_physio)/20
 
-					start_don=as.numeric(na.omit(data_gene$start[data_gene$calcul=="5AS" & data_gene$mean_pourcentage>=thr]))
-					end_don=as.numeric(na.omit(data_gene$end[data_gene$calcul=="5AS" & data_gene$mean_pourcentage>=thr]))
-					P_don=as.numeric(na.omit(data_gene$mean_pourcentage[data_gene$calcul=="5AS" & data_gene$mean_pourcentage>=thr]))
-					Annot_don=as.character(na.omit(data_gene$AnnotJunc[data_gene$calcul=="5AS" & data_gene$mean_pourcentage>=thr]))
-					Signi_don = getSigniDon(data_gene[data_gene$calcul=="5AS" & data_gene$mean_pourcentage>=thr,])
+					start_don=as.numeric(na.omit(data_gene$start[data_gene$event_type=="5AS" & data_gene$mean_percent>=thr]))
+					end_don=as.numeric(na.omit(data_gene$end[data_gene$event_type=="5AS" & data_gene$mean_percent>=thr]))
+					P_don=as.numeric(na.omit(data_gene$mean_percent[data_gene$event_type=="5AS" & data_gene$mean_percent>=thr]))
+					Annot_don=as.character(na.omit(data_gene$AnnotJunc[data_gene$event_type=="5AS" & data_gene$mean_percent>=thr]))
+					Signi_don = getSigniDon(data_gene[data_gene$event_type=="5AS" & data_gene$mean_percent>=thr,])
 					font_Don = getFont(Signi_don)
 
-					start_acc=as.numeric(na.omit(data_gene$start[data_gene$calcul=="3AS" & data_gene$mean_pourcentage>=thr]))
-					end_acc=as.numeric(na.omit(data_gene$end[data_gene$calcul=="3AS" & data_gene$mean_pourcentage>=thr]))
-					P_acc=as.numeric(na.omit(data_gene$mean_pourcentage[data_gene$calcul=="3AS" & data_gene$mean_pourcentage>=thr]))
-					Annot_acc=as.character(na.omit(data_gene$AnnotJunc[data_gene$calcul=="3AS" & data_gene$mean_pourcentage>=thr]))
-					Signi_acc = getSigniAcc(data_gene[data_gene$calcul=="3AS" & data_gene$mean_pourcentage>=thr,])
+					start_acc=as.numeric(na.omit(data_gene$start[data_gene$event_type=="3AS" & data_gene$mean_percent>=thr]))
+					end_acc=as.numeric(na.omit(data_gene$end[data_gene$event_type=="3AS" & data_gene$mean_percent>=thr]))
+					P_acc=as.numeric(na.omit(data_gene$mean_percent[data_gene$event_type=="3AS" & data_gene$mean_percent>=thr]))
+					Annot_acc=as.character(na.omit(data_gene$AnnotJunc[data_gene$event_type=="3AS" & data_gene$mean_percent>=thr]))
+					Signi_acc = getSigniAcc(data_gene[data_gene$event_type=="3AS" & data_gene$mean_percent>=thr,])
 					font_Acc = getFont(Signi_acc)
 
-					start_saut=as.numeric(na.omit(data_gene$start[data_gene$calcul=="SkipEx" & data_gene$mean_pourcentage>=thr]))
-					P_saut=as.numeric(na.omit(data_gene$mean_pourcentage[data_gene$calcul=="SkipEx" & data_gene$mean_pourcentage>=thr]))
-					Annot_saut=as.character(na.omit(data_gene$AnnotJunc[data_gene$calcul=="SkipEx" & data_gene$mean_pourcentage>=thr]))
-					end_saut=as.numeric(na.omit(data_gene$end[data_gene$calcul=="SkipEx" & data_gene$mean_pourcentage>=thr]))
-					Signi_saut = getSigniSaut(data_gene[data_gene$calcul=="SkipEx" & data_gene$mean_pourcentage>=thr,])
+					start_saut=as.numeric(na.omit(data_gene$start[data_gene$event_type=="SkipEx" & data_gene$mean_percent>=thr]))
+					P_saut=as.numeric(na.omit(data_gene$mean_percent[data_gene$event_type=="SkipEx" & data_gene$mean_percent>=thr]))
+					Annot_saut=as.character(na.omit(data_gene$AnnotJunc[data_gene$event_type=="SkipEx" & data_gene$mean_percent>=thr]))
+					end_saut=as.numeric(na.omit(data_gene$end[data_gene$event_type=="SkipEx" & data_gene$mean_percent>=thr]))
+					Signi_saut = getSigniSaut(data_gene[data_gene$event_type=="SkipEx" & data_gene$mean_percent>=thr,])
 					font_Saut = getFont(Signi_saut)
 
 					min_x=min(c(start_don,start_physio,start_saut))
 					max_x=max(c(end_don,end_physio,end_saut,end_acc))
 
-					plot(x=0,xlim=c(min_x,max_x),ylim=c(0.8,2.5),xlab=data_gene$brin[1],
+					plot(x=0,xlim=c(min_x,max_x),ylim=c(0.8,2.5),xlab=data_gene$Strand_transcript[1],
 						main=paste(data_gene$Gene[1],paste("(",unique(data_gene$NM),")",sep=""),
 						">",thr,"%",run),cex.main=4,cex.lab=3, yaxt="n", ylab="")
 					segments(x0=min(start_physio),y0=1.3,y1=1.3,x1=max(end_physio),col='black',lwd=6)
@@ -1700,7 +1726,7 @@ if(DisplayGraph=="YES"){
 					text(y=c(0.85,0.8),x=start_acc+(end_acc-start_acc)/2,labels=paste(Annot_acc,":",round(P_acc,2),"%",Signi_acc),
 						bg='white',cex=1.5,col='green',font = font_Acc)
 
-				}else if (data_gene$brin[1]=="reverse"){
+				}else if (data_gene$Strand_transcript[1]=="reverse"){
 
 					data_gene=data_gene[order(data_gene$start),]
 					end_physio=data_gene$end[data_gene$constitutive=="Physio"]
@@ -1709,31 +1735,31 @@ if(DisplayGraph=="YES"){
 					mean_read_physio=data_gene[data_gene$constitutive=="Physio",SampleInput[j]]
 					h_physio=log(mean_read_physio)/20
 
-					start_don=as.numeric(na.omit(data_gene$end[data_gene$calcul=="5AS" & data_gene$mean_pourcentage>=thr]))
-					end_don=as.numeric(na.omit(data_gene$start[data_gene$calcul=="5AS" & data_gene$mean_pourcentage>=thr]))
-					P_don=as.numeric(na.omit(data_gene$mean_pourcentage[data_gene$calcul=="5AS" & data_gene$mean_pourcentage>=thr]))
-					Annot_don=as.character(na.omit(data_gene$AnnotJunc[data_gene$calcul=="5AS" & data_gene$mean_pourcentage>=thr]))
-					Signi_don = getSigniDon(data_gene[data_gene$calcul=="5AS" & data_gene$mean_pourcentage>=thr,])
+					start_don=as.numeric(na.omit(data_gene$end[data_gene$event_type=="5AS" & data_gene$mean_percent>=thr]))
+					end_don=as.numeric(na.omit(data_gene$start[data_gene$event_type=="5AS" & data_gene$mean_percent>=thr]))
+					P_don=as.numeric(na.omit(data_gene$mean_percent[data_gene$event_type=="5AS" & data_gene$mean_percent>=thr]))
+					Annot_don=as.character(na.omit(data_gene$AnnotJunc[data_gene$event_type=="5AS" & data_gene$mean_percent>=thr]))
+					Signi_don = getSigniDon(data_gene[data_gene$event_type=="5AS" & data_gene$mean_percent>=thr,])
 					font_Don = getFont(Signi_don)
 
-					start_acc=as.numeric(na.omit(data_gene$end[data_gene$calcul=="3AS" & data_gene$mean_pourcentage>=thr]))
-					end_acc=as.numeric(na.omit(data_gene$start[data_gene$calcul=="3AS" & data_gene$mean_pourcentage>=thr]))
-					P_acc=as.numeric(na.omit(data_gene$mean_pourcentage[data_gene$calcul=="3AS" & data_gene$mean_pourcentage>=thr]))
-					Annot_acc=as.character(na.omit(data_gene$AnnotJunc[data_gene$calcul=="3AS" & data_gene$mean_pourcentage>=thr]))
-					Signi_acc = getSigniAcc(data_gene[data_gene$calcul=="3AS" & data_gene$mean_pourcentage>=thr,])
+					start_acc=as.numeric(na.omit(data_gene$end[data_gene$event_type=="3AS" & data_gene$mean_percent>=thr]))
+					end_acc=as.numeric(na.omit(data_gene$start[data_gene$event_type=="3AS" & data_gene$mean_percent>=thr]))
+					P_acc=as.numeric(na.omit(data_gene$mean_percent[data_gene$event_type=="3AS" & data_gene$mean_percent>=thr]))
+					Annot_acc=as.character(na.omit(data_gene$AnnotJunc[data_gene$event_type=="3AS" & data_gene$mean_percent>=thr]))
+					Signi_acc = getSigniAcc(data_gene[data_gene$event_type=="3AS" & data_gene$mean_percent>=thr,])
 					font_Acc = getFont(Signi_acc)
 
-					start_saut=as.numeric(na.omit(data_gene$end[data_gene$calcul=="SkipEx" & data_gene$mean_pourcentage>=thr]))
-					end_saut=as.numeric(na.omit(data_gene$start[data_gene$calcul=="SkipEx" & data_gene$mean_pourcentage>=thr]))
-					P_saut=as.numeric(na.omit(data_gene$mean_pourcentage[data_gene$calcul=="SkipEx" & data_gene$mean_pourcentage>=thr]))
-					Annot_saut=as.character(na.omit(data_gene$AnnotJunc[data_gene$calcul=="SkipEx" & data_gene$mean_pourcentage>=thr]))
-					Signi_saut = getSigniSaut(data_gene[data_gene$calcul=="SkipEx" & data_gene$mean_pourcentage>=thr,])
+					start_saut=as.numeric(na.omit(data_gene$end[data_gene$event_type=="SkipEx" & data_gene$mean_percent>=thr]))
+					end_saut=as.numeric(na.omit(data_gene$start[data_gene$event_type=="SkipEx" & data_gene$mean_percent>=thr]))
+					P_saut=as.numeric(na.omit(data_gene$mean_percent[data_gene$event_type=="SkipEx" & data_gene$mean_percent>=thr]))
+					Annot_saut=as.character(na.omit(data_gene$AnnotJunc[data_gene$event_type=="SkipEx" & data_gene$mean_percent>=thr]))
+					Signi_saut = getSigniSaut(data_gene[data_gene$event_type=="SkipEx" & data_gene$mean_percent>=thr,])
 					font_Saut = getFont(Signi_saut)
 
 					min_x=min(c(end_physio,end_acc,end_saut,start_don,start_physio,start_saut))
 					max_x=max(c(start_don,start_physio,start_saut,end_physio,end_acc,end_saut))
 
-					plot(x=0,xlim=c(min_x,max_x),ylim=c(0.8,2.5),cex.main=4,cex.lab=3,xlab=data_gene$brin[1],
+					plot(x=0,xlim=c(min_x,max_x),ylim=c(0.8,2.5),cex.main=4,cex.lab=3,xlab=data_gene$Strand_transcript[1],
 						main=paste(data_gene$Gene[1],paste("(",unique(data_gene$NM),")",sep=""),
 						">",thr,"%",run), yaxt="n", ylab="")
 					segments(x0=min(start_physio),y0=1.3,y1=1.3,x1=max(end_physio),col='black',lwd=6)
@@ -1800,5 +1826,5 @@ donnee=c(paste(date_analyse,"; Time to analysis:",Tdiff,"min"),name_input,run,n_
 			outputDir,name_output,chem_dessin,nbJuncOpp,mean(data_junction$read_mean))
 
 rapport=data.frame(chapitre,donnee)
-write.table(rapport,file=paste(chem_rapport,run,"_report_",format(Sys.time(), "%m-%d-%Y"),".txt",sep=""),dec=",",row.names=F,
+write.table(rapport,file=paste(chem_rapport,run,"_report_",format(Sys.time(), "%m-%d-%Y"),".txt",sep=""),dec=".",row.names=F,
 col.names=F,sep="\t",quote=F)
