@@ -256,7 +256,7 @@ if(as.numeric(substr(fileType,nchar(fileType)-1,nchar(fileType)))<3){
     stop(paste("Import GFF file in version 3 or later, your version is:",as.numeric(substr(fileType,nchar(fileType)-1,nchar(fileType)))))
 }
 mHead = gffData[grep("#",substr(gffData,1,2),fixed=TRUE)]
-message(paste("Your database:",paste(mHead,collapse="\n"),sep="\n"))
+message(paste("Your database:",paste(mHead[1:3],collapse="\n"),sep="\n"))
 
 gffData = gffData[-grep("#",substr(gffData,1,2),fixed=TRUE)]
 
@@ -308,7 +308,6 @@ proteinInfotmp = as.data.frame(matrix(tmp, ncol = length(colNames),byrow = TRUE)
 names(proteinInfotmp) = colNames
 message("Merge CDS files ...")
 proteinInfo = cbind(proteinInfo,proteinInfotmp)
-proteinInfo = proteinInfo[proteinInfo$transcript_id!=".",]
 proteinInfo = extractCDS(proteinInfo)
 
 # get BED file
