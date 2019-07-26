@@ -7,12 +7,12 @@ options(scipen=50,stringsAsFactors=FALSE)
 helpMessage="Usage: generateSpliceLauncherDB.r\n
     [Mandatory] \n
         -i, --input /path/to/inputFile
-            RefSeq BED database, downloadable at UCSC: https://genome.ucsc.edu/cgi-bin/hgTables\n
-        -o, --output /path/to/dirctory
+            RefSeq GFF annotation file, downloadable at UCSC: https://genome.ucsc.edu/cgi-bin/hgTables\n
+        -o, --output /path/to/directory/
             Directory to output databases\n
     -h, --help
         print this help message and exit\n
-   You could : Rscript generateRefSeqsjdb.r -i ./RefSeqAnnot.bed -o ./RefSeqAnnot.sjdb"
+   You could : Rscript generateRefSeqsjdb.r -i ./RefSeqAnnot.gff -o ./RefSeqAnnot.sjdb"
 
 args <- commandArgs(trailingOnly = TRUE)
 
@@ -90,6 +90,7 @@ getSJDBfile <- function(exonCoord){
         V2 = rep(NA,nrow(exonCoord)-1),
         V3 = rep(NA,nrow(exonCoord)-1),
         V4 = exonCoord$strand[-nrow(exonCoord)])
+    # print(summary(tmp))
     tmp$V2[tmp$V4=="+"] = as.numeric(exonCoord$end[which(tmp$V4=="+")])+1
     tmp$V3[tmp$V4=="+"] = as.numeric(exonCoord$start[which(tmp$V4=="+")+1])-1
     tmp$V2[tmp$V4=="-"] = as.numeric(exonCoord$end[which(tmp$V4=="-")+1])+1
@@ -97,6 +98,7 @@ getSJDBfile <- function(exonCoord){
     t1 = exonCoord$transcript_id[-nrow(exonCoord)]
     t2 = exonCoord$transcript_id[-1]
     tmp = tmp[-which(t1!=t2),]
+    # print(summary(tmp))
     return(tmp)
 }
 
@@ -256,7 +258,9 @@ if(as.numeric(substr(fileType,nchar(fileType)-1,nchar(fileType)))<3){
     stop(paste("Import GFF file in version 3 or later, your version is:",as.numeric(substr(fileType,nchar(fileType)-1,nchar(fileType)))))
 }
 mHead = gffData[grep("#",substr(gffData,1,2),fixed=TRUE)]
-message(paste("Your database:",paste(mHead[1:3],collapse="\n"),sep="\n"))
+
+# message(paste("Your database:",paste(mHead,collapse="\n"),sep="\n"))
+
 
 gffData = gffData[-grep("#",substr(gffData,1,2),fixed=TRUE)]
 
