@@ -14,11 +14,8 @@ messageHelp="Usage: $0\n
     \n
     [General options]\n
         \t-t, --threads\tN\n\t\t\tNb threads used for the alignment[default: ${threads}]\n
-        \t--bedannot\t/path/to/bedannot\n\t\t\tpath to exon coordinates (in BED format) [default: ${BEDrefPath}]\n
-        \t--perlscript\t/path/to/perlscript/\n\t\t\tlocalization of perl scripts used by the pipeline [default: ${ScriptPath}]\n
     \n
-   You could : $0 -F /patho/to/FASTQfolder/ -O /path/to/output/ -g /path/to/STARgenome/ --star /path/to/STAR
-   --samtools /path/to/samtools --bedtools /path/to/BEDtools/bin/ --bedannot /path/to/BEDannot"
+    You could : $0 -F /patho/to/FASTQfolder/ -O /path/to/output/"
 
 if [ $# -lt 1 ]; then
     echo -e $messageHelp
@@ -33,21 +30,21 @@ while [[ $# -gt 0 ]]; do
    case $key in
 
        -F|--fastq)
-       pathToFastq="`readlink -v -f $2`"
+       fastq_path="`readlink -v -f $2`"
        shift 2 # shift past argument and past value
        ;;
 
        -O|--output)
-       out="`readlink -v -f $2`"
+       out_path="`readlink -v -f $2`"
        shift 2 # shift past argument and past value
        ;;
 
         -g|--genome)
-        genomeDirectory="`readlink -v -f $2`"
+        fasta_genome="`readlink -v -f $2`"
         shift 2 # shift past argument and past value
         ;;
         --star)
-        STARPath="`readlink -v -f $2`"
+        STAR_path="`readlink -v -f $2`"
         shift 2 # shift past argument and past value
         ;;
 
