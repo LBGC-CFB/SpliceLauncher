@@ -53,13 +53,11 @@ message("SpliceLauncherV1.3")
 #default Parameters
 EchName=NULL
 pathTranscript=NULL
-mergeTranscrit='NO'
 checkBEDannot="NO"
 DisplayGraph='NO'
 removeOther='NO'
 thr=1
-StatAnalysis='NO'
-adjust='TRUE'
+StatAnalysis='YES'
 negbinom.n=10
 printText=FALSE
 
@@ -75,20 +73,16 @@ helpMessage=paste("Usage: SpliceLauncher.r\n
         -O, --output /path/to/output/\n\t\tDirectory to save the results\n
     [Options] \n
         -R, --RefSeqAnnot /path/to/RefSpliceLauncher.txt\n\t\tRefSeq annotation file name [default=",RefFile,"]
-        -t, --TranscriptList /path/to/transcriptList.txt\n\t\tSet the list of transcripts to use as reference
-                If used, the option \'-m, --MergeTrancript\' doesn't affect these transcripts
+        --TranscriptList /path/to/transcriptList.txt\n\t\tSet the list of transcripts to use as reference
         --text\n\t\tPrint main output in txt instead of excel
         -b, --BEDannot\n\t\tGet the output in BED format
-        -g, --Graphics\n\t\tDisplay graphics of alternative junctions (Warnings: increase the runtime)
-        -s, --Statistical\n\t\tPerformed statistical analysis, requiers more than 5 samples
-        If list of transcripts (-t, --TranscriptList):
+        --Graphics\n\t\tDisplay graphics of alternative junctions (Warnings: increase the runtime)
+        -n, --NbIntervals 10\n\t\tNb interval of Neg Binom (Integer) [default=",negbinom.n,"]
+        --SampleNames name1|name2|name3\n\t\tSample names, '|'-separated, by default use the sample file names\n
+        If list of transcripts (--TranscriptList):
             --removeOther\n\t\tRemove the genes with unselected transcripts to improve runtime
         If graphics (-g, --Graphics):
             --threshold 1\n\t\tThreshold to shown junctions (%) [default=",thr,"]
-        If statistics (-s, --Statistical):
-            -a, --Adjust TRUE\n\t\tadjustment of p-value ('TRUE'/'FALSE') [default=",adjust,"]
-            -n, --NbIntervals 10\n\t\tIf statistics, Nb interval of Neg Binom (Integer) [default=",negbinom.n,"]
-        --SampleNames name1|name2|name3\n\t\tSample names, '|'-separated, by default use the sample file names\n
     h, --help\n\t\tprint this help message and exit\n
    You could : Rscript SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -O ./outputTest/")
 
@@ -105,7 +99,7 @@ while (i <= length(args)){
         run=sub(".txt","",basename(inputFile))
     }else if(args[i]=="-R"|args[i]=="--RefSeqAnnot"){
         RefFile=normalizePath(args[i+1]);i = i+2
-    }else if(args[i]=="-t"|args[i]=="--TranscriptList"){
+    }else if(args[i]=="--TranscriptList"){
         pathTranscript=normalizePath(args[i+1]);i = i+2
     }else if(args[i]=="-O"|args[i]=="--output"){
         outputDir=args[i+1];i = i+2
@@ -113,18 +107,14 @@ while (i <= length(args)){
         EchName=args[i+1];i = i+2
     }else if(args[i]=="-b"|args[i]=="--BEDannot"){
         checkBEDannot="YES";i = i+1
-    }else if(args[i]=="-g"|args[i]=="--Graphics"){
+    }else if(args[i]=="--Graphics"){
         DisplayGraph="YES";i = i+1
     }else if(args[i]=="--text"){
         printText=TRUE;i = i+1
     }else if(args[i]=="--threshold"){
         thr=args[i+1];i = i+2
-    }else if(args[i]=="-s"|args[i]=="--Statistical"){
-        StatAnalysis="YES";i = i+1
     }else if(args[i]=="--removeOther"){
         removeOther="YES";i = i+1
-    }else if(args[i]=="-a"|args[i]=="--Adjust"){
-        adjust=args[i+1];i = i+2
     }else if(args[i]=="-n"|args[i]=="--NbIntervals"){
         negbinom.n=args[i+1];i = i+2
     }else if(args[i]=="-h"|args[i]=="--help"){
@@ -141,20 +131,23 @@ message("######################")
 if (!file.exists(outputDir)){dir.create(outputDir, recursive = TRUE)}
 outputDir = normalizePath(outputDir)
 
+if(!is.null(pathTranscript) & removeOther=="NO"){
+    cat("You defined a transcript list\n Do you want to remove other transcript ? [y/n] ");
+    removeOther <- readLines("stdin",n=1);
+    removeOther = if(removeOther=="y"|removeOther=="Y"){"YES"}
+}
+
 message(paste("Matrix count:", inputFile))
 message(paste("Output directory:",outputDir))
 message(paste("Run name:",run))
 message(paste("Sample Name:",EchName))
 message(paste("RefSeq Annot:",RefFile))
 message(paste("Output format:",if(printText){"text"}else{"excel"}))
-message(paste("Merge Transcript:",mergeTranscrit))
 message(paste("List of transcripts:",pathTranscript))
 message(paste("Remove the other genes:",removeOther))
 message(paste("BED annotation:",checkBEDannot))
 message(paste("Display graphics:",DisplayGraph))
 message(paste("Threshold:",thr))
-message(paste("Statistical analysis:",StatAnalysis))
-message(paste("Adjust p-value:",adjust))
 message(paste("nb intervals for Neg Binom:",negbinom.n))
 
 #Creating folders to save the output
@@ -267,13 +260,11 @@ input= 9:dim(data_junction)[2]
 
 n_ech=length(input)
 
-if(StatAnalysis=='YES'){
-	if(n_ech<5){
-		message('***Not enough samples to performe statistical analysis\n    Param for statistical analysis is fixed to \'NO\'')
-		StatAnalysis='NO'
-	}else if(n_ech>=5 & n_ech<10){
-		message('***WARNINGS: low number of samples statistical analysis may be not relevant')
-	}
+if(n_ech<5){
+	message('***Not enough samples to perform statistical analysis\n    Param for statistical analysis is fixed to \'NO\'')
+	StatAnalysis='NO'
+}else if(n_ech>=5 & n_ech<10){
+	message('***WARNINGS: low number of samples statistical analysis may be not relevant')
 }
 
 #index of column to the output
@@ -1462,39 +1453,30 @@ message("   Model apliccation...")
 
 newdata<-data # forme sid*jid
 
-
-if(adjust){
-    # Count of the number of tests carried out
-    nb.tests<-0
-    for(j in names(model))
-      if(j%in%names(newdata) & vh.like("(Gamma)|(Negative binomial.*)",model[[j]][["model"]]))
+# Count of the number of tests carried out
+nb.tests<-0
+for(j in names(model)){
+    if(j%in%names(newdata) & vh.like("(Gamma)|(Negative binomial.*)",model[[j]][["model"]])){
         nb.tests<-nb.tests+sum(!is.na(newdata[,j]))
+    }
 }
 
-message("   Save data with adjust...")
+message("   tmp file with p-values...")
 output1<-"output with adjustments.csv"
 write(paste("Jonction;Nb Tuckey's outliers;Ajustement;Moyenne;Ecart-type;p-value Goodness of fit;",paste(EchName,collapse=";"), sep=""), output1)
 
-message("   Save data without adjust...")
-# une sortie sans ajustements
-output2<-"output without adjustment.csv"
-write(paste("Jonction;Tuckey's outliers threshold;Ajustement;Moyenne;Ecart-type;",paste(EchName,collapse=";"), sep=""), output2)
 err = NULL
 for(j in names(model)){
 
   m<-model[[j]]
 
-  # output 1
   if(j%in%names(newdata) & vh.like("(Gamma)|(Negative binomial.*)",m$model)){
 
     val<-predict.gamma.negbinomial(model, x=newdata[,j], jid=j)
-    if(adjust) val<-p.adjust(val, "holm", n=nb.tests)
+    val<-p.adjust(val, "holm", n=nb.tests)
     write(paste(j, m$outliers.nb, m$model, m$mean, m$sd, m$model.p, paste(val,collapse=";"),sep=";"), output1, append=T)
 
-  }else if(j%in%names(newdata)){ # output 2
-    write(paste(j, m$outliers.ub, m$model, m$mean, m$sd, paste(newdata[,j],collapse=";"),sep=";"), output2, append=T)
   }
-
   # Evenements non modelises
   jid.other<-setdiff(names(data), c("sid",names(model)))
   if(length(jid.other)){
