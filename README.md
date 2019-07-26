@@ -2,9 +2,10 @@
 
 ---
 
-SpliceLauncher is a pipeline tool to study the alternative splicing. The pipeline works in two step:
-* get a read count matrix from fastq files, aka RNAseq pipeline.
-* run SpliceLauncher from a read count matrix.
+SpliceLauncher is a pipeline tool to study the alternative splicing. The pipeline works in three steps:
+* generate data files used after (B step in diagram)
+* get a read count matrix from fastq files, aka RNAseq pipeline (A step in diagram).
+* run SpliceLauncher from a read count matrix (C step and furthermore).
 
 ![SpliceLauncher](https://github.com/raphaelleman/SpliceLauncher/blob/master/refData/Figure1.png)
 
