@@ -267,9 +267,11 @@ done
 
 #switch in INSTALL mode
 if [ install=="TRUE" ]; then
-
+    sed -i "s#^samtools=.*#samtools=\"${samtools}\"#" ${workFolder}/config.cfg
+    sed -i "s#^bedtools=.*#bedtools=\"${bedtools}\"#" ${workFolder}/config.cfg
+    sed -i "s#^STAR=.*#STAR=\"${STAR}\"#" ${workFolder}/config.cfg
 fi
-
+exit
 # Test if files exist
 for i in fasta_genome gff; do
     test_file_if_exist ${!i}
