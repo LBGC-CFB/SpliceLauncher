@@ -18,15 +18,16 @@ SpliceLauncher is a pipeline tool to study the alternative splicing. The pipelin
         * [Samtools](#5)
         * [BEDtools](#6)
         * [Install R libraries](#7)
-    * [Installing SpliceLauncher](#8)
-        * [Creating the reference files](#9)
-* [Running the SpliceLauncher tests](#10)
-    * [RNAseq pipeline, get the read count from fastq files](#11)
-    * [SpliceLauncher analysis](#12)
-* [RNAseq pipeline Options](#13)
-* [SpliceLauncher Options](#14)
-* [Authors](#15)
-* [License](#16)
+* [Installing SpliceLauncher](#8)
+    * [Download the reference files](#9)
+    * [Configure SpliceLauncher](#10)
+* [Running the SpliceLauncher tests](#11)
+    * [RNAseq pipeline, get the read count from fastq files](#12)
+    * [SpliceLauncher analysis](#13)
+* [RNAseq pipeline Options](#14)
+* [SpliceLauncher Options](#15)
+* [Authors](#16)
+* [License](#17)
 
 ## Repository contents<a id="1"></a>
 
@@ -129,7 +130,7 @@ git clone https://github.com/raphaelleman/SpliceLauncher
 cd ./SpliceLauncher
 ```
 
-### Creating the reference files <a id="9"></a>
+### Download the reference files <a id="9"></a>
 
 
 Reference files used are:
@@ -140,13 +141,8 @@ Reference files used are:
 
 An example of these two last files is provide in the [refData folder](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData "Title") with human genome, hg19 assembly
 
-#### Reference files used by the RNAseq pipeline <a id="10"></a>
-
 1. Donwload genome fasta file
-2. Donwload RefSeq annot GTF file
-3. Donwload RefSeq annot BED file
-4. Convert BED file into sjdb file and extract exon coordinates
-5. Generate STAR genome index
+2. Donwload RefSeq or Gencode annot GFF (v3) file
 
 Steps:
 1. Download Fasta genome: from [UCSC](http://hgdownload.soe.ucsc.edu/downloads.html#human "Title"), with hg19 example:
@@ -183,36 +179,30 @@ NC_000001.10	BestRefSeq	exon	12613	12721	.	+	.	ID=id2;Parent=rna0;Dbxref=GeneID:
 NC_000001.10	BestRefSeq	exon	13221	14409	.	+	.	ID=id3;Parent=rna0;Dbxref=GeneID:100287102,Genbank:NR_046018.2,HGNC:HGNC:37102;gbkey=misc_RNA;gene=DDX11L1;product=DEAD/H-box helicase 11 like 1;transcript_id=NR_046018.2
 ```
 
-3. Extract databases used by SpliceLauncher
+### Configure SpliceLauncher <a id="10"></a>
+
+SpliceLauncher is provide with a config.cfg file. This last contains the path for software and files used by SpliceLauncher. The mode INSTALL of SpliceLauncher permits to update this config.cfg file. If you define the path to GFF (v3) file and path to the FASTA genome, the INSTALL mode will extract all necessary information from this GFF and indexing the STAR genome.
+
+Use INSTALL mode of SpliceLauncher:
 
     ```Bash
     cd /path/to/SpliceLauncher/
-    Rscript ./scripts/generateSpliceLauncherDB.r -i /path/to/GRCh37_latest_genomic.gff -o ./RefSeqHg19
+    bash ./generate_needed_files.sh --runMode INSTALL -C ./config.cfg \
+        -O /path/to/output/ \
+        --STAR /path/to/STAR \
+        --samtools /path/to/samtools \
+        --bedtools /path/to/bedtools/bin \
+        --gff /path/to/gff \
+        --fasta /path/to/fasta
     ```
 
-    An example is provide in this repository at [refExons.bed](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/refExons.bed "tittle")
-
-4. Compile STAR genome
-
-    ```Bash
-    mkdir ./genomeSTAR
-    /path/to/STAR \
-     --runMode genomeGenerate \
-     --runThreadN 5 #define here the number of thread to use \
-     --genomeDir ./genomeSTAR/ \
-     --genomeFastaFiles ./fastaGenome/*.fa \
-     --sjdbFileChrStartEnd ./RefSeqHg19/RefSeqAnnot.sjdb \
-     --sjdbGTFfile /path/to/RefSeqAnnot.gtf \
-     --sjdbOverhang 99
-    ```
-
-## Running the SpliceLauncher tests<a id="10"></a>
+## Running the SpliceLauncher tests<a id="11"></a>
 
 ---
 
 The example files are provided in [dataTest](https://github.com/raphaelleman/SpliceLauncher/tree/master/dataTest "tittle")
 
-### RNAseq pipeline, get the read count from fastq files <a id="11"></a>
+### RNAseq pipeline, get the read count from fastq files <a id="12"></a>
 
 This part uses the shell script **_pipelineRNAseq.sh_**
 To see the different options of this script `pipelineRNAseq.sh --help`
@@ -233,7 +223,7 @@ bash ./pipelineRNAseq.sh \
 
 After running, two folders and one file are created in the directory output. The *Bam* folder contains the BAM files with their index and STAR log files. The folder *getClosestExons* contains the BED files and txt files that correspond to the junction coordinates and junction counts respectively. The file is the matrix count could be use by SpliceLauncher tool.
 
-### SpliceLauncher analysis <a id="12"></a>
+### SpliceLauncher analysis <a id="13"></a>
 
 To launch SpliceLauncher analysis, you need the matrix count and the transcript information file. An example of these two files is provide in [MatrixCountExample.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/dataTest/MatrixCountExample.txt "tittle") and [RefSpliceLauncher.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/RefSpliceLauncher.txt "tittle") respectively.
 
@@ -270,7 +260,7 @@ Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/Ref
 | Significative | NO | If a sample shown an abnormal expression of the junction |
 
 
-## RNAseq pipeline Options <a id="13"></a>
+## RNAseq pipeline Options <a id="14"></a>
 
 ---
 
@@ -314,7 +304,7 @@ Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/Ref
 
 + Path to the Perl script used by the pipeline, by default they are in [scripts](https://github.com/raphaelleman/SpliceLauncher/tree/master/scripts "tittle") folder.
 
-## SpliceLauncher Options <a id="14"></a>
+## SpliceLauncher Options <a id="15"></a>
 
 ---
 
@@ -366,7 +356,7 @@ Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/Ref
 
 + Number of intervals used in estimation of Negative Binomial distribution
 
-## Authors <a id="15"></a>
+## Authors <a id="16"></a>
 
 ---
 
@@ -376,7 +366,7 @@ Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/Ref
 > **Cite as:** SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data.
 *Raphaël Leman, Grégoire Davy, Valentin Harter, Antoine Rousselin, Etienne Muller, Alexandre Atkinson, Laurent Castéra, Fréderic Lemoine, Pierre de la Grange, Marine Guillaud-Bataille, Dominique Vaur, Sophie Krieger*
 
-## License <a id="16"></a>
+## License <a id="17"></a>
 
 ---
 
