@@ -1,8 +1,17 @@
 #!/bin/bash
 
+## initialize default value
+threads="1"
+endType="single"
+in_error=0 # will be 1 if a file or cmd not exist
+workFolder=$(readlink -f $(dirname $0))
+conf_file="${workFolder}/config.cfg"
+scriptPath="${workFolder}/scripts"
+BEDrefPath="${workFolder}/refData/refExons.bed"
+
 ########## some useful functions
 echo_on_stderr () {
-    (>&2 echo "$*")
+    (>&2 echo -e "$*")
 }
 
 test_command_if_exist () {
@@ -10,59 +19,58 @@ test_command_if_exist () {
     command -v $to_test >/dev/null 2>&1 || { echo_on_stderr "require $* but it's not installed. Will abort."; return 1; }
 }
 
+test_command_if_exist () {
+    if [ $(command -v $* >/dev/null 2>&1) -ne 0 ]; then
+        echo -e "not"
+        
+
+
+
 test_file_if_exist () {
     if [ ! -f $* ]; then
-        echo -e "File $* not found! Will abort."
-        return 1
+        echo_on_stderr "File $* not found! Will abort."
+        echo 1
+    else
+        echo 0
     fi
 }
 
-
-workFolder=$(readlink -f $(dirname $0))
-scriptPath="${workFolder}/scripts"
 ########## parsing config file
 echo "Parsing configuration file..."
-test_file_if_exist ${workFolder}/config.cfg
-prev_state=$?
-if [ $prev_state -eq 1 ]; then
-        exit 1
+for (( i=1; i<=$#; i++)); do # for loop to find config path before reading all other arguments
+    next=$((${i}+1))
+    # echo "${i} ${!i} ${!next}"
+    if [[ ${!i} = '-C' || ${!i} = '--config' ]]; then
+        conf_file="${!next}"
+        break
     fi
+done
 
-source ${workFolder}/config.cfg
+if [ $(test_file_if_exist "${conf_file}") -ne 0 ]; then
+    in_error=1
+else
+    source "${conf_file}"
+    echo -e "${conf_file} OK.\n"
+fi
 
-threads="1"
-endType="single"
-workFolder=$(readlink -f $(dirname $0))
-ScriptPath=${workFolder}/"scripts"
-BEDrefPath=${workFolder}/"refData/refExons.bed"
-###runMode:
-##INSTALL
-##Align
-##Count
-##SpliceLauncher
-install="FALSE"
-align="FALSE"
-count="FALSE"
-spliceLauncher="FALSE"
-
-createDB="FLASE"
-createGenome="FLASE"
-
+########## Help message
 messageHelp="Usage: $0 [runMode] [options] <command>\n
     \n
     --runMode INSTALL,Align,Count,SpliceLauncher\n
     \tINSTALL\tConfigure the files for SpliceLauncher pipeline\n
     \tAlign\tGenerate BAM files from the FASTQ files\n
     \tCount\tGenerate BED files from the BAM files\n
-    \tSpliceLauncher\tGenerate final output from the BED files\n\n
+    \tSpliceLauncher\tGenerate final output from the BED files\n
+    \n
     Option for INSTALL mode\n
-    \t-C, --config\t/path/to/configuration file/\t [default: ${workFolder}/config.cfg]\n
+    \t-C, --config\t/path/to/configuration file/\t [default: ${conf_file}]\n
     \t-O, --output\t/path/to/output/\tdirectory of the output files\n
     \t--STAR\t/path/to/STAR executable \t[default: ${STAR}]\n
     \t--samtools\t/path/to/samtools executable \t[default: ${samtools}]\n
     \t--bedtools\t/path/to/bedtools/bin folder \t[default: ${bedtools}]\n
     \t--gff\t/path/to/gff file\n
-    \t--fasta\t/path/to/fasta genome file\n\n
+    \t--fasta\t/path/to/fasta genome file\n
+    \n
     Option for Align mode\n
     \t-F, --fastq /path/to/fastq/\n\t\trepository of the FASTQ files\n
     \t-O, --output /path/to/output/\n\t\trepository of the output files\n
@@ -70,20 +78,22 @@ messageHelp="Usage: $0 [runMode] [options] <command>\n
     \t--STAR /path/to/STAR\n\t\tpath to the STAR executable\t[default: ${STAR}]\n
     \t--samtools /path/to/samtools\n\t\tpath to samtools executable\t[default: ${samtools}]\n
     \t-p paired-end analysis\n\t\tprocesses to paired-end analysis\t[default: ${endType}]\n
-    \t-t, --threads N\n\t\tNb threads used for the alignment\t[default: ${threads}]\n\n
+    \t-t, --threads N\n\t\tNb threads used for the alignment\t[default: ${threads}]\n
+    \n
     Option for Count mode\n
     \t-B, --bam /pat/to/BAM files\n
-    \t-O, --output /path/to/output/\n\t\trepository of the output files\n
-    \t--samtools /path/to/samtools\t\tpath to samtools executable\t[default: ${samtools}]\n
-    \t--bedtools /path/to/bedtoolsFolder/\t\tpath to repository of bedtools executables\t[default: ${bedtools}]\n
-    \t--bedannot /path/to/bedannot\t\tpath to exon coordinates (in BED format)\t[default: ${bed}]\n\n
+    \t-O, --output /path/to/output/\n\t\tdirectory of the output files\n
+    \t--samtools\t/path/to/samtools executable \t[default: ${samtools}]\n
+    \t--bedtools\t/path/to/bedtools/bin folder \t[default: ${bedtools}]\n
+    \t-b, --BEDannot /path/to/your_annotation_file.bed\n\t\tpath to exon coordinates file (in BED format)\t[default: ${bed}]\n
+    \n
     Option for SpliceLauncher mode\n
     \t-I, --input /path/to/inputFile\n\t\tRead count matrix (.txt)\n
     \t-O, --output /path/to/output/\n\t\tDirectory to save the results\n
     \t-R, --RefSeqAnnot /path/to/RefSpliceLauncher.txt\n\t\tRefSeq annotation file name \t[default: ${SL_DB}]\n
     \t--TranscriptList /path/to/transcriptList.txt\n\t\tSet the list of transcripts to use as reference\n
-    \t--text\n\t\tPrint main output in txt instead of excel\n
-    \t-b, --BEDannot\n\t\tGet the output in BED format\n
+    \t--txtOut\n\t\tPrint main output in text instead of xls\n
+    \t--bedOut\n\t\tGet the output in BED format\n
     \t--Graphics\n\t\tDisplay graphics of alternative junctions (Warnings: increase the runtime)\n
     \t-n, --NbIntervals 10\n\t\tNb interval of Neg Binom (Integer) [default= 10]\n
     \t--SampleNames name1|name2|name3\n\t\tSample names, '|'-separated, by default use the sample file names\n
@@ -92,18 +102,31 @@ messageHelp="Usage: $0 [runMode] [options] <command>\n
     \tIf graphics (-g, --Graphics):\n
     \t\t--threshold 1\n\t\tThreshold to shown junctions (%) [default= 1]\n"
 
-
+## exit if not enough arguments
 if [ $# -lt 1 ]; then
     echo -e $messageHelp
     exit
 fi
+
+########## runMode:
+runMode=""
+##INSTALL
+install="FALSE"
+##Align
+align="FALSE"
+##Count
+count="FALSE"
+##SpliceLauncher
+spliceLauncher="FALSE"
+createDB="FALSE"
+createGenome="FALSE"
 
 while [[ $# -gt 0 ]]; do
    key=$1
    case $key in
 
        --runMode)
-       runMode="`readlink -v -f $2`"
+       runMode="$2"
        shift 2 # shift past argument and past value
        ;;
 
@@ -132,6 +155,11 @@ while [[ $# -gt 0 ]]; do
        shift 2 # shift past argument and past value
        ;;
 
+        --bedannot)
+        BEDrefPath="`readlink -v -f $2`"
+        shift 2 # shift past argument and past value
+        ;;
+        
        --gff)
        createDB="TRUE"
        gff_path="`readlink -v -f $2`"
@@ -149,7 +177,7 @@ while [[ $# -gt 0 ]]; do
        shift 2 # shift past argument and past value
        ;;
 
-       -g|--genome)
+       -G|--genome)
        fasta_genome="`readlink -v -f $2`"
        shift 2 # shift past argument and past value
        ;;
@@ -169,11 +197,6 @@ while [[ $# -gt 0 ]]; do
        shift 2 # shift past argument and past value
        ;;
 
-       --bedannot)
-       BEDrefPath="`readlink -v -f $2`"
-       shift 2 # shift past argument and past value
-       ;;
-
        -I|--input)
        input_path="`readlink -v -f $2`"
        shift 2 # shift past argument and past value
@@ -184,7 +207,7 @@ while [[ $# -gt 0 ]]; do
        shift 2 # shift past argument and past value
        ;;
 
-       --TranscriptList)
+       --transcriptList)
        TranscriptList="`readlink -v -f $2`"
        shift 2 # shift past argument and past value
        ;;
@@ -232,27 +255,28 @@ while [[ $# -gt 0 ]]; do
    esac
 done
 
-IFS=',' read -a array <<<"${runMode}" # ici, l'IFS n'est modifié que dans l'environnement du read.
+echo "runMode ${runMode}"
+
+IFS=',' read -a array <<<"${runMode}" # here, IFS change is local
 for i in ${array[@]}; do
-    if [ $i=="INSTALL" ]; then
+    if [[ ${i} = "INSTALL" ]]; then
         install="TRUE"
         echo "$i: ${install}"
-    elif [ $i=="Align" ]; then
+    elif [[ ${i} = "Align" ]]; then
         align="TRUE"
         echo "$i: ${align}"
-    elif [ $i=="Count" ]; then
+    elif [[ ${i} = "Count" ]]; then
         count="TRUE"
         echo "$i: ${count}"
-    elif [ $i=="SpliceLauncher" ]; then
+    elif [[ ${i} = "SpliceLauncher" ]]; then
         spliceLauncher="TRUE"
         echo "$i: ${spliceLauncher}"
     else
-        echo "Error in runMode selection!"
-        exit
+        echo -e "Error in runMode selection! ${i} unknown."
+        in_error=1
+        # exit
     fi
 done
-
-in_error=0 # variable initialization; will be 1 if a file or cmd not exist
 
 # Test if cmd exist
 for i in samtools bedtools STAR Rscript perl; do
@@ -265,18 +289,11 @@ for i in samtools bedtools STAR Rscript perl; do
     fi
 done
 
-#switch in INSTALL mode
-if [ install=="TRUE" ]; then
-    sed -i "s#^samtools=.*#samtools=\"${samtools}\"#" ${workFolder}/config.cfg
-    sed -i "s#^bedtools=.*#bedtools=\"${bedtools}\"#" ${workFolder}/config.cfg
-    sed -i "s#^STAR=.*#STAR=\"${STAR}\"#" ${workFolder}/config.cfg
-fi
-exit
 # Test if files exist
 for i in fasta_genome gff; do
     test_file_if_exist ${!i}
     prev_state=$?
-    if [ $prev_state -eq 1 ]; then
+    if [ $(test_file_if_exist "${conf_file}") -ne 0 ]; then
         in_error=1
     else
         echo "${i} = ${!i}"
@@ -291,10 +308,34 @@ fi
 
 echo "Parsing OK."
 
+########## switch in INSTALL mode
+if [ install=="TRUE" ]; then
+    sed -i "s#^samtools=.*#samtools=\"${samtools}\"#" ${workFolder}/config.cfg
+    sed -i "s#^bedtools=.*#bedtools=\"${bedtools}\"#" ${workFolder}/config.cfg
+    sed -i "s#^STAR=.*#STAR=\"${STAR}\"#" ${workFolder}/config.cfg
+
 ########## lauch generateSpliceLauncherDB
 
-echo "Will run generateSpliceLauncherDB."
+    echo "Will run generateSpliceLauncherDB."
 
-cmd="${Rscript} ${scriptPath}/generateSpliceLauncherDB.r -i ${gff} -o ${out}"
-echo -e "$cmd"
-$cmd
+    cmd="${Rscript} ${scriptPath}/generateSpliceLauncherDB.r -i ${gff} -o ${out}"
+    echo -e "$cmd"
+    $cmd
+fi
+
+########## lauch RNAseq
+if [ align=="TRUE" ]; then
+    
+    
+fi
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
