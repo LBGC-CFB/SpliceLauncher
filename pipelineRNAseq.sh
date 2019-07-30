@@ -139,7 +139,7 @@ check_error=0 #stop program if check_error = 1
 echo "####Check your options"
 for depository in ${pathToFastq} ${genomeDirectory}; do
     if [ ! -d $depository ]
-        then
+    then
         echo -e "****You must define the depository : ${depository}****"
         ${check_error}=1
     else
@@ -218,7 +218,7 @@ then
                 --outFileNamePrefix ${BamPath}/${file%_R1_001.fastq.gz}. \
                 --genomeLoad LoadAndKeep > ${BamPath}/${file%_R1_001.fastq.gz}.log 2>&1
         else
-            echo -e "****the file $file doesn't exist, Please rename your file in XXXXX_R1(2)_001.fastq.gz format****\n****XXXXX_R1_001.fastq.gz for R1 read and XXXXX_R2_001.fastq.gz for R2 read****"
+            echo -e "****the file $file doesn't exist, Please rename your file in XXXXX_R1(2)_001.fastq.gz format****\n****XXXXX_R1_001.fastq.gz for R1 read and XXXXX_R2_001.fastq.gz for R2 read****\n"
             echo -e $messageHelp
             exit
         fi
