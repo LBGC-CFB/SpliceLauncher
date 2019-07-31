@@ -82,6 +82,8 @@ getBEDfile <- function(exonCoord){
         V6 = exonCoord$strand)
     tmp[,4] = sub(pattern = "_-", replacement="_r", tmp[,4],fixed = TRUE)
     tmp[,4] = sub(pattern = "_+", replacement="_f", tmp[,4],fixed = TRUE)
+    tmp = tmp[order(tmp$V2),]
+    tmp = tmp[order(tmp$V1),]
     return(tmp)
 }
 
