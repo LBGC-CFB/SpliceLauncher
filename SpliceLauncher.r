@@ -8,8 +8,8 @@
 
 #This software was developed from the work:
 #SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data.
-#Raphaël Leman, Grégoire Davy, Valentin Harter, Antoine Rousselin, Alexandre Atkinson, Laurent Castéra, Dominique Vaur,
-#Fréderic Lemoine, Pierre De La Grange, Sophie Krieger
+#Raphaël Leman, Valentin Harter, Grégoire Davy, Antoine Rousselin, Etienne Muller, Alexandre Atkinson, Laurent Castéra, Fréderic Lemoine,
+#Pierre de la Grange, Marine Guillaud-Bataille, Dominique Vaur, Sophie Krieger
 
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
 #to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute,

@@ -67,6 +67,7 @@ messageHelp="Usage: $0 [runMode] [options] <command>\n
     \t--bedtools\t/path/to/bedtools/bin folder \t[default: ${bedtools}]\n
     \t--gff\t/path/to/gff file\n
     \t--fasta\t/path/to/fasta genome file\n
+    \t-t, --threads N\n\t\tNb threads used to index genome\t[default: ${threads}]\n
     \n
     Option for Align mode\n
     \t-F, --fastq /path/to/fastq/\n\t\trepository of the FASTQ files\n
@@ -156,7 +157,7 @@ while [[ $# -gt 0 ]]; do
        BEDrefPath="`readlink -v -f $2`"
        shift 2 # shift past argument and past value
        ;;
-        
+
        --gff)
        createDB="TRUE"
        gff_path="`readlink -v -f $2`"
@@ -315,14 +316,14 @@ if [[ ${install} = "TRUE" ]]; then
         echo -e "=> Aborting."
         exit
     fi
-    
+
     # run generateSpliceLauncherDB
     mkdir -p ${out_path}
     echo "Will run generateSpliceLauncherDB."
     cmd="${Rscript} ${scriptPath}/generateSpliceLauncherDB.r -i ${gff_path} -o ${out_path}"
     echo -e "$cmd"
     $cmd
-    
+
     genome="${out_path}/STARgenome"
     sed -i "s#^genome=.*#genome=\"${genome}\"#" ${conf_file}
     mkdir -p ${genome}
@@ -336,7 +337,7 @@ if [[ ${install} = "TRUE" ]]; then
     --sjdbOverhang 99"
     echo -e "$cmd"
     $cmd
-     
+
 fi
 
 ########## lauch RNAseq
@@ -359,7 +360,7 @@ if [[ ${align} = "TRUE" ]]; then
         echo -e "=> Aborting."
         exit
     fi
-    
+
     # run alignment
     mkdir -p ${out_path}
     echo "Will run alignment."
@@ -367,14 +368,3 @@ if [[ ${align} = "TRUE" ]]; then
     echo -e "$cmd"
     $cmd
 fi
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
