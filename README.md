@@ -139,7 +139,7 @@ The download reference files are the genome (Fasta) and its annotation file (GFF
 2. The annotations in GFF v3 format
 
 Steps:
-1. Download Fasta genome: from [RefSeq ftp server](ftp://ftp.ncbi.nlm.nih.gov/refseq/ "tittle") or from [Gencode](https://www.gencodegenes.org/ "tittle").
+1. Download Fasta genome: from [RefSeq](ftp://ftp.ncbi.nlm.nih.gov/refseq/ "tittle") FTP server or from [Gencode](https://www.gencodegenes.org/ "tittle").
 For human hg19 annotation file from RefSeq:
     ```Bash
     #the ftp URL depends on your assembly genome choice
@@ -147,7 +147,7 @@ For human hg19 annotation file from RefSeq:
     gunzip ./GRCh37_latest_genomic.fna.gz
     ```
 
-2. Donwload the GFF annotation file, either from [RefSeq ftp server](ftp://ftp.ncbi.nlm.nih.gov/refseq/ "tittle") or from [Gencode](https://www.gencodegenes.org/ "tittle").
+2. Donwload the GFF annotation file, either from [RefSeq](ftp://ftp.ncbi.nlm.nih.gov/refseq/ "tittle") FTP server or from [Gencode](https://www.gencodegenes.org/ "tittle").
 For human hg19 annotation file from RefSeq: ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_genomic.gff.gz
 ```Bash
 wget ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_genomic.gff.gz

@@ -21,11 +21,6 @@ test_command_if_exist () {
     command -v $* >/dev/null 2>&1 && echo 0 || { echo 1; }
 }
 
-# test_command_if_exist () {
-    # if [ $(command -v $* >/dev/null 2>&1) -ne 0 ]; then
-        # echo -e "not"
-    # fi
-
 test_file_if_exist () {
     if [ ! -f $* ]; then
         echo_on_stderr "File $* not found! Will abort."
@@ -36,6 +31,10 @@ test_file_if_exist () {
 }
 
 ########## parsing config file
+echo -e "###############################################"
+echo -e "####### Check SpliceLauncher environment"
+echo -e "###############################################\n"
+
 echo "Parsing configuration file..."
 for (( i=1; i<=$#; i++)); do # for loop to find config path before reading all other arguments
     next=$((${i}+1))
@@ -298,6 +297,10 @@ echo "Parsing OK."
 
 ########## switch in INSTALL mode
 if [[ ${install} = "TRUE" ]]; then
+    echo -e "###############################################"
+    echo -e "####### Configure SpliceLauncher environment"
+    echo -e "###############################################\n"
+
     sed -i "s#^samtools=.*#samtools=\"${samtools}\"#" ${conf_file}
     sed -i "s#^bedtools=.*#bedtools=\"${bedtools}\"#" ${conf_file}
     sed -i "s#^STAR=.*#STAR=\"${STAR}\"#" ${conf_file}
@@ -329,7 +332,7 @@ if [[ ${install} = "TRUE" ]]; then
     BEDrefPath=${out_path}/BEDannotation.bed
     spliceLaucherAnnot=${out_path}/SpliceLauncherAnnot.txt
     SJDBannot=${out_path}/SJDBannotation.sjdb
-    
+
     # Test if output files exist
     for i in BEDrefPath spliceLaucherAnnot SJDBannot; do
         if [[ $(test_file_if_exist "${!i}") -ne 0 ]]; then
@@ -347,7 +350,7 @@ if [[ ${install} = "TRUE" ]]; then
     sed -i "s#^BEDrefPath=.*#BEDrefPath=\"${BEDrefPath}\"#" ${conf_file}
     sed -i "s#^spliceLaucherAnnot=.*#spliceLaucherAnnot=\"${spliceLaucherAnnot}\"#" ${conf_file}
     sed -i "s#^SJDBannot=.*#SJDBannot=\"${SJDBannot}\"#" ${conf_file}
-    
+
     mkdir -p ${genome}
     cmd="${STAR} \
     --runMode genomeGenerate \
@@ -364,6 +367,9 @@ fi
 
 ########## lauch RNAseq
 if [[ ${align} = "TRUE" ]]; then
+    echo -e "###############################################"
+    echo -e "####### Launch aligment step"
+    echo -e "###############################################\n"
 
 ## launch alignment
 
@@ -389,12 +395,15 @@ if [[ ${align} = "TRUE" ]]; then
     cmd="${scriptPath}/pipelineRNAseq.sh --runMode Align -F ${fastq_path} -O ${out_path} -g ${genome} --STAR ${STAR} --samtools ${samtools} -t ${threads} ${endType}"
     echo -e "cmd = $cmd"
     $cmd
-    
+
     bam_path="${out_path}/Bam"
 fi
 
 ########## count RNAseq
 if [[ ${count} = "TRUE" ]]; then
+    echo -e "###############################################"
+    echo -e "####### Launch counting step"
+    echo -e "###############################################\n"
 
 ## launch counting
 
@@ -420,20 +429,23 @@ if [[ ${count} = "TRUE" ]]; then
     cmd="${scriptPath}/pipelineRNAseq.sh --runMode Count -B ${bam_path} -O ${out_path} --bedannot ${BEDrefPath} --samtools ${samtools} --bedtools ${bedtools} --perlscript ${scriptPath} ${endType}"
     echo -e "cmd = $cmd"
     $cmd
-    
+
     input_path="${out_path}/$(basename ${out_path}).txt"
 fi
 
 if [[ ${spliceLauncher} = "TRUE" ]]; then
+    echo -e "###############################################"
+    echo -e "####### Launch SpliceLauncher step"
+    echo -e "###############################################\n"
 
 
     mkdir -p ${out_path}
     echo "Will run SpliceLauncher"
-    
+
     if [ -z ${TranscriptList+x} ]; then transcriptList_cmd=""; else transcriptList_cmd="--transcriptList ${TranscriptList}"; fi
     if [ -z ${SampleNames+x} ]; then SampleNames_cmd=""; else SampleNames_cmd="--SampleNames ${SampleNames}"; fi
-    
-    
+
+
     cmd="${Rscript} ${scriptPath}/SpliceLauncher.r --input ${input_path} -O ${out_path} --RefSeqAnnot ${spliceLaucherAnnot} -n ${NbIntervals} ${transcriptList_cmd} ${SampleNames_cmd} ${removeOther} ${text} ${bedOut} ${Graphics}"
     echo -e "cmd = $cmd"
     $cmd
