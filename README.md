@@ -179,8 +179,9 @@ Use INSTALL mode of SpliceLauncher:
 
     ```Bash
     cd /path/to/SpliceLauncher/
-    bash ./generate_needed_files.sh --runMode INSTALL -C ./config.cfg \
-        -O /path/to/output/ \
+    mkdir ./refSpliceLauncher
+    bash ./generate_needed_files.sh --runMode INSTALL \
+        -O ./refSpliceLauncher \
         --STAR /path/to/STAR \
         --samtools /path/to/samtools \
         --bedtools /path/to/bedtools \
@@ -192,41 +193,18 @@ Use INSTALL mode of SpliceLauncher:
 
 ---
 
-The example files are provided in [dataTest](https://github.com/raphaelleman/SpliceLauncher/tree/master/dataTest "tittle")
-
-### RNAseq pipeline, get the read count from fastq files <a id="12"></a>
-
-This part uses the shell script **_pipelineRNAseq.sh_**
-To see the different options of this script `pipelineRNAseq.sh --help`
-
-With the example data provided in this repository, single end RNAseq (2x75pb) on *BRCA1* and *BRCA2* transcripts:
+The example files are provided in [dataTest](https://github.com/raphaelleman/SpliceLauncher/tree/master/dataTest "tittle"), with the example data provided in single end RNAseq (2x75pb) on *BRCA1* and *BRCA2* transcripts:
 
 ```Bash
 cd /path/to/SpliceLauncher
-bash ./pipelineRNAseq.sh \
+bash ./generate_needed_files.sh --runMode Align,Count,SpliceLauncher \
  -F ./dataTest/fastq/ \
  -O ./testSpliceLauncher/ \
- -g ./genomeSTAR/ \
- --bedannot ./refData/refExons.bed \
- --star /path/to/STAR \
- --samtools /path/to/samtools \
- --bedtools /path/to/BEDtools/bin/
  ```
 
-After running, two folders and one file are created in the directory output. The *Bam* folder contains the BAM files with their index and STAR log files. The folder *getClosestExons* contains the BED files and txt files that correspond to the junction coordinates and junction counts respectively. The file is the matrix count could be use by SpliceLauncher tool.
+After running, the BAM files from alignment are in a *Bam* folder, the count files are in *getClosestExons* and the results of SpliceLauncher analysis are in *testSpliceLauncher_result*.
 
-### SpliceLauncher analysis <a id="13"></a>
-
-To launch SpliceLauncher analysis, you need the matrix count and the transcript information file. An example of these two files is provide in [MatrixCountExample.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/dataTest/MatrixCountExample.txt "tittle") and [RefSpliceLauncher.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/RefSpliceLauncher.txt "tittle") respectively.
-
-SpliceLauncher command:
-
-```shell
-cd /path/to/SpliceLauncher/
-Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/RefSpliceLauncher.txt -O ./
-```
-
- The results are saved in the folder *MatrixCountExample_results*. The scheme of this report is:
+The final results are display in the file *testSpliceLauncher_outputR.xlsx*, this least is in *testSpliceLauncher_result* folder. The scheme of this file is:
 
 | Column names | Example | Description |
 |------------:|:--------:|:------------:|
@@ -235,26 +213,99 @@ Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/Ref
 | start | 32915333 | Genomic coordinate of start junction<br/>End if on reverse strand |
 | end | 32920963 | Genomic coordinate of end junction<br/>Start if on reverse strand |
 | strand | + | Strand of the junction ('+': forward;<br/> '-':reverse) |
-| brin | forward | Strand of transcript |
+| Strand_transcript | forward | Strand of transcript |
 | NM | NM_000059 | The transcript id according RefSeq nomenclature |
 | Gene | BRCA2 | Gene symbol |
 | *Sample* | 2250 | Read count |
 | *P_Sample* | 15.25659623 | % of relative expression |
-| constitutive | NoPhysio | If junction supports the reference transcripts, Physio else NoPhysio |
 | calcul | SkipEx | The nature of junction:<br/>Physio: Natural junction<br/>SkipEx: Exon skipping<br/>5AS: Donor splice site shift<br/>3AS: Acceptor splice site shift<br/>NoData: Unannotated juntion |
 | AnnotJuncs | ∆12 | The junction names |
 | cStart | c.6841 | Transcriptomic start coordinate of the junction |
 | cEnd | c.6938 | Transcriptomic end coordinate of the junction |
-| mean_pourcentage | 12.60242 | Average in % of relative expression across samples |
+| mean_percent | 12.60242 | Average in % of relative expression across samples |
 | read_mean | 2683.769231 | Average of read count across samples |
 | nbSamp | 11 | Number of time that the junction has been seen in samples |
 | DistribAjust | - | The Distribution of junction expression (Gamma/N.binom) |
 | Significative | NO | If a sample shown an abnormal expression of the junction |
 
-
-## RNAseq pipeline Options <a id="14"></a>
+## SpliceLauncher options <a id="14"></a>
 
 ---
+
+**--runMode** INSTALL,Align,Count,SpliceLauncher
+* The runMode defines the steps of analysis with:
+    * INSTALL: Updates the config.cfg file for SpliceLauncher pipeline
+    * Align: Generates BAM files from the FASTQ files
+    * Count: Generates the matrix read count from the BAM files
+    * SpliceLauncher: Generates final output from the matrix read count
+
+### Option for INSTALL mode
+
+**-C, --config** /path/to/configuration file/
+* Path to the config.cfg file, only if you want to use your own config file
+
+**-O, --output** /path/to/output/
+* Directory to save the reference files (BED, sjdb, txt) and the indexed genome
+
+**--STAR** /path/to/STAR
+* Path to the STAR executable
+
+**--samtools** /path/to/samtools
+* Path to the samtools executable
+
+**--bedtools** /path/to/bedtools
+* Path to the bedtools executable
+
+**--gff** /path/to/gff file
+* Path to the GFF file (v3)
+
+**--fasta** /path/to/fasta
+* Path to the genome fasta file
+
+**-t, --threads** N
+* Nb threads used to index the STAR genome
+
+### Option for Align mode
+
+**-F, --fastq** /path/to/fastq/\n\t\trepository of the FASTQ files\n
+**-O, --output** /path/to/output/\n\t\trepository of the output files\n
+**-g, --genome** /path/to/genome\n\t\tpath to the STAR genome\t[default: ${genome}]\n
+**--STAR**/path/to/STAR\n\t\tpath to the STAR executable\t[default: ${STAR}]\n
+**--samtools** /path/to/samtools\n\t\tpath to samtools executable\t[default: ${samtools}]\n
+**-p** paired-end analysis\n\t\tprocesses to paired-end analysis\t[default: ${endType}]\n
+**-t, --threads** N\n\t\tNb threads used for the alignment\t[default: ${threads}]\n
+
+### Option for Count mode
+
+\t-B, --bam /pat/to/BAM files\n
+\t-O, --output /path/to/output/\n\t\tdirectory of the output files\n
+\t--samtools\t/path/to/samtools executable \t[default: ${samtools}]\n
+\t--bedtools\t/path/to/bedtools/bin folder \t[default: ${bedtools}]\n
+\t-b, --BEDannot /path/to/your_annotation_file.bed\n\t\tpath to exon coordinates file (in BED format)\t[default: ${bed}]\n
+
+### Option for SpliceLauncher mode
+
+\t-I, --input /path/to/inputFile\n\t\tRead count matrix (.txt)\n
+\t-O, --output /path/to/output/\n\t\tDirectory to save the results\n
+\t-R, --RefSeqAnnot /path/to/RefSpliceLauncher.txt\n\t\tRefSeq annotation file name \t[default: ${SL_DB}]\n
+\t--TranscriptList /path/to/transcriptList.txt\n\t\tSet the list of transcripts to use as reference\n
+\t--txtOut\n\t\tPrint main output in text instead of xls\n
+\t--bedOut\n\t\tGet the output in BED format\n
+\t--Graphics\n\t\tDisplay graphics of alternative junctions (Warnings: increase the runtime)\n
+\t-n, --NbIntervals 10\n\t\tNb interval of Neg Binom (Integer) [default= 10]\n
+\t--SampleNames name1|name2|name3\n\t\tSample names, '|'-separated, by default use the sample file names\n
+\tIf list of transcripts (--TranscriptList):\n
+\t\t--removeOther\n\t\tRemove the genes with unselected transcripts to improve runtime\n
+\tIf graphics (-g, --Graphics):\n
+\t\t--threshold 1\n\t\tThreshold to shown junctions (%) [default= 1]\n"
+
+
+
+
+
+
+
+
 
 **-F, --fastq** /path/to/Fastq files
 
@@ -295,10 +346,6 @@ Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/Ref
 **--perlscript** /path/to/perl scripts
 
 + Path to the Perl script used by the pipeline, by default they are in [scripts](https://github.com/raphaelleman/SpliceLauncher/tree/master/scripts "tittle") folder.
-
-## SpliceLauncher Options <a id="15"></a>
-
----
 
 **-I, --input** /path/to/matrix of read count
 
