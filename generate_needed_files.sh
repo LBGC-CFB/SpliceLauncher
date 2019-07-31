@@ -8,6 +8,9 @@ workFolder=$(readlink -f $(dirname $0))
 conf_file="${workFolder}/config.cfg"
 scriptPath="${workFolder}/scripts"
 BEDrefPath="${workFolder}/refData/refExons.bed"
+removeOther=""
+NbIntervals=10
+threshold=1
 
 ########## some useful functions
 echo_on_stderr () {
@@ -72,11 +75,11 @@ messageHelp="Usage: $0 [runMode] [options] <command>\n
     Option for Align mode\n
     \t-F, --fastq /path/to/fastq/\n\t\trepository of the FASTQ files\n
     \t-O, --output /path/to/output/\n\t\trepository of the output files\n
+    \t-p paired-end analysis\n\t\tprocesses to paired-end analysis\t[default: ${endType}]\n
+    \t-t, --threads N\n\t\tNb threads used for the alignment\t[default: ${threads}]\n
     \t-g, --genome /path/to/genome\n\t\tpath to the STAR genome\t[default: ${genome}]\n
     \t--STAR /path/to/STAR\n\t\tpath to the STAR executable\t[default: ${STAR}]\n
     \t--samtools /path/to/samtools\n\t\tpath to samtools executable\t[default: ${samtools}]\n
-    \t-p paired-end analysis\n\t\tprocesses to paired-end analysis\t[default: ${endType}]\n
-    \t-t, --threads N\n\t\tNb threads used for the alignment\t[default: ${threads}]\n
     \n
     Option for Count mode\n
     \t-B, --bam /path/to/BAM files\n
@@ -88,17 +91,17 @@ messageHelp="Usage: $0 [runMode] [options] <command>\n
     Option for SpliceLauncher mode\n
     \t-I, --input /path/to/inputFile\n\t\tRead count matrix (.txt)\n
     \t-O, --output /path/to/output/\n\t\tDirectory to save the results\n
-    \t-R, --RefSeqAnnot /path/to/RefSpliceLauncher.txt\n\t\tRefSeq annotation file name \t[default: ${SL_DB}]\n
+    \t-R, --RefSeqAnnot /path/to/RefSpliceLauncher.txt\n\t\tRefSeq annotation file name \t[default: ${spliceLaucherAnnot}]\n
     \t--TranscriptList /path/to/transcriptList.txt\n\t\tSet the list of transcripts to use as reference\n
     \t--txtOut\n\t\tPrint main output in text instead of xls\n
     \t--bedOut\n\t\tGet the output in BED format\n
     \t--Graphics\n\t\tDisplay graphics of alternative junctions (Warnings: increase the runtime)\n
-    \t-n, --NbIntervals 10\n\t\tNb interval of Neg Binom (Integer) [default= 10]\n
+    \t-n, --NbIntervals 10\n\t\tNb interval of Neg Binom (Integer) [default= ${NbIntervals}]\n
     \t--SampleNames name1|name2|name3\n\t\tSample names, '|'-separated, by default use the sample file names\n
     \tIf list of transcripts (--TranscriptList):\n
     \t\t--removeOther\n\t\tRemove the genes with unselected transcripts to improve runtime\n
     \tIf graphics (-g, --Graphics):\n
-    \t\t--threshold 1\n\t\tThreshold to shown junctions (%) [default= 1]\n"
+    \t\t--threshold 1\n\t\tThreshold to shown junctions (%) [default= ${threshold}]\n"
 
 ## exit if not enough arguments
 if [ $# -lt 1 ]; then
@@ -201,7 +204,7 @@ while [[ $# -gt 0 ]]; do
        ;;
 
        -R|--RefSeqAnnot)
-       SL_DB="`readlink -v -f $2`"
+       spliceLaucherAnnot="`readlink -v -f $2`"
        shift 2 # shift past argument and past value
        ;;
 
@@ -211,17 +214,17 @@ while [[ $# -gt 0 ]]; do
        ;;
 
        --text)
-       text="TRUE"
+       text="--text"
        shift 1 # shift past argument and past value
        ;;
 
        --BEDout)
-       BEDout="TRUE"
+       BEDout="--BEDout"
        shift 1 # shift past argument and past value
        ;;
 
        --Graphics)
-       Graphics="TRUE"
+       Graphics="--Graphics"
        shift 1 # shift past argument and past value
        ;;
 
@@ -236,7 +239,7 @@ while [[ $# -gt 0 ]]; do
        ;;
 
        --removeOther)
-       removeOther="TRUE"
+       removeOther="--removeOther"
        shift 1 # shift past argument and past value
        ;;
 
@@ -323,19 +326,38 @@ if [[ ${install} = "TRUE" ]]; then
     cmd="${Rscript} ${scriptPath}/generateSpliceLauncherDB.r -i ${gff_path} -o ${out_path}"
     echo -e "$cmd"
     $cmd
+    BEDrefPath=${out_path}/BEDannotation.bed
+    spliceLaucherAnnot=${out_path}/SpliceLauncherAnnot.txt
+    SJDBannot=${out_path}/SJDBannotation.sjdb
+    
+    # Test if output files exist
+    for i in BEDrefPath spliceLaucherAnnot SJDBannot; do
+        if [[ $(test_file_if_exist "${!i}") -ne 0 ]]; then
+            in_error=1
+            echo_on_stderr "${i} not found! Will abort."
+        fi
+    done
+    if [ $in_error -eq 1 ]; then
+        echo -e "=> Aborting."
+        exit
+    fi
 
     genome="${out_path}/STARgenome"
     sed -i "s#^genome=.*#genome=\"${genome}\"#" ${conf_file}
+    sed -i "s#^BEDrefPath=.*#BEDrefPath=\"${BEDrefPath}\"#" ${conf_file}
+    sed -i "s#^spliceLaucherAnnot=.*#spliceLaucherAnnot=\"${spliceLaucherAnnot}\"#" ${conf_file}
+    sed -i "s#^SJDBannot=.*#SJDBannot=\"${SJDBannot}\"#" ${conf_file}
+    
     mkdir -p ${genome}
     cmd="${STAR} \
     --runMode genomeGenerate \
     --runThreadN ${threads} \
     --genomeDir ${genome} \
     --genomeFastaFiles ${fasta_path} \
-    --sjdbFileChrStartEnd ${out_path}/SJDBannotation.sjdb \
+    --sjdbFileChrStartEnd ${SJDBannot} \
     --sjdbGTFfile ${gff_path} \
     --sjdbOverhang 99"
-    echo -e "$cmd"
+    echo -e "cmd = $cmd"
     $cmd
 
 fi
@@ -364,7 +386,53 @@ if [[ ${align} = "TRUE" ]]; then
     # run alignment
     mkdir -p ${out_path}
     echo "Will run alignment."
-    cmd="${scriptPath}/pipelineRNAseq.sh -F ${fastq_path} -O ${out_path} -g ${genome} --STAR ${STAR} --samtools ${samtools} -t ${threads} ${endType}"
-    echo -e "$cmd"
+    cmd="${scriptPath}/pipelineRNAseq.sh --runMode Align -F ${fastq_path} -O ${out_path} -g ${genome} --STAR ${STAR} --samtools ${samtools} -t ${threads} ${endType}"
+    echo -e "cmd = $cmd"
     $cmd
+fi
+
+########## count RNAseq
+if [[ ${count} = "TRUE" ]]; then
+
+## launch alignment
+
+    # Test if files exist
+    for i in bam_path genome; do
+        if [[ ! -d ${!i} ]]; then
+            in_error=1
+            echo_on_stderr "${i} not found! Will abort."
+        else
+            echo "${i} = ${!i}"
+        fi
+    done
+
+    # exit if there is one error or more
+    if [ $in_error -eq 1 ]; then
+        echo -e "=> Aborting."
+        exit
+    fi
+
+    # run count
+    mkdir -p ${out_path}
+    echo "Will run alignment."
+    cmd="${scriptPath}/pipelineRNAseq.sh --runMode Count -B ${bam_path} -O ${out_path} --bedannot ${BEDrefPath} --samtools ${samtools} --bedtools ${bedtools} --perlscript ${scriptPath} ${endType}"
+    echo -e "cmd = $cmd"
+    $cmd
+fi
+
+if [[ ${spliceLauncher} = "TRUE" ]]; then
+
+
+    mkdir -p ${out_path}
+    echo "Will run SpliceLauncher"
+    
+    # if [ -z ${var+x} ]; then echo "var is unset"; else echo "var is set to '$var'"; fi
+    if [ -z ${TranscriptList+x} ]; then transcriptList_cmd=""; else transcriptList_cmd="--transcriptList ${TranscriptList}"; fi
+    if [ -z ${SampleNames+x} ]; then SampleNames_cmd=""; else SampleNames_cmd="--SampleNames ${SampleNames}"; fi
+    
+    
+    cmd="${Rscript} ${scriptPath}/SpliceLauncher.r --input ${input_path} -O ${out_path} --RefSeqAnnot ${spliceLaucherAnnot} -n ${NbIntervals} ${transcriptList_cmd} ${SampleNames_cmd} ${removeOther} ${text} ${BEDout} ${Graphics}"
+    echo -e "cmd = $cmd"
+    $cmd
+
 fi
