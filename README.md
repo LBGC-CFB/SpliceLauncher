@@ -3,11 +3,11 @@
 ---
 
 SpliceLauncher is a pipeline tool to study the alternative splicing. The pipeline works in three steps:
-* generate data files used after (B step in diagram)
-* get a read count matrix from fastq files, aka RNAseq pipeline (A step in diagram).
-* run SpliceLauncher from a read count matrix (C step and furthermore).
+* generate data files used after (B step in diagram below)
+* get a read count matrix from fastq files, aka RNAseq pipeline (A step in diagram below).
+* run SpliceLauncher from a read count matrix (C step and furthermore in diagram below).
 
-![SpliceLauncher](https://github.com/raphaelleman/SpliceLauncher/blob/master/refData/Figure1.png)
+![SpliceLauncher](https://github.com/raphaelleman/SpliceLauncher/blob/master/scripts/Figure1.png)
 
 **Table**
 
@@ -35,8 +35,7 @@ SpliceLauncher is a pipeline tool to study the alternative splicing. The pipelin
 ---
 
 * dataTest: example of input files
-* refData: reference files that SpliceLauncher needs, here in hg19 assembly
-* scripts: complementary scripts to run SpliceLauncher pipeline
+* scripts: complementary scripts to run SpliceLauncher
 
 ## Getting started<a id="2"></a>
 
@@ -134,21 +133,18 @@ cd ./SpliceLauncher
 ### Download the reference files <a id="9"></a>
 
 
-The download reference files are:
+The download reference files are the genome (Fasta) and its annotation file (GFF3):
 
 1. Reference genome in fasta format
 2. The annotations in GFF v3 format
 
 Steps:
-1. Download Fasta genome: from [UCSC](http://hgdownload.soe.ucsc.edu/downloads.html#human "Title"), with hg19 example:
+1. Download Fasta genome: from [RefSeq ftp server](ftp://ftp.ncbi.nlm.nih.gov/refseq/ "tittle") or from [Gencode](https://www.gencodegenes.org/ "tittle").
+For human hg19 annotation file from RefSeq:
     ```Bash
     #the ftp URL depends on your assembly genome choice
-    cd /path/to/SpliceLauncher/
-    mkdir ./fastaGenome
-    cd ./fastaGenome
-    wget --timestamping ftp://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/chromFa.tar.gz -O chromFa.tar.gz
-    tar xvzf ./chromFa.tar.gz
-    cd ..
+    wget ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_genomic.fna.gz
+    gunzip ./GRCh37_latest_genomic.fna.gz
     ```
 
 2. Donwload the GFF annotation file, either from [RefSeq ftp server](ftp://ftp.ncbi.nlm.nih.gov/refseq/ "tittle") or from [Gencode](https://www.gencodegenes.org/ "tittle").
@@ -174,13 +170,13 @@ NC_000001.10	BestRefSeq	exon	11874	12227	.	+	.	ID=id1;Parent=rna0;Dbxref=GeneID:
 
 ### Configure SpliceLauncher with INSTALL mode <a id="10"></a>
 
-SpliceLauncher is provide with a config.cfg file. This last contains the path for software and files used by SpliceLauncher. The mode INSTALL of SpliceLauncher permits to update this config.cfg file. If you define the path to GFF (v3) file and path to the FASTA genome, the INSTALL mode will extract all necessary information from this GFF and indexing the STAR genome. This information are storage in a BED file that contains the exon coordinates, in a sjdb file that contains the intron coordinates and a text file that contains the details of transcript structures. You can define where these files will saving by the `-O, --output` argument
+SpliceLauncher is provide with a config.cfg file. This last contains the path for software and files used by SpliceLauncher. The mode INSTALL of SpliceLauncher  updates this config.cfg file. If you define the path to GFF (v3) file and path to the FASTA genome, the INSTALL mode will extract all necessary information from this GFF and indexing the STAR genome. This information are storage in a BED file that contains the exon coordinates, in a sjdb file that contains the intron coordinates and a text file that contains the details of transcript structures. You need to define where these files will saving by the `-O, --output` argument
 
 Use INSTALL mode of SpliceLauncher:
 
     ```Bash
     cd /path/to/SpliceLauncher/
-    mkdir ./refSpliceLauncher
+    mkdir ./refSpliceLauncher # Here this folder will contain the reference files used by SpliceLauncher
     bash ./generate_needed_files.sh --runMode INSTALL \
         -O ./refSpliceLauncher \
         --STAR /path/to/STAR \

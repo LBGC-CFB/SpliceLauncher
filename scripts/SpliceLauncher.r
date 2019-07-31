@@ -63,16 +63,12 @@ printText=FALSE
 
 argsFull <- commandArgs()
 
-scriptPath=dirname(normalizePath(sub("--file=","",argsFull[substr(argsFull,1,7)=="--file="])))
-RefFile= paste(scriptPath,"refData/RefSpliceLauncher.txt",sep="/")
-if(!file.exists(RefFile)){RefFile="***WARNING: REFSEQ FILE NOT FIND***"}
-
 helpMessage=paste("Usage: SpliceLauncher.r\n
     [Mandatory] \n
         -I, --input /path/to/inputFile\n\t\tRead count matrix (.txt)
         -O, --output /path/to/output/\n\t\tDirectory to save the results\n
     [Options] \n
-        -R, --RefSeqAnnot /path/to/RefSpliceLauncher.txt\n\t\tRefSeq annotation file name [default=",RefFile,"]
+        -R, --RefSeqAnnot /path/to/RefSpliceLauncher.txt\n\t\tRefSeq or Gencode annotation file name
         --TranscriptList /path/to/transcriptList.txt\n\t\tSet the list of transcripts to use as reference
         --text\n\t\tPrint main output in txt instead of excel
         --bedOut\n\t\tGet the output in BED format
