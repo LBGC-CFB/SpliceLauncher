@@ -20,7 +20,7 @@ SpliceLauncher is a pipeline tool to study the alternative splicing. The pipelin
         * [Install R libraries](#7)
 * [Installing SpliceLauncher](#8)
     * [Download the reference files](#9)
-    * [Configure SpliceLauncher](#10)
+    * [Configure SpliceLauncher with INSTALL mode](#10)
 * [Running the SpliceLauncher tests](#11)
     * [RNAseq pipeline, get the read count from fastq files](#12)
     * [SpliceLauncher analysis](#13)
@@ -133,16 +133,10 @@ cd ./SpliceLauncher
 ### Download the reference files <a id="9"></a>
 
 
-Reference files used are:
+The download reference files are:
 
-* reference genome in fasta format, used by STAR during RNAseq pipeline
-* exons annotations in GTF v3 format, used by BEDtools
-* transcripts information in BED, used by SpliceLauncher
-
-An example of these two last files is provide in the [refData folder](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData "Title") with human genome, hg19 assembly
-
-1. Donwload genome fasta file
-2. Donwload RefSeq or Gencode annot GFF (v3) file
+1. Reference genome in fasta format
+2. The annotations in GFF v3 format
 
 Steps:
 1. Download Fasta genome: from [UCSC](http://hgdownload.soe.ucsc.edu/downloads.html#human "Title"), with hg19 example:
@@ -175,13 +169,11 @@ NC_000001.10	RefSeq	region	1	249250621	.	+	.	ID=id0;Dbxref=taxon:9606;Name=1;chr
 NC_000001.10	BestRefSeq	gene	11874	14409	.	+	.	ID=gene0;Dbxref=GeneID:100287102,HGNC:HGNC:37102;Name=DDX11L1;description=DEAD/H-box helicase 11 like 1;gbkey=Gene;gene=DDX11L1;gene_biotype=misc_RNA;pseudo=true
 NC_000001.10	BestRefSeq	transcript	11874	14409	.	+	.	ID=rna0;Parent=gene0;Dbxref=GeneID:100287102,Genbank:NR_046018.2,HGNC:HGNC:37102;Name=NR_046018.2;gbkey=misc_RNA;gene=DDX11L1;product=DEAD/H-box helicase 11 like 1;transcript_id=NR_046018.2
 NC_000001.10	BestRefSeq	exon	11874	12227	.	+	.	ID=id1;Parent=rna0;Dbxref=GeneID:100287102,Genbank:NR_046018.2,HGNC:HGNC:37102;gbkey=misc_RNA;gene=DDX11L1;product=DEAD/H-box helicase 11 like 1;transcript_id=NR_046018.2
-NC_000001.10	BestRefSeq	exon	12613	12721	.	+	.	ID=id2;Parent=rna0;Dbxref=GeneID:100287102,Genbank:NR_046018.2,HGNC:HGNC:37102;gbkey=misc_RNA;gene=DDX11L1;product=DEAD/H-box helicase 11 like 1;transcript_id=NR_046018.2
-NC_000001.10	BestRefSeq	exon	13221	14409	.	+	.	ID=id3;Parent=rna0;Dbxref=GeneID:100287102,Genbank:NR_046018.2,HGNC:HGNC:37102;gbkey=misc_RNA;gene=DDX11L1;product=DEAD/H-box helicase 11 like 1;transcript_id=NR_046018.2
 ```
 
-### Configure SpliceLauncher <a id="10"></a>
+### Configure SpliceLauncher with INSTALL mode <a id="10"></a>
 
-SpliceLauncher is provide with a config.cfg file. This last contains the path for software and files used by SpliceLauncher. The mode INSTALL of SpliceLauncher permits to update this config.cfg file. If you define the path to GFF (v3) file and path to the FASTA genome, the INSTALL mode will extract all necessary information from this GFF and indexing the STAR genome.
+SpliceLauncher is provide with a config.cfg file. This last contains the path for software and files used by SpliceLauncher. The mode INSTALL of SpliceLauncher permits to update this config.cfg file. If you define the path to GFF (v3) file and path to the FASTA genome, the INSTALL mode will extract all necessary information from this GFF and indexing the STAR genome. This information are storage in a BED file that contains the exon coordinates, in a sjdb file that contains the intron coordinates and a text file that contains the details of transcript structures. You can define where these files will saving by the `-O, --output` argument
 
 Use INSTALL mode of SpliceLauncher:
 
@@ -191,7 +183,7 @@ Use INSTALL mode of SpliceLauncher:
         -O /path/to/output/ \
         --STAR /path/to/STAR \
         --samtools /path/to/samtools \
-        --bedtools /path/to/bedtools/bin \
+        --bedtools /path/to/bedtools \
         --gff /path/to/gff \
         --fasta /path/to/fasta
     ```
@@ -364,7 +356,7 @@ Rscript ./SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -R ./refData/Ref
     * You can contact me at: r.leman@baclesse.unicancer.fr or raphael.leman@orange.fr
 
 > **Cite as:** SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data.
-*Raphaël Leman, Grégoire Davy, Valentin Harter, Antoine Rousselin, Etienne Muller, Alexandre Atkinson, Laurent Castéra, Fréderic Lemoine, Pierre de la Grange, Marine Guillaud-Bataille, Dominique Vaur, Sophie Krieger*
+Raphaël Leman, Valentin Harter, Grégoire Davy, Antoine Rousselin, Etienne Muller, Alexandre Atkinson, Laurent Castéra, Fréderic Lemoine, Pierre de la Grange, Marine Guillaud-Bataille, Dominique Vaur, Sophie Krieger
 
 ## License <a id="17"></a>
 
