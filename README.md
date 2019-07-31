@@ -22,12 +22,13 @@ SpliceLauncher is a pipeline tool to study the alternative splicing. The pipelin
     * [Download the reference files](#9)
     * [Configure SpliceLauncher with INSTALL mode](#10)
 * [Running the SpliceLauncher tests](#11)
-    * [RNAseq pipeline, get the read count from fastq files](#12)
-    * [SpliceLauncher analysis](#13)
-* [RNAseq pipeline Options](#14)
-* [SpliceLauncher Options](#15)
-* [Authors](#16)
-* [License](#17)
+* [SpliceLauncher options](#12)
+    * [Option for INSTALL mode](#13)
+    * [Option for Align mode](#14)
+    * [Option for Count mode](#15)
+    * [Option for SpliceLauncher mode](#16)
+* [Authors](#17)
+* [License](#18)
 
 ## Repository contents<a id="1"></a>
 
@@ -228,7 +229,7 @@ The final results are display in the file *testSpliceLauncher_outputR.xlsx*, thi
 | DistribAjust | - | The Distribution of junction expression (Gamma/N.binom) |
 | Significative | NO | If a sample shown an abnormal expression of the junction |
 
-## SpliceLauncher options <a id="14"></a>
+## SpliceLauncher options <a id="12"></a>
 
 ---
 
@@ -239,10 +240,10 @@ The final results are display in the file *testSpliceLauncher_outputR.xlsx*, thi
     * Count: Generates the matrix read count from the BAM files
     * SpliceLauncher: Generates final output from the matrix read count
 
-### Option for INSTALL mode
+### Option for INSTALL mode <a id="13"></a>
 
 **-C, --config** /path/to/configuration file/
-* Path to the config.cfg file, only if you want to use your own config file
+* Path to the config.cfg file, **only** if you want to use your own config file
 
 **-O, --output** /path/to/output/
 * Directory to save the reference files (BED, sjdb, txt) and the indexed genome
@@ -265,137 +266,85 @@ The final results are display in the file *testSpliceLauncher_outputR.xlsx*, thi
 **-t, --threads** N
 * Nb threads used to index the STAR genome
 
-### Option for Align mode
+### Option for Align mode <a id="14"></a>
 
-**-F, --fastq** /path/to/fastq/\n\t\trepository of the FASTQ files\n
-**-O, --output** /path/to/output/\n\t\trepository of the output files\n
-**-g, --genome** /path/to/genome\n\t\tpath to the STAR genome\t[default: ${genome}]\n
-**--STAR**/path/to/STAR\n\t\tpath to the STAR executable\t[default: ${STAR}]\n
-**--samtools** /path/to/samtools\n\t\tpath to samtools executable\t[default: ${samtools}]\n
-**-p** paired-end analysis\n\t\tprocesses to paired-end analysis\t[default: ${endType}]\n
-**-t, --threads** N\n\t\tNb threads used for the alignment\t[default: ${threads}]\n
-
-### Option for Count mode
-
-\t-B, --bam /pat/to/BAM files\n
-\t-O, --output /path/to/output/\n\t\tdirectory of the output files\n
-\t--samtools\t/path/to/samtools executable \t[default: ${samtools}]\n
-\t--bedtools\t/path/to/bedtools/bin folder \t[default: ${bedtools}]\n
-\t-b, --BEDannot /path/to/your_annotation_file.bed\n\t\tpath to exon coordinates file (in BED format)\t[default: ${bed}]\n
-
-### Option for SpliceLauncher mode
-
-\t-I, --input /path/to/inputFile\n\t\tRead count matrix (.txt)\n
-\t-O, --output /path/to/output/\n\t\tDirectory to save the results\n
-\t-R, --RefSeqAnnot /path/to/RefSpliceLauncher.txt\n\t\tRefSeq annotation file name \t[default: ${SL_DB}]\n
-\t--TranscriptList /path/to/transcriptList.txt\n\t\tSet the list of transcripts to use as reference\n
-\t--txtOut\n\t\tPrint main output in text instead of xls\n
-\t--bedOut\n\t\tGet the output in BED format\n
-\t--Graphics\n\t\tDisplay graphics of alternative junctions (Warnings: increase the runtime)\n
-\t-n, --NbIntervals 10\n\t\tNb interval of Neg Binom (Integer) [default= 10]\n
-\t--SampleNames name1|name2|name3\n\t\tSample names, '|'-separated, by default use the sample file names\n
-\tIf list of transcripts (--TranscriptList):\n
-\t\t--removeOther\n\t\tRemove the genes with unselected transcripts to improve runtime\n
-\tIf graphics (-g, --Graphics):\n
-\t\t--threshold 1\n\t\tThreshold to shown junctions (%) [default= 1]\n"
-
-
-
-
-
-
-
-
-
-**-F, --fastq** /path/to/Fastq files
-
-+ The directory of FastQ files in *.fastq.gz format. If paired end analysis please names the files: XXXXXXX1.fastq.gz for read 1 and XXXXXXX2.fastq.gz for read 2.
-
-**-O, --output** /path/to/output
-
-+ Directory of output files. If inexisting it creates the Directory.
-
-**--star** /path/to/STAR
-
-+ Path to the STAR executable
-
-**-g, --genome** /path/to/STAR genome
-
-+ Directory to the STAR genome (see [STAR genome](#10) section).
-
-**--samtools** /path/to/samtools
-
-+ Directory to the SAMtools executable.
-
-**--bedtools** /path/to/bedtools/bin/
-
-+ Directory of the folder with BEDtools executables (pipeline used bamToBed and closestBed).
-
-**--bedannot** /path/to/BEDannot.bed
-
-+ Exon coordinates of transcripts described in RefSeq database (see [Create exon BED annotations](#11) section).
-
-**-p**
-
-+ Process to a paired-end analysis
-
-**-t, --threads** N
-
-+ Number of CPUs used for the STAR alignment.
-
-**--perlscript** /path/to/perl scripts
-
-+ Path to the Perl script used by the pipeline, by default they are in [scripts](https://github.com/raphaelleman/SpliceLauncher/tree/master/scripts "tittle") folder.
-
-**-I, --input** /path/to/matrix of read count
-
-+ The read count matrix file (see an example [MatrixCountExample.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/dataTest/MatrixCountExample.txt "tittle")) used by SpliceLauncher.
+**-F, --fastq** /path/to/fastq/
+* Repository of the FASTQ files
 
 **-O, --output** /path/to/output/
+* Repository of the output files
 
-+ The ouput directory. If inexisting SpliceLauncher create the Directory.
+**-p**
+* Processes to paired-end analysis
 
-**-R, --RefSeqAnnot** /path/to/RefSeannot.txt
+**-t, --threads** N
+* Nb threads used for the alignment
 
-+ The RefSeq database withe the transcript details (used by default: [RefSpliceLauncher.txt](https://github.com/raphaelleman/SpliceLauncher/tree/master/refData/RefSpliceLauncher.txt "tittle")). To change this database please refer to [Create the transcripts information](#12) section.
+**-g, --genome** /path/to/genome
+* path to the genome directory, **only** if you to use a genome directory different of the genome defined in config.cfg file
 
-**-S, --SampleNames** sample1|sample2|sample3|...
+**--STAR** /path/to/STAR
+* Path to the STAR executable, **only** if you to use a STAR software different of the STAR defined in config.cfg file
 
-+ Permit to set the name of samples, used for the pdf files.
+**--samtools** /path/to/samtools
+* Path to the samtools executable, **only** if you to use a samtools software different of the samtools defined in config.cfg file
 
-**-t, --TranscriptList** /path/to/transcriptList.txt
+### Option for Count mode <a id="15"></a>
 
-+ Permits to set the reference transcripts to study the alternative splicing. Does not support several transcripts by gene (see an example [transcriptsToSelect.txt](https://github.com/raphaelleman/SpliceLauncher/blob/master/dataTest/transcriptsToSelect.txt "tittle")). The option *-m, --MergeTranscrit* cann't affect the gene with the selected transcripts.
+**-B, --bam** /path/to/BAM files
+* Repository of the BAM folder
 
+**-O, --output** /path/to/output/
+* Repository of the output files
+
+**--samtools** /path/to/samtools
+* Path to the samtools executable, **only** if you to use a samtools software different of the samtools defined in config.cfg file
+
+**--bedtools**\t/path/to/bedtools
+* Path to the bedtools executable, **only** if you to use a bedtools software different of the bedtools defined in config.cfg file
+
+**-b, --BEDannot** /path/to/your_annotation_file.bed
+* Path to exon coordinates file (in BED format), **only** if you to use exon coordinates different of the coordinates defined in config.cfg file
+
+### Option for SpliceLauncher mode <a id="16"></a>
+
+**-I, --input**/path/to/inputFile
+* Read count matrix (.txt)
+
+**-O, --output** /path/to/output/
+* Directory to save the results
+
+**--TranscriptList** /path/to/transcriptList.txt
+* Set the list of transcripts to use as reference
+
+**--txtOut**
+* Print main output in text instead of xls
+
+**--bedOut**
+* Get the output in BED format
+
+**--Graphics**
+* Display graphics of alternative junctions (Warnings: increase the runtime)
+
+**-n, --NbIntervals** 10
+* Nb interval of Neg Binom (Integer)
+
+**--SampleNames** name1|name2|name3
+* Sample names, '|'-separated, by default use the sample file names
+
+If list of transcripts (--TranscriptList):
 **--removeOther**
+* Remove the genes with unselected transcripts to improve runtime
 
-+ Remove genes that the transcripts are not in the list of reference transcripts.
+If graphics (-g, --Graphics):
+**--threshold** 1
+* Threshold to shown junctions (%)
 
-**-b, --BEDannot**
+**-R, --RefSeqAnnot** /path/to/RefSpliceLauncher.txt
+* Transcript information file, **only** if you to use a transcript information file different of file defined in config.cfg file
 
-+ Generate a BED file of alternative splicing events, permits to plot the junction on a genome browser such as [UCSC Genome browser](https://genome.ucsc.edu/ "tittle").
 
-**-g, --Graphics**
-
-+ Generate pdf file for each sample, plots the alternative splicing junctions on the reference transcripts. Warning, this option increases significantly the runtime.
-
-**--threshold** N
-
-+ Threshold (in percentage of relative expression) to display the alternative junctions in the pdf RefFiles
-
-**-s, --Statistical**
-
-+ Launch the statistical analysis to detect junctions abnomarly expressed acroos samples, needs at least 5 samples in all to work.
-
-**-a, --Adjust** TRUE
-
-+ Adjust the p-value by Bonferroni method (TRUE/FALSE).
-
-**-n, --NbIntervals** N
-
-+ Number of intervals used in estimation of Negative Binomial distribution
-
-## Authors <a id="16"></a>
+## Authors <a id="17"></a>
 
 ---
 
@@ -405,7 +354,7 @@ The final results are display in the file *testSpliceLauncher_outputR.xlsx*, thi
 > **Cite as:** SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data.
 Raphaël Leman, Valentin Harter, Grégoire Davy, Antoine Rousselin, Etienne Muller, Alexandre Atkinson, Laurent Castéra, Fréderic Lemoine, Pierre de la Grange, Marine Guillaud-Bataille, Dominique Vaur, Sophie Krieger
 
-## License <a id="17"></a>
+## License <a id="18"></a>
 
 ---
 
