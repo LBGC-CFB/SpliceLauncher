@@ -156,7 +156,7 @@ while [[ $# -gt 0 ]]; do
        shift 2 # shift past argument and past value
        ;;
 
-       -B|--BEDannot)
+       -b|--BEDannot)
        BEDrefPath="`readlink -v -f $2`"
        shift 2 # shift past argument and past value
        ;;
@@ -218,8 +218,8 @@ while [[ $# -gt 0 ]]; do
        shift 1 # shift past argument and past value
        ;;
 
-       --BEDout)
-       BEDout="--BEDout"
+       --bedOut)
+       bedOut="--bedOut"
        shift 1 # shift past argument and past value
        ;;
 
@@ -389,15 +389,17 @@ if [[ ${align} = "TRUE" ]]; then
     cmd="${scriptPath}/pipelineRNAseq.sh --runMode Align -F ${fastq_path} -O ${out_path} -g ${genome} --STAR ${STAR} --samtools ${samtools} -t ${threads} ${endType}"
     echo -e "cmd = $cmd"
     $cmd
+    
+    bam_path="${out_path}/Bam"
 fi
 
 ########## count RNAseq
 if [[ ${count} = "TRUE" ]]; then
 
-## launch alignment
+## launch counting
 
     # Test if files exist
-    for i in bam_path genome; do
+    for i in bam_path; do
         if [[ ! -d ${!i} ]]; then
             in_error=1
             echo_on_stderr "${i} not found! Will abort."
@@ -414,10 +416,12 @@ if [[ ${count} = "TRUE" ]]; then
 
     # run count
     mkdir -p ${out_path}
-    echo "Will run alignment."
+    echo "Will run counting."
     cmd="${scriptPath}/pipelineRNAseq.sh --runMode Count -B ${bam_path} -O ${out_path} --bedannot ${BEDrefPath} --samtools ${samtools} --bedtools ${bedtools} --perlscript ${scriptPath} ${endType}"
     echo -e "cmd = $cmd"
     $cmd
+    
+    input_path="${out_path}/$(basename ${out_path}).txt"
 fi
 
 if [[ ${spliceLauncher} = "TRUE" ]]; then
@@ -426,12 +430,11 @@ if [[ ${spliceLauncher} = "TRUE" ]]; then
     mkdir -p ${out_path}
     echo "Will run SpliceLauncher"
     
-    # if [ -z ${var+x} ]; then echo "var is unset"; else echo "var is set to '$var'"; fi
     if [ -z ${TranscriptList+x} ]; then transcriptList_cmd=""; else transcriptList_cmd="--transcriptList ${TranscriptList}"; fi
     if [ -z ${SampleNames+x} ]; then SampleNames_cmd=""; else SampleNames_cmd="--SampleNames ${SampleNames}"; fi
     
     
-    cmd="${Rscript} ${scriptPath}/SpliceLauncher.r --input ${input_path} -O ${out_path} --RefSeqAnnot ${spliceLaucherAnnot} -n ${NbIntervals} ${transcriptList_cmd} ${SampleNames_cmd} ${removeOther} ${text} ${BEDout} ${Graphics}"
+    cmd="${Rscript} ${scriptPath}/SpliceLauncher.r --input ${input_path} -O ${out_path} --RefSeqAnnot ${spliceLaucherAnnot} -n ${NbIntervals} ${transcriptList_cmd} ${SampleNames_cmd} ${removeOther} ${text} ${bedOut} ${Graphics}"
     echo -e "cmd = $cmd"
     $cmd
 

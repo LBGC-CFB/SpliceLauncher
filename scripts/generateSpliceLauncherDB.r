@@ -77,11 +77,11 @@ getBEDfile <- function(exonCoord){
         V3 = exonCoord$end,
         V4 = paste(
                 substr(exonCoord$transcript_id,rep(1,length(exonCoord$transcript_id)),as.numeric(regexpr(".",exonCoord$transcript_id,fixed =TRUE))-1),
-                "exon",0,0,exonCoord$chr,exonCoord$start,exonCoord$strand,sep="_"),
+                "exon",0,0,exonCoord$chr,exonCoord$start,exonCoord$strand,sep="|"),
         V5 = rep(0,nrow(exonCoord)),
         V6 = exonCoord$strand)
-    tmp[,4] = sub(pattern = "_-", replacement="_r", tmp[,4],fixed = TRUE)
-    tmp[,4] = sub(pattern = "_+", replacement="_f", tmp[,4],fixed = TRUE)
+    tmp[,4] = sub(pattern = "|-", replacement="|r", tmp[,4],fixed = TRUE)
+    tmp[,4] = sub(pattern = "|+", replacement="|f", tmp[,4],fixed = TRUE)
     tmp = tmp[order(tmp$V2),]
     tmp = tmp[order(tmp$V1),]
     return(tmp)

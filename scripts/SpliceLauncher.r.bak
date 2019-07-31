@@ -8,8 +8,8 @@
 
 #This software was developed from the work:
 #SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data.
-#Raphaël Leman, Grégoire Davy, Valentin Harter, Antoine Rousselin, Alexandre Atkinson, Laurent Castéra, Dominique Vaur,
-#Fréderic Lemoine, Pierre De La Grange, Sophie Krieger
+#Raphaël Leman, Valentin Harter, Grégoire Davy, Antoine Rousselin, Etienne Muller, Alexandre Atkinson, Laurent Castéra, Fréderic Lemoine,
+#Pierre de la Grange, Marine Guillaud-Bataille, Dominique Vaur, Sophie Krieger
 
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
 #to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute,
@@ -75,7 +75,7 @@ helpMessage=paste("Usage: SpliceLauncher.r\n
         -R, --RefSeqAnnot /path/to/RefSpliceLauncher.txt\n\t\tRefSeq annotation file name [default=",RefFile,"]
         --TranscriptList /path/to/transcriptList.txt\n\t\tSet the list of transcripts to use as reference
         --text\n\t\tPrint main output in txt instead of excel
-        --bedOut\n\t\tGet the output in BED format
+        -b, --BEDannot\n\t\tGet the output in BED format
         --Graphics\n\t\tDisplay graphics of alternative junctions (Warnings: increase the runtime)
         -n, --NbIntervals 10\n\t\tNb interval of Neg Binom (Integer) [default=",negbinom.n,"]
         --SampleNames name1|name2|name3\n\t\tSample names, '|'-separated, by default use the sample file names\n
@@ -105,7 +105,7 @@ while (i <= length(args)){
         outputDir=args[i+1];i = i+2
     }else if(args[i]=="--SampleNames"){
         EchName=args[i+1];i = i+2
-    }else if(args[i]=="--bedOut"){
+    }else if(args[i]=="-b"|args[i]=="--BEDannot"){
         checkBEDannot="YES";i = i+1
     }else if(args[i]=="--Graphics"){
         DisplayGraph="YES";i = i+1
