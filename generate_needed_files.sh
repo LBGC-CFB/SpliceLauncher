@@ -2,7 +2,7 @@
 
 ## initialize default value
 threads="1"
-endType="single"
+endType=""
 in_error=0 # will be 1 if a file or cmd not exist
 workFolder=$(readlink -f $(dirname $0))
 conf_file="${workFolder}/config.cfg"
@@ -15,16 +15,13 @@ echo_on_stderr () {
 }
 
 test_command_if_exist () {
-    to_test=$*
-    command -v $to_test >/dev/null 2>&1 || { echo_on_stderr "require $* but it's not installed. Will abort."; return 1; }
+    command -v $* >/dev/null 2>&1 && echo 0 || { echo 1; }
 }
 
-test_command_if_exist () {
-    if [ $(command -v $* >/dev/null 2>&1) -ne 0 ]; then
-        echo -e "not"
-        
-
-
+# test_command_if_exist () {
+    # if [ $(command -v $* >/dev/null 2>&1) -ne 0 ]; then
+        # echo -e "not"
+    # fi
 
 test_file_if_exist () {
     if [ ! -f $* ]; then
@@ -81,7 +78,7 @@ messageHelp="Usage: $0 [runMode] [options] <command>\n
     \t-t, --threads N\n\t\tNb threads used for the alignment\t[default: ${threads}]\n
     \n
     Option for Count mode\n
-    \t-B, --bam /pat/to/BAM files\n
+    \t-B, --bam /path/to/BAM files\n
     \t-O, --output /path/to/output/\n\t\tdirectory of the output files\n
     \t--samtools\t/path/to/samtools executable \t[default: ${samtools}]\n
     \t--bedtools\t/path/to/bedtools/bin folder \t[default: ${bedtools}]\n
@@ -155,10 +152,10 @@ while [[ $# -gt 0 ]]; do
        shift 2 # shift past argument and past value
        ;;
 
-        --bedannot)
-        BEDrefPath="`readlink -v -f $2`"
-        shift 2 # shift past argument and past value
-        ;;
+       -B|--BEDannot)
+       BEDrefPath="`readlink -v -f $2`"
+       shift 2 # shift past argument and past value
+       ;;
         
        --gff)
        createDB="TRUE"
@@ -183,7 +180,7 @@ while [[ $# -gt 0 ]]; do
        ;;
 
        -p)
-       endType="paired"
+       endType="-p"
        shift # shift past argument
        ;;
 
@@ -217,8 +214,8 @@ while [[ $# -gt 0 ]]; do
        shift 1 # shift past argument and past value
        ;;
 
-       -b|--BEDannot)
-       BEDannot="TRUE"
+       --BEDout)
+       BEDout="TRUE"
        shift 1 # shift past argument and past value
        ;;
 
@@ -280,53 +277,95 @@ done
 
 # Test if cmd exist
 for i in samtools bedtools STAR Rscript perl; do
-    test_command_if_exist ${!i}
-    prev_state=$?
-    if [ $prev_state -eq 1 ]; then
+    if [[ -z ${!i} || $(test_command_if_exist ${!i}) -ne 0 ]]; then
         in_error=1
+        echo_on_stderr "require ${i} but it's not installed. Will abort."
     else
         echo "${!i} OK."
     fi
 done
 
-# Test if files exist
-for i in fasta_genome gff; do
-    test_file_if_exist ${!i}
-    prev_state=$?
-    if [ $(test_file_if_exist "${conf_file}") -ne 0 ]; then
-        in_error=1
-    else
-        echo "${i} = ${!i}"
-    fi
-done
-
-# exit if there is one error or more
-if [ $in_error -eq 1 ]; then
-    echo -e "=> Aborting."
-    exit
+if [[ -z ${out_path} ]]; then
+    echo_on_stderr "require Output Path but it's not installed. Will abort."
+    in_error=1
 fi
 
 echo "Parsing OK."
 
 ########## switch in INSTALL mode
-if [ install=="TRUE" ]; then
-    sed -i "s#^samtools=.*#samtools=\"${samtools}\"#" ${workFolder}/config.cfg
-    sed -i "s#^bedtools=.*#bedtools=\"${bedtools}\"#" ${workFolder}/config.cfg
-    sed -i "s#^STAR=.*#STAR=\"${STAR}\"#" ${workFolder}/config.cfg
+if [[ ${install} = "TRUE" ]]; then
+    sed -i "s#^samtools=.*#samtools=\"${samtools}\"#" ${conf_file}
+    sed -i "s#^bedtools=.*#bedtools=\"${bedtools}\"#" ${conf_file}
+    sed -i "s#^STAR=.*#STAR=\"${STAR}\"#" ${conf_file}
 
-########## lauch generateSpliceLauncherDB
+## launch generateSpliceLauncherDB
 
+    # Test if files exist
+    for i in fasta_path gff_path; do
+        if [[ -z ${!i} || $(test_file_if_exist "${!i}") -ne 0 ]]; then
+            in_error=1
+            echo_on_stderr "${i} not found! Will abort."
+        else
+            echo "${i} = ${!i}"
+        fi
+    done
+
+    # exit if there is one error or more
+    if [ $in_error -eq 1 ]; then
+        echo -e "=> Aborting."
+        exit
+    fi
+    
+    # run generateSpliceLauncherDB
+    mkdir -p ${out_path}
     echo "Will run generateSpliceLauncherDB."
-
-    cmd="${Rscript} ${scriptPath}/generateSpliceLauncherDB.r -i ${gff} -o ${out}"
+    cmd="${Rscript} ${scriptPath}/generateSpliceLauncherDB.r -i ${gff_path} -o ${out_path}"
     echo -e "$cmd"
     $cmd
+    
+    genome="${out_path}/STARgenome"
+    sed -i "s#^genome=.*#genome=\"${genome}\"#" ${conf_file}
+    mkdir -p ${genome}
+    cmd="${STAR} \
+    --runMode genomeGenerate \
+    --runThreadN ${threads} \
+    --genomeDir ${genome} \
+    --genomeFastaFiles ${fasta_path} \
+    --sjdbFileChrStartEnd ${out_path}/SJDBannotation.sjdb \
+    --sjdbGTFfile ${gff_path} \
+    --sjdbOverhang 99"
+    echo -e "$cmd"
+    $cmd
+     
 fi
 
 ########## lauch RNAseq
-if [ align=="TRUE" ]; then
+if [[ ${align} = "TRUE" ]]; then
+
+## launch alignment
+
+    # Test if files exist
+    for i in fastq_path genome; do
+        if [[ ! -d ${!i} ]]; then
+            in_error=1
+            echo_on_stderr "${i} not found! Will abort."
+        else
+            echo "${i} = ${!i}"
+        fi
+    done
+
+    # exit if there is one error or more
+    if [ $in_error -eq 1 ]; then
+        echo -e "=> Aborting."
+        exit
+    fi
     
-    
+    # run alignment
+    mkdir -p ${out_path}
+    echo "Will run alignment."
+    cmd="${scriptPath}/pipelineRNAseq.sh -F ${fastq_path} -O ${out_path} -g ${genome} --STAR ${STAR} --samtools ${samtools} -t ${threads} ${endType}"
+    echo -e "$cmd"
+    $cmd
 fi
     
     
