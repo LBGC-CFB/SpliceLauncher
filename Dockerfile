@@ -12,6 +12,7 @@ ENV SPLICELAUNCHER_VERSION f2aa2efec29f173ad1dda4edd9c190e6e423cd3d
 ENV STAR_VERSION=2.7.1a
 ENV SAMTOOLS_VERSION=1.9
 ENV BEDTOOLS_VERSION=2.28.0
+ENV SEQTK_VERSION=1.3
 
 ENV SPLICELAUNCHER_DIR=/usr/local/splicelauncher
 ENV PATH ${SPLICELAUNCHER_DIR}/scripts/:${SPLICELAUNCHER_DIR}:/usr/local/bin/:$PATH
@@ -70,6 +71,17 @@ RUN cd /usr/local/ \
 ## INSTALL R LIBRARIES
 RUN R -e "install.packages('WriteXLS',lib=$RLIBPATH,repo=$CRANREPO)"  \
     && R -e "install.packages('Cairo',lib=$RLIBPATH,repo=$CRANREPO)" 
+
+## INSTALL SEQTK
+RUN cd /usr/local \
+    && wget https://github.com/lh3/seqtk/archive/v${SEQTK_VERSION}.zip \
+    && unzip v${SEQTK_VERSION}.zip \
+    && rm  v${SEQTK_VERSION}.zip \
+    && cd seqtk-${SEQTK_VERSION} \
+    && make \
+    && mv seqtk /use/local/bin \
+    && cd /usr/local \
+    && rm -rf seqtk-${SEQTK_VERSION}
 
 ## Clean Build packages
 RUN apt-get remove -y ${STAR_PACKAGES} ${SAMTOOLS_PACKAGES} ${BEDTOOLS_PACKAGES} ${R_PACKAGES} \
