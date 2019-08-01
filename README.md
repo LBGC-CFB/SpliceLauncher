@@ -177,7 +177,7 @@ Use INSTALL mode of SpliceLauncher:
     ```Bash
     cd /path/to/SpliceLauncher/
     mkdir ./refSpliceLauncher # Here this folder will contain the reference files used by SpliceLauncher
-    bash ./generate_needed_files.sh --runMode INSTALL \
+    bash ./SpliceLauncher.sh --runMode INSTALL \
         -O ./refSpliceLauncher \
         --STAR /path/to/STAR \
         --samtools /path/to/samtools \
@@ -194,7 +194,7 @@ The example files are provided in [dataTest](https://github.com/raphaelleman/Spl
 
 ```Bash
 cd /path/to/SpliceLauncher
-bash ./generate_needed_files.sh --runMode Align,Count,SpliceLauncher \
+bash ./SpliceLauncher.sh --runMode Align,Count,SpliceLauncher \
  -F ./dataTest/fastq/ \
  -O ./testSpliceLauncher/
  ```

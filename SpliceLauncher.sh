@@ -1,5 +1,28 @@
 #!/bin/bash
 
+#########################
+#RNAseq pipeline
+#########################
+
+#author Raphael Leman r.leman@baclesse.unicancer.fr, Center François Baclesse and Normandie University, Unicaen, Inserm U1245
+#Copyright 2019 Center François Baclesse and Normandie University, Unicaen, Inserm U1245
+
+#This software was developed from the work:
+#SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data.
+#Raphaël Leman, Grégoire Davy, Valentin Harter, Antoine Rousselin, Alexandre Atkinson, Laurent Castéra, Dominique Vaur,
+#Fréderic Lemoine, Pierre De La Grange, Sophie Krieger
+
+#Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
+#to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute,
+#sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+#The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+#FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+#WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 ## initialize default value
 threads="1"
 endType=""
@@ -87,7 +110,7 @@ messageHelp="Usage: $0 [runMode] [options] <command>\n
     \t-O, --output /path/to/output/\n\t\tdirectory of the output files\n
     \t--samtools\t/path/to/samtools executable \t[default: ${samtools}]\n
     \t--bedtools\t/path/to/bedtools/bin folder \t[default: ${bedtools}]\n
-    \t-b, --BEDannot /path/to/your_annotation_file.bed\n\t\tpath to exon coordinates file (in BED format)\t[default: ${bed}]\n
+    \t-b, --BEDannot /path/to/your_annotation_file.bed\n\t\tpath to exon coordinates file (in BED format)\t[default: ${BEDrefPath}]\n
     \n
     Option for SpliceLauncher mode\n
     \t-I, --input /path/to/inputFile\n\t\tRead count matrix (.txt)\n
@@ -448,7 +471,7 @@ if [[ ${spliceLauncher} = "TRUE" ]]; then
     if [ -z ${SampleNames+x} ]; then SampleNames_cmd=""; else SampleNames_cmd="--SampleNames ${SampleNames}"; fi
 
 
-    cmd="${Rscript} ${scriptPath}/SpliceLauncher.r --input ${input_path} -O ${out_path} --RefSeqAnnot ${spliceLaucherAnnot} -n ${NbIntervals} ${transcriptList_cmd} ${SampleNames_cmd} ${removeOther} ${text} ${bedOut} ${Graphics}"
+    cmd="${Rscript} ${scriptPath}/SpliceLauncherAnalyze.r --input ${input_path} -O ${out_path} --RefSeqAnnot ${spliceLaucherAnnot} -n ${NbIntervals} ${transcriptList_cmd} ${SampleNames_cmd} ${removeOther} ${text} ${bedOut} ${Graphics}"
     echo -e "cmd = $cmd"
     $cmd
 

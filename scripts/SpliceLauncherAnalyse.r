@@ -63,7 +63,7 @@ printText=FALSE
 
 argsFull <- commandArgs()
 
-helpMessage=paste("Usage: SpliceLauncher.r\n
+helpMessage=paste("Usage: SpliceLauncherAnalyse.r\n
     [Mandatory] \n
         -I, --input /path/to/inputFile\n\t\tRead count matrix (.txt)
         -O, --output /path/to/output/\n\t\tDirectory to save the results\n
@@ -80,7 +80,7 @@ helpMessage=paste("Usage: SpliceLauncher.r\n
         If graphics (-g, --Graphics):
             --threshold 1\n\t\tThreshold to shown junctions (%) [default=",thr,"]
     h, --help\n\t\tprint this help message and exit\n
-   You could : Rscript SpliceLauncher.r -I ./dataTest/MatrixCountExample.txt -O ./outputTest/")
+   You could : Rscript SpliceLauncherAnalyse.r -I ./dataTest/MatrixCountExample.txt -O ./outputTest/")
 
 #get script argument
 if (length(which(argsFull=="--args"))==0){message(helpMessage);q(save = "no")}
