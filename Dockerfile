@@ -17,9 +17,9 @@ ENV SEQTK_VERSION=1.3
 ENV SPLICELAUNCHER_DIR=/usr/local/splicelauncher
 ENV PATH ${SPLICELAUNCHER_DIR}/scripts/:${SPLICELAUNCHER_DIR}:/usr/local/bin/:$PATH
 
-ENV LC_ALL="en_US.UTF-8"
-ENV LANG="en_US.UTF-8"
-ENV LANGUAGE="en_US.UTF-8"
+ENV LC_ALL="C"
+ENV LANG="C"
+ENV LANGUAGE="C"
 
 ENV CRANREPO="'http://cran.univ-paris1.fr/'"
 ENV RLIBPATH="'/usr/local/lib/R/site-library/'"
@@ -79,7 +79,7 @@ RUN cd /usr/local \
     && rm  v${SEQTK_VERSION}.zip \
     && cd seqtk-${SEQTK_VERSION} \
     && make \
-    && mv seqtk /use/local/bin \
+    && mv seqtk /usr/local/bin \
     && cd /usr/local \
     && rm -rf seqtk-${SEQTK_VERSION}
 
