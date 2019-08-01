@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-set -u
 
 ## initialize default value
 threads="1"
@@ -365,6 +364,7 @@ if [[ ${install} = "TRUE" ]]; then
     cmd="${STAR} \
     --runMode genomeGenerate \
     --runThreadN ${threads} \
+    --genomeSAsparseD 2 \
     --limitGenomeGenerateRAM ${memory} \
     --genomeDir ${genome} \
     --genomeFastaFiles ${fasta_path} \
