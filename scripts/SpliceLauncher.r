@@ -41,7 +41,7 @@ library(Cairo)
 		message(cond)
 		message("*****You need to install \'Cairo\' library")
 })
-message("SpliceLauncherV1.3")
+message("SpliceLauncherV2")
 
 #####################
 #import of arguments#
