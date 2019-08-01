@@ -3,8 +3,8 @@
 ---
 
 SpliceLauncher is a pipeline tool to study the alternative splicing. The pipeline works in three steps:
-* Generate data files used hereafter (B step in diagram below)
 * Get a read count matrix from fastq files, by a dedicated RNAseq pipeline (A step in diagram below).
+* Generate data files used hereafter (B step in diagram below)
 * Run SpliceLauncher from a read count matrix (C step and furthermore in diagram below).
 
 ![SpliceLauncher](https://github.com/raphaelleman/SpliceLauncher/blob/master/scripts/Figure1.png)
@@ -133,14 +133,15 @@ cd ./SpliceLauncher
 ### Download the reference files <a id="8"></a>
 
 
-The download reference files are the genome (Fasta) and its annotation file (GFF3):
+The reference files are the genome (Fasta) and the corresponding annotation file (GFF3):
 
 1. Reference genome in fasta format
-2. The annotations in GFF v3 format
+2. The annotation file in GFF v3 format
 
 Steps:
 1. Download Fasta genome: from [RefSeq](https://www.ncbi.nlm.nih.gov/refseq/) FTP server or from [Gencode](https://www.gencodegenes.org/ "tittle").
-For human hg19 genome file from RefSeq:
+
+For example, human hg19 genome file from RefSeq:
     ```Bash
     #the ftp URL depends on your assembly genome choice
     wget ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_genomic.fna.gz
@@ -148,7 +149,8 @@ For human hg19 genome file from RefSeq:
     ```
 
 2. Download the GFF annotation file, either from [RefSeq](https://www.ncbi.nlm.nih.gov/refseq/ "tittle") FTP server or from [Gencode](https://www.gencodegenes.org/ "tittle").
-For human hg19 annotation file from RefSeq:
+
+For example, human hg19 annotation file from RefSeq:
 ```Bash
 wget ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_genomic.gff.gz
 gunzip ./GRCh37_latest_genomic.gff.gz
@@ -170,7 +172,7 @@ NC_000001.10	BestRefSeq	exon	11874	12227	.	+	.	ID=id1;Parent=rna0;Dbxref=GeneID:
 
 ### Configure SpliceLauncher with INSTALL mode <a id="9"></a>
 
-SpliceLauncher is provide with a config.cfg file. This last contains the path for software and files used by SpliceLauncher. The mode INSTALL of SpliceLauncher  updates this config.cfg file. If you define the path to GFF (v3) file and path to the FASTA genome, the INSTALL mode will extract all necessary information from this GFF and indexing the STAR genome. This information are storage in a BED file that contains the exon coordinates, in a sjdb file that contains the intron coordinates and a text file that contains the details of transcript structures. You need to define where these files will saving by the `-O, --output` argument
+SpliceLauncher is provide with a config.cfg file. This last contains the path for softwares and files used by SpliceLauncher. The mode INSTALL of SpliceLauncher  updates this config.cfg file. The INSTALL mode uses the GFF (v3) file and the FASTA genome to extract all necessary information and to generate the STAR genome indexes. These information are storage in a BED file that contains the exon coordinates, in a sjdb file that contains the intron coordinates and a text file that contains the details of transcript structures. You need to define where these files will be saved by the `-O, --output` argument
 
 Use INSTALL mode of SpliceLauncher:
 
@@ -190,7 +192,7 @@ Use INSTALL mode of SpliceLauncher:
 
 ---
 
-The example files are provided in [dataTest](https://github.com/raphaelleman/SpliceLauncher/tree/master/dataTest "tittle"), with the example data provided in single end RNAseq (2x75pb) on *BRCA1* and *BRCA2* transcripts:
+The example files are provided in [dataTest](https://github.com/raphaelleman/SpliceLauncher/tree/master/dataTest "tittle"), with the example data provided in single end RNAseq (1x75pb) on *BRCA1* and *BRCA2* transcripts:
 
 ```Bash
 cd /path/to/SpliceLauncher
@@ -199,7 +201,7 @@ bash ./SpliceLauncher.sh --runMode Align,Count,SpliceLauncher -F ./dataTest/fast
 
 After running, the BAM files from alignment are in a *Bam* folder, the count files are in *getClosestExons* and the results of SpliceLauncher analysis are in *testSpliceLauncher_result*.
 
-The final results are display in the file *testSpliceLauncher_outputR.xlsx*, this last is in *testSpliceLauncher_result* folder. The scheme of this file is:
+The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, this last is in *testSpliceLauncher_result* folder. The scheme of this file is:
 
 | Column names | Example | Description |
 |------------:|:--------:|:------------:|
@@ -346,7 +348,7 @@ If graphics (-g, --Graphics):
     * You can contact me at: r.leman@baclesse.unicancer.fr or raphael.leman@orange.fr
 
 > **Cite as:** SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data.
-Raphaël Leman, Valentin Harter, Grégoire Davy, Antoine Rousselin, Etienne Muller, Alexandre Atkinson, Laurent Castéra, Fréderic Lemoine, Pierre de la Grange, Marine Guillaud-Bataille, Dominique Vaur, Sophie Krieger
+Raphaël Leman, Valentin Harter, Alexandre Atkinson, Grégoire Davy, Antoine Rousselin, Etienne Muller, Laurent Castéra, Fréderic Lemoine, Pierre de la Grange, Marine Guillaud-Bataille, Dominique Vaur, Sophie Krieger
 
 ## License <a id="17"></a>
 
