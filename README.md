@@ -7,7 +7,7 @@ SpliceLauncher is a pipeline tool to study the alternative splicing. The pipelin
 * Generate data files used hereafter (B step in diagram below)
 * Run SpliceLauncher from a read count matrix (C step and furthermore in diagram below).
 
-![SpliceLauncher](https://github.com/raphaelleman/SpliceLauncher/blob/master/scripts/Figure1.png)
+![SpliceLauncher](https://github.com/raphaelleman/SpliceLauncher/blob/master/doc/Figure1.png)
 
 ## Table
 
@@ -139,11 +139,11 @@ Steps:
 1. Download Fasta genome: from [RefSeq](https://www.ncbi.nlm.nih.gov/refseq/) FTP server or from [Gencode](https://www.gencodegenes.org/ "tittle").
 
 For example, human hg19 genome file from RefSeq:
-    ```Bash
-    #the ftp URL depends on your assembly genome choice
-    wget ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_genomic.fna.gz
-    gunzip ./GRCh37_latest_genomic.fna.gz
-    ```
+```Bash
+#the ftp URL depends on your assembly genome choice
+wget ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_genomic.fna.gz
+gunzip ./GRCh37_latest_genomic.fna.gz
+```
 
 2. Download the GFF annotation file, either from [RefSeq](https://www.ncbi.nlm.nih.gov/refseq/ "tittle") FTP server or from [Gencode](https://www.gencodegenes.org/ "tittle").
 
