@@ -80,17 +80,17 @@ while [[ $# -gt 0 ]]; do
         shift 2 # shift past argument and past value
         ;;
         --STAR)
-        STARPath="`readlink -v -f $2`"
+        STARPath="$2"
         shift 2 # shift past argument and past value
         ;;
 
         --samtools)
-        SamtoolsPath="`readlink -v -f $2`"
+        SamtoolsPath="$2"
         shift 2 # shift past argument and past value
         ;;
 
         --bedtools)
-        BEDtoolsPath="`readlink -v -f $2`"
+        BEDtoolsPath="$2"
         shift 2 # shift past argument and past value
 
         ;;
@@ -166,7 +166,7 @@ if [[ ${runMode} = "Align" ]]; then
 
     #check the softs
     for soft in ${SamtoolsPath} ${STARPath}; do
-        command -v ${soft} >/dev/null 2>&1 || { ${in_error}=1; echo >&2 "****The ${soft} is required but it's not installed. Aborting.****";}
+        command -v ${soft} >/dev/null 2>&1 || { in_error=1; echo >&2 "****${soft} is required but it's not installed. Aborting.****";}
     done
 
     if [ ${in_error} -eq 1 ]; then
@@ -183,14 +183,13 @@ if [[ ${runMode} = "Align" ]]; then
 
     echo "###### Alignment process ######"
 
-
     cd ${pathToFastq}
 
     echo "##### FASTQ files ######"
     ls -lh *.fastq.gz
 
     # unload genome reference of any last run
-    ${STARPath} --genomeDir ${genomeDirectory} --genomeLoad Remove > /dev/null 2>&1
+    ${STARPath} --genomeDir ${genomeDirectory} --genomeLoad Remove > /dev/null 2>&1 || true
 
     if [[ ${endType} = "paired" ]]
     then

@@ -145,17 +145,17 @@ while [[ $# -gt 0 ]]; do
        ;;
 
        --STAR)
-       STAR="`readlink -v -f $2`"
+       STAR="$2"
        shift 2 # shift past argument and past value
        ;;
 
        --samtools)
-       samtools="`readlink -v -f $2`"
+       samtools="$2"
        shift 2 # shift past argument and past value
        ;;
 
        --bedtools)
-       bedtools="`readlink -v -f $2`"
+       bedtools="$2"
        shift 2 # shift past argument and past value
        ;;
 
@@ -380,7 +380,6 @@ if [[ ${align} = "TRUE" ]]; then
     echo -e "###############################################"
     echo -e "####### Launch aligment step"
     echo -e "###############################################\n"
-
 ## launch alignment
 
     # Test if files exist
