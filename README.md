@@ -2,14 +2,14 @@
 
 ---
 
-SpliceLauncher is a pipeline tool to study the alternative splicing. The pipeline works in three steps:
+SpliceLauncher is a pipeline tool to study the alternative splicing. It works in three steps:
 * Get a read count matrix from fastq files, by a dedicated RNAseq pipeline (A step in diagram below).
 * Generate data files used hereafter (B step in diagram below)
 * Run SpliceLauncher from a read count matrix (C step and furthermore in diagram below).
 
 ![SpliceLauncher](https://github.com/raphaelleman/SpliceLauncher/blob/master/doc/Figure1.png)
 
-## Table
+**Table of contents**
 
 * [Repository contents](#1)
 * [Prerequisites to install SpliceLauncher](#2)
@@ -127,7 +127,38 @@ git clone https://github.com/raphaelleman/SpliceLauncher
 cd ./SpliceLauncher
 ```
 
-### Download the reference files <a id="8"></a>
+### Docker image
+SpliceLauncher and all its dependencies are also integrated in a Docker image:
+
+1. To build it:
+
+```
+docker build . -t evolbioinfo/splicelauncher
+```
+
+2. To download an already existing Docker image from Docker hub:
+
+```Bash
+docker pull evolbioinfo/splicelauncher
+```
+
+or with singularity
+
+```Bash
+singularity pull docker://evolbioinfo/splicelauncher
+```
+
+3. To open a shell in the container:
+```Bash
+docker run -ti -w $PWD -v $PWD:$PWD --entrypoint bash evolbioinfo/splicelauncher
+```
+or
+
+```Bash
+singularity shell splicelauncher-latest.simg
+```
+
+### Download the reference files <a id="9"></a>
 
 
 The reference files are the genome (Fasta) and the corresponding annotation file (GFF3):
@@ -167,9 +198,18 @@ NC_000001.10	BestRefSeq	transcript	11874	14409	.	+	.	ID=rna0;Parent=gene0;Dbxref
 NC_000001.10	BestRefSeq	exon	11874	12227	.	+	.	ID=id1;Parent=rna0;Dbxref=GeneID:100287102,Genbank:NR_046018.2,HGNC:HGNC:37102;gbkey=misc_RNA;gene=DDX11L1;product=DEAD/H-box helicase 11 like 1;transcript_id=NR_046018.2
 ```
 
-### Configure SpliceLauncher with INSTALL mode <a id="9"></a>
+3. [Optionnal] To reduce needed memory, we can also restrict the analysis to the primary assembly, without unplaced contigs:
+```
+grep ">" GRCh37_latest_genomic.fna | grep -v "unplaced genomic contig"| grep -v "unlocalized genomic contig" | grep -v "genomic patch"| grep -v "alternate locus" | sed 's/^>//' > chr_names
+seqtk subseq GRCh37_latest_genomic.fna chr_names > GRCh37_latest_genomic.sub.fna
+cut -f 1 -d ' ' chr_names > chr_names_id
+head -n 9 GRCh37_latest_genomic.gff > GRCh37_latest_genomic.sub.gff
+grep -f chr_names_id GRCh37_latest_genomic.gff >> GRCh37_latest_genomic.sub.gff
+```
 
-SpliceLauncher is provide with a config.cfg file. This last contains the path for softwares and files used by SpliceLauncher. The mode INSTALL of SpliceLauncher  updates this config.cfg file. The INSTALL mode uses the GFF (v3) file and the FASTA genome to extract all necessary information and to generate the STAR genome indexes. These information are storage in a BED file that contains the exon coordinates, in a sjdb file that contains the intron coordinates and a text file that contains the details of transcript structures. You need to define where these files will be saved by the `-O, --output` argument
+### Configure SpliceLauncher with INSTALL mode <a id="10"></a>
+
+SpliceLauncher comes with a ready to use config.cfg file. It contains the paths of software and files used by SpliceLauncher. The INSTALL mode of SpliceLauncher updates this config.cfg file. If you define the path to GFF (v3) file and path to the FASTA genome, the INSTALL mode will extract all necessary information from this GFF and indexing the STAR genome. This informations are stored in a BED file that contains the exon coordinates, in a sjdb file that contains the intron coordinates and a text file that contains the details of transcript structures. You need to define where these files will saving by the `-O, --output` argument
 
 Use INSTALL mode of SpliceLauncher:
 

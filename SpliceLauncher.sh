@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 #########################
 #RNAseq pipeline
@@ -25,6 +26,7 @@
 
 ## initialize default value
 threads="1"
+memory="24000000000"
 endType=""
 in_error=0 # will be 1 if a file or cmd not exist
 workFolder=$(readlink -f $(dirname $0))
@@ -95,12 +97,14 @@ messageHelp="Usage: $0 [runMode] [options] <command>\n
     \t--gff\t/path/to/gff file\n
     \t--fasta\t/path/to/fasta genome file\n
     \t-t, --threads N\n\t\tNb threads used to index genome\t[default: ${threads}]\n
+    \t-m, --memory N\n\t\tMax Memory allowed to index genome, in bytes\t[default: ${memory}]\n
     \n
     Option for Align mode\n
     \t-F, --fastq /path/to/fastq/\n\t\trepository of the FASTQ files\n
     \t-O, --output /path/to/output/\n\t\trepository of the output files\n
     \t-p paired-end analysis\n\t\tprocesses to paired-end analysis\t[default: ${endType}]\n
     \t-t, --threads N\n\t\tNb threads used for the alignment\t[default: ${threads}]\n
+    \t-m, --memory\n\t\tMax Memory allowed for the alignment\t[default: ${memory}]\n
     \t-g, --genome /path/to/genome\n\t\tpath to the STAR genome\t[default: ${genome}]\n
     \t--STAR /path/to/STAR\n\t\tpath to the STAR executable\t[default: ${STAR}]\n
     \t--samtools /path/to/samtools\n\t\tpath to samtools executable\t[default: ${samtools}]\n
@@ -166,17 +170,17 @@ while [[ $# -gt 0 ]]; do
        ;;
 
        --STAR)
-       STAR="`readlink -v -f $2`"
+       STAR="$2"
        shift 2 # shift past argument and past value
        ;;
 
        --samtools)
-       samtools="`readlink -v -f $2`"
+       samtools="$2"
        shift 2 # shift past argument and past value
        ;;
 
        --bedtools)
-       bedtools="`readlink -v -f $2`"
+       bedtools="$2"
        shift 2 # shift past argument and past value
        ;;
 
@@ -217,6 +221,11 @@ while [[ $# -gt 0 ]]; do
        shift 2 # shift past argument and past value
        ;;
 
+       -m|--memory)
+       memory="$2"
+       shift 2 # shift past argument and past value
+       ;;
+       
        -B|--bam)
        bam_path="`readlink -v -f $2`"
        shift 2 # shift past argument and past value
@@ -380,22 +389,22 @@ if [[ ${install} = "TRUE" ]]; then
     cmd="${STAR} \
     --runMode genomeGenerate \
     --runThreadN ${threads} \
+    --genomeSAsparseD 2 \
+    --limitGenomeGenerateRAM ${memory} \
     --genomeDir ${genome} \
     --genomeFastaFiles ${fasta_path} \
     --sjdbFileChrStartEnd ${SJDBannot} \
     --sjdbGTFfile ${gff_path} \
     --sjdbOverhang 99"
-    echo -e "cmd = $cmd"
+    echo -e "Running STAR = $cmd"
     $cmd
-
 fi
 
-########## lauch RNAseq
+########## launch RNAseq
 if [[ ${align} = "TRUE" ]]; then
     echo -e "###############################################"
     echo -e "####### Launch aligment step"
     echo -e "###############################################\n"
-
 ## launch alignment
 
     # Test if files exist
@@ -417,7 +426,7 @@ if [[ ${align} = "TRUE" ]]; then
     # run alignment
     mkdir -p ${out_path}
     echo "Will run alignment."
-    cmd="${scriptPath}/pipelineRNAseq.sh --runMode Align -F ${fastq_path} -O ${out_path} -g ${genome} --STAR ${STAR} --samtools ${samtools} -t ${threads} ${endType}"
+    cmd="${scriptPath}/pipelineRNAseq.sh --runMode Align -F ${fastq_path} -O ${out_path} -g ${genome} --STAR ${STAR} --samtools ${samtools} -t ${threads} -m ${memory} ${endType}"
     echo -e "cmd = $cmd"
     $cmd
 

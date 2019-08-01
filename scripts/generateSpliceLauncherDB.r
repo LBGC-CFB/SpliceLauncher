@@ -267,7 +267,7 @@ mHead = gffData[grep("#",substr(gffData,1,2),fixed=TRUE)]
 gffData = gffData[-grep("#",substr(gffData,1,2),fixed=TRUE)]
 
 #Change in table
-message("Formate GFF file ...")
+message("Format GFF file ...")
 columNames = c("chr","status","seqType","start","end","X1","strand","X2","info")
 gffData = splitRawToTable(gffData, sep = "\t", columNames)
 
@@ -291,7 +291,7 @@ if(nrow(exonCoord)==0){
 }
 message("Extract exon annotation ...")
 colNames = extractHeader(exonCoord$info)
-print(colNames)
+#print(colNames)
 exonCoordtmp = strsplit(exonCoord$info, ";", fixed=TRUE)
 tmp = unlist(lapply(exonCoordtmp,extractInfo,header = colNames))
 exonCoordtmp = as.data.frame(matrix(tmp, ncol = length(colNames),byrow = TRUE))
@@ -307,7 +307,7 @@ if(nrow(proteinInfo)==0){
 }
 message("Extract CDS annotation ...")
 colNames = extractHeader(proteinInfo$info)
-print(colNames)
+#print(colNames)
 proteinInfotmp = strsplit(proteinInfo$info, ";", fixed=TRUE)
 tmp = unlist(lapply(proteinInfotmp,extractInfo,header = colNames))
 proteinInfotmp = as.data.frame(matrix(tmp, ncol = length(colNames),byrow = TRUE))
@@ -343,7 +343,7 @@ mergeData$end_CDS[is.na(mergeData$end_CDS)] = mergeData$end[is.na(mergeData$end_
 message("   Get SpliceLauncher Reference file ...")
 trans = unique(mergeData$transcript_id)
 nIter = length(trans)%/%5000
-print(length(trans))
+message(paste0("   Number of transcripts= ",length(trans)))
 
 j=1
 for(i in 1:nIter){
@@ -378,7 +378,7 @@ rest = length(trans)%%5000
 tmpTrans = trans[(nIter*5000+1):(nIter*5000+rest)]
 tmpData = mergeData[which(mergeData$transcript_id%in%tmpTrans),]
 tmp <- unlist(mapply(getSpliceLauncherDB, transcrit = unique(tmpData$transcript_id)))
-message("   Formate SpliceLauncher file...")
+message("   Format SpliceLauncher file...")
 dataConvertPool = data.frame(Gene = tmp[grep("Gene",names(tmp))],
                             Strand = tmp[grep("Strand",names(tmp))],
                             gCDSstart = tmp[grep("gCDSstart",names(tmp))],
@@ -395,4 +395,4 @@ dataConvertPool = data.frame(Gene = tmp[grep("Gene",names(tmp))],
 write.table(dataConvertPool,paste(outputPath,"SpliceLauncherAnnot.txt",sep="/"),sep="\t",quote=F,row.names=F,col.names=F,append=TRUE)
 
 T2<-as.numeric(format(Sys.time(), "%s"))
-print(T2-T1)
+#print(T2-T1)
