@@ -139,7 +139,7 @@ The download reference files are the genome (Fasta) and its annotation file (GFF
 2. The annotations in GFF v3 format
 
 Steps:
-1. Download Fasta genome: from [RefSeq](ftp://ftp.ncbi.nlm.nih.gov/refseq/) FTP server or from [Gencode](https://www.gencodegenes.org/ "tittle").
+1. Download Fasta genome: from [RefSeq](https://www.ncbi.nlm.nih.gov/refseq/) FTP server or from [Gencode](https://www.gencodegenes.org/ "tittle").
 For human hg19 annotation file from RefSeq:
     ```Bash
     #the ftp URL depends on your assembly genome choice
@@ -147,8 +147,8 @@ For human hg19 annotation file from RefSeq:
     gunzip ./GRCh37_latest_genomic.fna.gz
     ```
 
-2. Download the GFF annotation file, either from [RefSeq](ftp://ftp.ncbi.nlm.nih.gov/refseq/ "tittle") FTP server or from [Gencode](https://www.gencodegenes.org/ "tittle").
-For human hg19 annotation file from RefSeq: ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_genomic.gff.gz
+2. Download the GFF annotation file, either from [RefSeq](https://www.ncbi.nlm.nih.gov/refseq/ "tittle") FTP server or from [Gencode](https://www.gencodegenes.org/ "tittle").
+For human hg19 annotation file from RefSeq:
 ```Bash
 wget ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_genomic.gff.gz
 gunzip ./GRCh37_latest_genomic.gff.gz
@@ -194,14 +194,12 @@ The example files are provided in [dataTest](https://github.com/raphaelleman/Spl
 
 ```Bash
 cd /path/to/SpliceLauncher
-bash ./SpliceLauncher.sh --runMode Align,Count,SpliceLauncher \
- -F ./dataTest/fastq/ \
- -O ./testSpliceLauncher/
+bash ./SpliceLauncher.sh --runMode Align,Count,SpliceLauncher -F ./dataTest/fastq/ -O ./testSpliceLauncher/
  ```
 
 After running, the BAM files from alignment are in a *Bam* folder, the count files are in *getClosestExons* and the results of SpliceLauncher analysis are in *testSpliceLauncher_result*.
 
-The final results are display in the file *testSpliceLauncher_outputR.xlsx*, this least is in *testSpliceLauncher_result* folder. The scheme of this file is:
+The final results are display in the file *testSpliceLauncher_outputR.xlsx*, this last is in *testSpliceLauncher_result* folder. The scheme of this file is:
 
 | Column names | Example | Description |
 |------------:|:--------:|:------------:|
@@ -277,7 +275,7 @@ The final results are display in the file *testSpliceLauncher_outputR.xlsx*, thi
 * Nb threads used for the alignment
 
 **-g, --genome** /path/to/genome
-* path to the genome directory, **only** if you to use a genome directory different of the genome defined in config.cfg file
+* Path to the genome directory, **only** if you to use a genome directory different of the genome defined in config.cfg file
 
 **--STAR** /path/to/STAR
 * Path to the STAR executable, **only** if you to use a STAR software different of the STAR defined in config.cfg file

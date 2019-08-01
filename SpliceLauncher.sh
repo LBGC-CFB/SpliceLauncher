@@ -471,7 +471,7 @@ if [[ ${spliceLauncher} = "TRUE" ]]; then
     if [ -z ${SampleNames+x} ]; then SampleNames_cmd=""; else SampleNames_cmd="--SampleNames ${SampleNames}"; fi
 
 
-    cmd="${Rscript} ${scriptPath}/SpliceLauncherAnalyze.r --input ${input_path} -O ${out_path} --RefSeqAnnot ${spliceLaucherAnnot} -n ${NbIntervals} ${transcriptList_cmd} ${SampleNames_cmd} ${removeOther} ${text} ${bedOut} ${Graphics}"
+    cmd="${Rscript} ${scriptPath}/SpliceLauncherAnalyse.r --input ${input_path} -O ${out_path} --RefSeqAnnot ${spliceLaucherAnnot} -n ${NbIntervals} ${transcriptList_cmd} ${SampleNames_cmd} ${removeOther} ${text} ${bedOut} ${Graphics}"
     echo -e "cmd = $cmd"
     $cmd
 
