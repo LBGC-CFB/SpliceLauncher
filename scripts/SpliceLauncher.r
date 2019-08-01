@@ -783,7 +783,7 @@ data_junction$cEnd[IdTrans] = cEnd
 #perrcentage calculation of junctions #
 #######################################
 message("\n######################")
-message("#Calcul Junction...")
+message("#Compute Junction...")
 message("######################")
 
 
@@ -1501,7 +1501,6 @@ dataToPrint = checkSizeOutput(dataToPrint)
 message("   Data are saving...")
 
 file.remove("output with adjustments.csv")
-file.remove("output without adjustment.csv")
 
 if(!printText){
     tryCatch({
