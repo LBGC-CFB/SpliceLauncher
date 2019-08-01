@@ -33,14 +33,12 @@ SpliceLauncher is a pipeline tool to study the alternative splicing. The pipelin
 
 ## Repository contents<a id="1"></a>
 
----
 
 * dataTest: example of input files
 * scripts: complementary scripts to run SpliceLauncher
 
 ## Prerequisites to install SpliceLauncher<a id="2"></a>
 
----
 
 The SpliceLauncher pipeline needs to install the following tools and R librairies:
 
@@ -121,7 +119,6 @@ install.packages("Cairo")
 
 ## Installing SpliceLauncher <a id="7"></a>
 
----
 
 Download the latest release from of SpliceLauncher source using git
 
@@ -190,7 +187,6 @@ Use INSTALL mode of SpliceLauncher:
 
 ## Running the SpliceLauncher tests<a id="10"></a>
 
----
 
 The example files are provided in [dataTest](https://github.com/raphaelleman/SpliceLauncher/tree/master/dataTest "tittle"), with the example data provided in single end RNAseq (1x75pb) on *BRCA1* and *BRCA2* transcripts:
 
@@ -227,7 +223,6 @@ The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, t
 
 ## SpliceLauncher options <a id="11"></a>
 
----
 
 **--runMode** INSTALL,Align,Count,SpliceLauncher
 * The runMode defines the steps of analysis with:
@@ -342,7 +337,6 @@ If graphics (-g, --Graphics):
 
 ## Authors <a id="16"></a>
 
----
 
 * Raphael Leman - [raphaelleman](https://github.com/raphaelleman/ "tittle")
     * You can contact me at: r.leman@baclesse.unicancer.fr or raphael.leman@orange.fr
@@ -352,6 +346,5 @@ Raphaël Leman, Valentin Harter, Alexandre Atkinson, Grégoire Davy, Antoine Rou
 
 ## License <a id="17"></a>
 
----
 
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/raphaelleman/SpliceLauncher/blob/master/LICENSE "tittle") file for details
