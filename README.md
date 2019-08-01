@@ -38,7 +38,7 @@ SpliceLauncher is a pipeline tool to study the alternative splicing. The pipelin
 * dataTest: example of input files
 * scripts: complementary scripts to run SpliceLauncher
 
-## Prerequisites<a id="2"></a>
+## Prerequisites to install SpliceLauncher<a id="2"></a>
 
 ---
 
@@ -140,7 +140,7 @@ The download reference files are the genome (Fasta) and its annotation file (GFF
 
 Steps:
 1. Download Fasta genome: from [RefSeq](https://www.ncbi.nlm.nih.gov/refseq/) FTP server or from [Gencode](https://www.gencodegenes.org/ "tittle").
-For human hg19 annotation file from RefSeq:
+For human hg19 genome file from RefSeq:
     ```Bash
     #the ftp URL depends on your assembly genome choice
     wget ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_genomic.fna.gz
