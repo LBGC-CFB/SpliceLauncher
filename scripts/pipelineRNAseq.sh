@@ -39,6 +39,7 @@ messageHelp="Usage: $0
         \t--bedannot /path/to/bedannot\n\t\tpath to exon coordinates (in BED format)\n
         \t--perlscript /path/to/perlscript/\n\t\trepository of perl scripts used by the pipeline\n
         \t-t, --threads N\n\t\tNb threads used for the alignment\n
+        \t-m, --memory N\n\t\tMemory used for the alignment\n
     [Options]\n
         \t-p paired-end analysis\n\t\tprocesses to paired-end analysis\n\n
         \t-B, --bam /path/to/BAM input files\n
@@ -108,6 +109,11 @@ while [[ $# -gt 0 ]]; do
        shift 2 # shift past argument and past value
        ;;
 
+       -m|--memory)
+       memory="$2"
+       shift 2 # shift past argument and past value
+       ;;
+       
        -p)
        endType="paired"
        shift # shift past argument
@@ -144,6 +150,7 @@ if [[ ${runMode} = "Align" ]]; then
     echo -e "    path to STAR = ${STARPath}"
     echo -e "    path to samtools = ${SamtoolsPath}"
     echo -e "    threads = ${threads}"
+    echo -e "    memory = ${memory}"
     echo -e "    end type analysis = ${endType}"
 
     echo "####Check your options"
@@ -202,7 +209,7 @@ if [[ ${runMode} = "Align" ]]; then
                     --runThreadN ${threads} \
                     --outSAMunmapped Within \
                     --outSAMtype BAM SortedByCoordinate \
-                    --limitBAMsortRAM 15000000000 \
+                    --limitBAMsortRAM ${memory} \
                     --outSAMheaderHD \@HD VN:1.4 SO:SortedByCoordinate \
                     --outFileNamePrefix ${bam_path}/${file%_R1_001.fastq.gz}. \
                     --genomeLoad LoadAndKeep > ${bam_path}/${file%_R1_001.fastq.gz}.log 2>&1
