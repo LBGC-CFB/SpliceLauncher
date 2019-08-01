@@ -9,6 +9,8 @@ conf_file="${workFolder}/config.cfg"
 scriptPath="${workFolder}/scripts"
 BEDrefPath="${workFolder}/refData/refExons.bed"
 removeOther=""
+text=""
+Graphics=""
 NbIntervals=10
 threshold=1
 
@@ -91,15 +93,15 @@ messageHelp="Usage: $0 [runMode] [options] <command>\n
     \t-I, --input /path/to/inputFile\n\t\tRead count matrix (.txt)\n
     \t-O, --output /path/to/output/\n\t\tDirectory to save the results\n
     \t-R, --RefSeqAnnot /path/to/RefSpliceLauncher.txt\n\t\tRefSeq annotation file name \t[default: ${spliceLaucherAnnot}]\n
-    \t--TranscriptList /path/to/transcriptList.txt\n\t\tSet the list of transcripts to use as reference\n
+    \t--transcriptList /path/to/transcriptList.txt\n\t\tSet the list of transcripts to use as reference\n
     \t--txtOut\n\t\tPrint main output in text instead of xls\n
     \t--bedOut\n\t\tGet the output in BED format\n
     \t--Graphics\n\t\tDisplay graphics of alternative junctions (Warnings: increase the runtime)\n
     \t-n, --NbIntervals 10\n\t\tNb interval of Neg Binom (Integer) [default= ${NbIntervals}]\n
     \t--SampleNames name1|name2|name3\n\t\tSample names, '|'-separated, by default use the sample file names\n
-    \tIf list of transcripts (--TranscriptList):\n
+    \tIf list of transcripts (--transcriptList):\n
     \t\t--removeOther\n\t\tRemove the genes with unselected transcripts to improve runtime\n
-    \tIf graphics (-g, --Graphics):\n
+    \tIf graphics (--Graphics):\n
     \t\t--threshold 1\n\t\tThreshold to shown junctions (%) [default= ${threshold}]\n"
 
 ## exit if not enough arguments
@@ -212,7 +214,7 @@ while [[ $# -gt 0 ]]; do
        shift 2 # shift past argument and past value
        ;;
 
-       --text)
+       --txtOut)
        text="--text"
        shift 1 # shift past argument and past value
        ;;

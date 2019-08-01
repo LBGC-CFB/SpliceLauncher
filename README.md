@@ -3,32 +3,33 @@
 ---
 
 SpliceLauncher is a pipeline tool to study the alternative splicing. The pipeline works in three steps:
-* generate data files used after (B step in diagram below)
-* get a read count matrix from fastq files, aka RNAseq pipeline (A step in diagram below).
-* run SpliceLauncher from a read count matrix (C step and furthermore in diagram below).
+* Generate data files used hereafter (B step in diagram below)
+* Get a read count matrix from fastq files, by a dedicated RNAseq pipeline (A step in diagram below).
+* Run SpliceLauncher from a read count matrix (C step and furthermore in diagram below).
 
 ![SpliceLauncher](https://github.com/raphaelleman/SpliceLauncher/blob/master/scripts/Figure1.png)
 
-**Table**
+## Table
 
 * [Repository contents](#1)
-* [Getting started](#2)
-    * [Prerequisites](#3)
-        * [STAR](#4)
-        * [Samtools](#5)
-        * [BEDtools](#6)
-        * [Install R libraries](#7)
-* [Installing SpliceLauncher](#8)
-    * [Download the reference files](#9)
-    * [Configure SpliceLauncher with INSTALL mode](#10)
-* [Running the SpliceLauncher tests](#11)
-* [SpliceLauncher options](#12)
-    * [Option for INSTALL mode](#13)
-    * [Option for Align mode](#14)
-    * [Option for Count mode](#15)
-    * [Option for SpliceLauncher mode](#16)
-* [Authors](#17)
-* [License](#18)
+* [Prerequisites to install SpliceLauncher](#2)
+    * [STAR](#3)
+    * [Samtools](#4)
+    * [BEDtools](#5)
+    * [Install R libraries](#6)
+* [Installing SpliceLauncher](#7)
+    * [Download the reference files](#8)
+    * [Configure SpliceLauncher with INSTALL mode](#9)
+* [Running the SpliceLauncher tests](#10)
+* [SpliceLauncher options](#11)
+    * [Option for INSTALL mode](#12)
+    * [Option for Align mode](#13)
+    * [Option for Count mode](#14)
+    * [Option for SpliceLauncher mode](#15)
+* [Authors](#16)
+* [License](#17)
+
+---
 
 ## Repository contents<a id="1"></a>
 
@@ -37,14 +38,11 @@ SpliceLauncher is a pipeline tool to study the alternative splicing. The pipelin
 * dataTest: example of input files
 * scripts: complementary scripts to run SpliceLauncher
 
-## Getting started<a id="2"></a>
+## Prerequisites<a id="2"></a>
 
 ---
 
-### Prerequisites<a id="3"></a>
-The SpliceLauncher pipeline needs to start from fastq files.
-
-The tools:
+The SpliceLauncher pipeline needs to install the following tools and R librairies:
 
 * STAR (v2.6 or later)
 * samtools (v1.3 or later)
@@ -52,7 +50,7 @@ The tools:
 * R with *WriteXLS* and *Cairo* packages
 * Perl
 
-#### STAR <a id="4"></a>
+### STAR <a id="3"></a>
 
 Following instruction were from the [STAR manual](https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf "Title")
 
@@ -84,7 +82,7 @@ cd STAR/source
 make STAR
 ```
 
-#### Samtools <a id="5"></a>
+### Samtools <a id="4"></a>
 
 Download the samtools package at: https://github.com/samtools/samtools/releases/latest
 
@@ -99,7 +97,7 @@ make install
 
 For more information, please see the [samtools manual](http://www.htslib.org/doc/samtools.html "Title")
 
-#### BEDtools <a id="6"></a>
+### BEDtools <a id="5"></a>
 
 Installation of BEDtools for linux:
 
@@ -112,7 +110,7 @@ make
 
 For more information, please see the [BEDtools tutorial](http://quinlanlab.org/tutorials/bedtools/bedtools.html "Title")
 
-#### Install R libraries <a id="7"></a>
+### Install R libraries <a id="6"></a>
 
 Open the R console:
 
@@ -121,16 +119,18 @@ install.packages("WriteXLS")
 install.packages("Cairo")
 ```
 
-## Installing SpliceLauncher <a id="8"></a>
+## Installing SpliceLauncher <a id="7"></a>
 
 ---
+
+Download the latest release from of SpliceLauncher source using git
 
 ```Bash
 git clone https://github.com/raphaelleman/SpliceLauncher
 cd ./SpliceLauncher
 ```
 
-### Download the reference files <a id="9"></a>
+### Download the reference files <a id="8"></a>
 
 
 The download reference files are the genome (Fasta) and its annotation file (GFF3):
@@ -139,7 +139,7 @@ The download reference files are the genome (Fasta) and its annotation file (GFF
 2. The annotations in GFF v3 format
 
 Steps:
-1. Download Fasta genome: from [RefSeq](ftp://ftp.ncbi.nlm.nih.gov/refseq/ "tittle") FTP server or from [Gencode](https://www.gencodegenes.org/ "tittle").
+1. Download Fasta genome: from [RefSeq](ftp://ftp.ncbi.nlm.nih.gov/refseq/) FTP server or from [Gencode](https://www.gencodegenes.org/ "tittle").
 For human hg19 annotation file from RefSeq:
     ```Bash
     #the ftp URL depends on your assembly genome choice
@@ -147,7 +147,7 @@ For human hg19 annotation file from RefSeq:
     gunzip ./GRCh37_latest_genomic.fna.gz
     ```
 
-2. Donwload the GFF annotation file, either from [RefSeq](ftp://ftp.ncbi.nlm.nih.gov/refseq/ "tittle") FTP server or from [Gencode](https://www.gencodegenes.org/ "tittle").
+2. Download the GFF annotation file, either from [RefSeq](ftp://ftp.ncbi.nlm.nih.gov/refseq/ "tittle") FTP server or from [Gencode](https://www.gencodegenes.org/ "tittle").
 For human hg19 annotation file from RefSeq: ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_genomic.gff.gz
 ```Bash
 wget ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_genomic.gff.gz
@@ -168,7 +168,7 @@ NC_000001.10	BestRefSeq	transcript	11874	14409	.	+	.	ID=rna0;Parent=gene0;Dbxref
 NC_000001.10	BestRefSeq	exon	11874	12227	.	+	.	ID=id1;Parent=rna0;Dbxref=GeneID:100287102,Genbank:NR_046018.2,HGNC:HGNC:37102;gbkey=misc_RNA;gene=DDX11L1;product=DEAD/H-box helicase 11 like 1;transcript_id=NR_046018.2
 ```
 
-### Configure SpliceLauncher with INSTALL mode <a id="10"></a>
+### Configure SpliceLauncher with INSTALL mode <a id="9"></a>
 
 SpliceLauncher is provide with a config.cfg file. This last contains the path for software and files used by SpliceLauncher. The mode INSTALL of SpliceLauncher  updates this config.cfg file. If you define the path to GFF (v3) file and path to the FASTA genome, the INSTALL mode will extract all necessary information from this GFF and indexing the STAR genome. This information are storage in a BED file that contains the exon coordinates, in a sjdb file that contains the intron coordinates and a text file that contains the details of transcript structures. You need to define where these files will saving by the `-O, --output` argument
 
@@ -186,7 +186,7 @@ Use INSTALL mode of SpliceLauncher:
         --fasta /path/to/fasta
     ```
 
-## Running the SpliceLauncher tests<a id="11"></a>
+## Running the SpliceLauncher tests<a id="10"></a>
 
 ---
 
@@ -196,7 +196,7 @@ The example files are provided in [dataTest](https://github.com/raphaelleman/Spl
 cd /path/to/SpliceLauncher
 bash ./generate_needed_files.sh --runMode Align,Count,SpliceLauncher \
  -F ./dataTest/fastq/ \
- -O ./testSpliceLauncher/ \
+ -O ./testSpliceLauncher/
  ```
 
 After running, the BAM files from alignment are in a *Bam* folder, the count files are in *getClosestExons* and the results of SpliceLauncher analysis are in *testSpliceLauncher_result*.
@@ -215,7 +215,7 @@ The final results are display in the file *testSpliceLauncher_outputR.xlsx*, thi
 | Gene | BRCA2 | Gene symbol |
 | *Sample* | 2250 | Read count |
 | *P_Sample* | 15.25659623 | % of relative expression |
-| calcul | SkipEx | The nature of junction:<br/>Physio: Natural junction<br/>SkipEx: Exon skipping<br/>5AS: Donor splice site shift<br/>3AS: Acceptor splice site shift<br/>NoData: Unannotated juntion |
+| event_type | SkipEx | The nature of junction:<br/>Physio: Natural junction<br/>SkipEx: Exon skipping<br/>5AS: Donor splice site shift<br/>3AS: Acceptor splice site shift<br/>NoData: Unannotated juntion |
 | AnnotJuncs | ∆12 | The junction names |
 | cStart | c.6841 | Transcriptomic start coordinate of the junction |
 | cEnd | c.6938 | Transcriptomic end coordinate of the junction |
@@ -225,7 +225,7 @@ The final results are display in the file *testSpliceLauncher_outputR.xlsx*, thi
 | DistribAjust | - | The Distribution of junction expression (Gamma/N.binom) |
 | Significative | NO | If a sample shown an abnormal expression of the junction |
 
-## SpliceLauncher options <a id="12"></a>
+## SpliceLauncher options <a id="11"></a>
 
 ---
 
@@ -236,7 +236,7 @@ The final results are display in the file *testSpliceLauncher_outputR.xlsx*, thi
     * Count: Generates the matrix read count from the BAM files
     * SpliceLauncher: Generates final output from the matrix read count
 
-### Option for INSTALL mode <a id="13"></a>
+### Option for INSTALL mode <a id="12"></a>
 
 **-C, --config** /path/to/configuration file/
 * Path to the config.cfg file, **only** if you want to use your own config file
@@ -262,7 +262,7 @@ The final results are display in the file *testSpliceLauncher_outputR.xlsx*, thi
 **-t, --threads** N
 * Nb threads used to index the STAR genome
 
-### Option for Align mode <a id="14"></a>
+### Option for Align mode <a id="13"></a>
 
 **-F, --fastq** /path/to/fastq/
 * Repository of the FASTQ files
@@ -285,7 +285,7 @@ The final results are display in the file *testSpliceLauncher_outputR.xlsx*, thi
 **--samtools** /path/to/samtools
 * Path to the samtools executable, **only** if you to use a samtools software different of the samtools defined in config.cfg file
 
-### Option for Count mode <a id="15"></a>
+### Option for Count mode <a id="14"></a>
 
 **-B, --bam** /path/to/BAM files
 * Repository of the BAM folder
@@ -302,7 +302,7 @@ The final results are display in the file *testSpliceLauncher_outputR.xlsx*, thi
 **-b, --BEDannot** /path/to/your_annotation_file.bed
 * Path to exon coordinates file (in BED format), **only** if you to use exon coordinates different of the coordinates defined in config.cfg file
 
-### Option for SpliceLauncher mode <a id="16"></a>
+### Option for SpliceLauncher mode <a id="15"></a>
 
 **-I, --input**/path/to/inputFile
 * Read count matrix (.txt)
@@ -340,7 +340,7 @@ If graphics (-g, --Graphics):
 * Transcript information file, **only** if you to use a transcript information file different of file defined in config.cfg file
 
 
-## Authors <a id="17"></a>
+## Authors <a id="16"></a>
 
 ---
 
@@ -350,7 +350,7 @@ If graphics (-g, --Graphics):
 > **Cite as:** SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data.
 Raphaël Leman, Valentin Harter, Grégoire Davy, Antoine Rousselin, Etienne Muller, Alexandre Atkinson, Laurent Castéra, Fréderic Lemoine, Pierre de la Grange, Marine Guillaud-Bataille, Dominique Vaur, Sophie Krieger
 
-## License <a id="18"></a>
+## License <a id="17"></a>
 
 ---
 
