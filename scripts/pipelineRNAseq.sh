@@ -59,12 +59,12 @@ endType=""
 while [[ $# -gt 0 ]]; do
    key=$1
    case $key in
-   
+
        --runMode)
        runMode="$2"
        shift 2 # shift past argument and past value
        ;;
-       
+
        -F|--fastq)
        pathToFastq="`readlink -v -f $2`"
        shift 2 # shift past argument and past value
@@ -113,17 +113,17 @@ while [[ $# -gt 0 ]]; do
        memory="$2"
        shift 2 # shift past argument and past value
        ;;
-       
+
        -p)
        endType="paired"
        shift # shift past argument
        ;;
-       
+
        -B|--bam)
        bam_path="`readlink -v -f $2`"
        shift 2 # shift past argument and past value
        ;;
-       
+
        *)  # unknown option
        POSITIONAL+=("$key") # save it in an array for later
        echo -e "    Unknown option ${key}"
@@ -234,7 +234,7 @@ if [[ ${runMode} = "Align" ]]; then
                     --runThreadN ${threads} \
                     --outSAMunmapped Within \
                     --outSAMtype BAM SortedByCoordinate \
-                    --limitBAMsortRAM 15000000000 \
+                    --limitBAMsortRAM ${memory} \
                     --outSAMheaderHD \@HD VN:1.4 SO:SortedByCoordinate \
                     --outFileNamePrefix ${bam_path}/${file%.fastq.gz}. \
                     --genomeLoad LoadAndKeep > ${bam_path}/${file%.fastq.gz}.log 2>&1
@@ -286,7 +286,7 @@ if [[ ${runMode} = "Count" ]]; then
             echo "    The directory: ${directory}... OK"
         fi
     done
-    
+
     #check the softs
     for soft in ${SamtoolsPath} \
      "${ScriptPath}/bedBlocks2IntronsCoords.pl" \
@@ -294,7 +294,7 @@ if [[ ${runMode} = "Count" ]]; then
      "${BEDtoolsPath}"; do \
         command -v ${soft} >/dev/null 2>&1 || { ${in_error}=1; echo >&2 "****The ${soft} is required but it's not installed. Aborting.****";}
     done
-    
+
     #check BED exon annotation
     if [ ! -e ${BEDrefPath} ]
     then
@@ -303,7 +303,7 @@ if [[ ${runMode} = "Count" ]]; then
     else
         echo "    The bedtools annot file: ${BEDrefPath}... OK"
     fi
-    
+
     if [ ${in_error} -eq 1 ]; then
         echo -e $messageHelp
         exit 1;
@@ -312,7 +312,7 @@ if [[ ${runMode} = "Count" ]]; then
         echo "    The perl Scripts: ${ScriptPath}... OK"
         echo "    The BEDtools soft: ${BEDtoolsPath}... OK"
     fi
-    
+
     #####################
     #Creating BED files
     #####################

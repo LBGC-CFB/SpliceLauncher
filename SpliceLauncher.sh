@@ -391,10 +391,9 @@ if [[ ${install} = "TRUE" ]]; then
     sed -i "s#^BEDrefPath=.*#BEDrefPath=\"${BEDrefPath}\"#" ${conf_file}
     sed -i "s#^spliceLaucherAnnot=.*#spliceLaucherAnnot=\"${spliceLaucherAnnot}\"#" ${conf_file}
     sed -i "s#^SJDBannot=.*#SJDBannot=\"${SJDBannot}\"#" ${conf_file}
-    echo "Calculate genomeSAsparseD"
+
     genomeSAsparseD=`echo "31000000000 / ${memory}" | bc `
     genomeSAsparseD=`echo "${genomeSAsparseD} + 1" | bc `
-    echo "Calculate genomeSAsparseD"
 
     mkdir -p ${genome}
     cmd="${STAR} \
