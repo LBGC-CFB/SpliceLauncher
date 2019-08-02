@@ -1500,9 +1500,12 @@ dataToPrint = subset( data_junction, select = -c(ID_gene, constitutive))
 dataToPrint=dataToPrint[order(dataToPrint$Gene),]
 dataToPrint = checkSizeOutput(dataToPrint)
 message("   Data are saving...")
-
-file.remove("output with adjustments.csv")
-file.remove("output without adjustment.csv")
+if(file.exists("output with adjustments.csv")){
+    file.remove("output with adjustments.csv")
+}
+if(file.exists("output without adjustment.csv")){
+    file.remove("output without adjustment.csv")
+}
 
 if(!printText){
     tryCatch({

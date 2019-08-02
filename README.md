@@ -20,14 +20,15 @@ SpliceLauncher is a pipeline tool to study the alternative splicing. It works in
 * [Installing SpliceLauncher](#7)
     * [Download the reference files](#8)
     * [Configure SpliceLauncher with INSTALL mode](#9)
-* [Running the SpliceLauncher tests](#10)
-* [SpliceLauncher options](#11)
-    * [Option for INSTALL mode](#12)
-    * [Option for Align mode](#13)
-    * [Option for Count mode](#14)
-    * [Option for SpliceLauncher mode](#15)
-* [Authors](#16)
-* [License](#17)
+    * [Docker image](#10)
+* [Running the SpliceLauncher tests](#11)
+* [SpliceLauncher options](#12)
+    * [Option for INSTALL mode](#13)
+    * [Option for Align mode](#14)
+    * [Option for Count mode](#15)
+    * [Option for SpliceLauncher mode](#16)
+* [Authors](#17)
+* [License](#18)
 
 ---
 
@@ -127,38 +128,7 @@ git clone https://github.com/raphaelleman/SpliceLauncher
 cd ./SpliceLauncher
 ```
 
-### Docker image
-SpliceLauncher and all its dependencies are also integrated in a Docker image:
-
-1. To build it:
-
-```
-docker build . -t evolbioinfo/splicelauncher
-```
-
-2. To download an already existing Docker image from Docker hub:
-
-```Bash
-docker pull evolbioinfo/splicelauncher
-```
-
-or with singularity
-
-```Bash
-singularity pull docker://evolbioinfo/splicelauncher
-```
-
-3. To open a shell in the container:
-```Bash
-docker run -ti -w $PWD -v $PWD:$PWD --entrypoint bash evolbioinfo/splicelauncher
-```
-or
-
-```Bash
-singularity shell splicelauncher-latest.simg
-```
-
-### Download the reference files <a id="9"></a>
+### Download the reference files <a id="8"></a>
 
 
 The reference files are the genome (Fasta) and the corresponding annotation file (GFF3):
@@ -207,7 +177,7 @@ head -n 9 GRCh37_latest_genomic.gff > GRCh37_latest_genomic.sub.gff
 grep -f chr_names_id GRCh37_latest_genomic.gff >> GRCh37_latest_genomic.sub.gff
 ```
 
-### Configure SpliceLauncher with INSTALL mode <a id="10"></a>
+### Configure SpliceLauncher with INSTALL mode <a id="9"></a>
 
 SpliceLauncher comes with a ready to use config.cfg file. It contains the paths of software and files used by SpliceLauncher. The INSTALL mode of SpliceLauncher updates this config.cfg file. If you define the path to GFF (v3) file and path to the FASTA genome, the INSTALL mode will extract all necessary information from this GFF and indexing the STAR genome. This informations are stored in a BED file that contains the exon coordinates, in a sjdb file that contains the intron coordinates and a text file that contains the details of transcript structures. You need to define where these files will saving by the `-O, --output` argument
 
@@ -225,7 +195,40 @@ Use INSTALL mode of SpliceLauncher:
         --fasta /path/to/fasta
     ```
 
-## Running the SpliceLauncher tests<a id="10"></a>
+### Docker image <a id="10"></a>
+
+SpliceLauncher and all its dependencies are also integrated in a Docker image:
+
+1. To build it:
+
+```
+docker build . -t evolbioinfo/splicelauncher
+```
+
+2. To download an already existing Docker image from Docker hub:
+
+```Bash
+docker pull evolbioinfo/splicelauncher
+```
+
+or with singularity
+
+```Bash
+singularity pull docker://evolbioinfo/splicelauncher
+```
+
+3. To open a shell in the container:
+```Bash
+docker run -ti -w $PWD -v $PWD:$PWD --entrypoint bash evolbioinfo/splicelauncher
+```
+or
+
+```Bash
+singularity shell splicelauncher-latest.simg
+```
+
+
+## Running the SpliceLauncher tests<a id="11"></a>
 
 
 The example files are provided in [dataTest](https://github.com/raphaelleman/SpliceLauncher/tree/master/dataTest "tittle"), with the example data provided in single end RNAseq (1x75pb) on *BRCA1* and *BRCA2* transcripts:
@@ -261,7 +264,7 @@ The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, t
 | DistribAjust | - | The Distribution of junction expression (Gamma/N.binom) |
 | Significative | NO | If a sample shown an abnormal expression of the junction |
 
-## SpliceLauncher options <a id="11"></a>
+## SpliceLauncher options <a id="12"></a>
 
 
 **--runMode** INSTALL,Align,Count,SpliceLauncher
@@ -271,7 +274,7 @@ The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, t
     * Count: Generates the matrix read count from the BAM files
     * SpliceLauncher: Generates final output from the matrix read count
 
-### Option for INSTALL mode <a id="12"></a>
+### Option for INSTALL mode <a id="13"></a>
 
 **-C, --config** /path/to/configuration file/
 * Path to the config.cfg file, **only** if you want to use your own config file
@@ -297,7 +300,7 @@ The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, t
 **-t, --threads** N
 * Nb threads used to index the STAR genome
 
-### Option for Align mode <a id="13"></a>
+### Option for Align mode <a id="14"></a>
 
 **-F, --fastq** /path/to/fastq/
 * Repository of the FASTQ files
@@ -320,7 +323,7 @@ The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, t
 **--samtools** /path/to/samtools
 * Path to the samtools executable, **only** if you to use a samtools software different of the samtools defined in config.cfg file
 
-### Option for Count mode <a id="14"></a>
+### Option for Count mode <a id="15"></a>
 
 **-B, --bam** /path/to/BAM files
 * Repository of the BAM folder
@@ -337,7 +340,7 @@ The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, t
 **-b, --BEDannot** /path/to/your_annotation_file.bed
 * Path to exon coordinates file (in BED format), **only** if you to use exon coordinates different of the coordinates defined in config.cfg file
 
-### Option for SpliceLauncher mode <a id="15"></a>
+### Option for SpliceLauncher mode <a id="16"></a>
 
 **-I, --input**/path/to/inputFile
 * Read count matrix (.txt)
@@ -375,7 +378,7 @@ If graphics (-g, --Graphics):
 * Transcript information file, **only** if you to use a transcript information file different of file defined in config.cfg file
 
 
-## Authors <a id="16"></a>
+## Authors <a id="17"></a>
 
 
 * Raphael Leman - [raphaelleman](https://github.com/raphaelleman/ "tittle")
@@ -384,7 +387,7 @@ If graphics (-g, --Graphics):
 > **Cite as:** SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data.
 Raphaël Leman, Valentin Harter, Alexandre Atkinson, Grégoire Davy, Antoine Rousselin, Etienne Muller, Laurent Castéra, Fréderic Lemoine, Pierre de la Grange, Marine Guillaud-Bataille, Dominique Vaur, Sophie Krieger
 
-## License <a id="17"></a>
+## License <a id="18"></a>
 
 
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/raphaelleman/SpliceLauncher/blob/master/LICENSE "tittle") file for details
