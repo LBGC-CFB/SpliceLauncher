@@ -26,7 +26,8 @@ set -e
 
 ## initialize default value
 threads="1"
-memory="24000000000"
+memory=`free -t | grep "Mem:" | awk ' { print $2 } ' | awk '{printf "%.f", $1*0.8}'`
+memory=`echo "${memory}*1000" | bc`
 endType=""
 in_error=0 # will be 1 if a file or cmd not exist
 workFolder=$(readlink -f $(dirname $0))
@@ -90,7 +91,7 @@ messageHelp="Usage: $0 [runMode] [options] <command>\n
     \n
     Option for INSTALL mode\n
     \t-C, --config\t/path/to/configuration file/\t [default: ${conf_file}]\n
-    \t-O, --output\t/path/to/output/\tdirectory of the output files\n
+    \t-O, --output\t/path/to/output/\n\t\tDirectory of the output files\n
     \t--STAR\t/path/to/STAR executable \t[default: ${STAR}]\n
     \t--samtools\t/path/to/samtools executable \t[default: ${samtools}]\n
     \t--bedtools\t/path/to/bedtools/bin folder \t[default: ${bedtools}]\n
@@ -121,7 +122,7 @@ messageHelp="Usage: $0 [runMode] [options] <command>\n
     \t-O, --output /path/to/output/\n\t\tDirectory to save the results\n
     \t-R, --RefSeqAnnot /path/to/RefSpliceLauncher.txt\n\t\tRefSeq annotation file name \t[default: ${spliceLaucherAnnot}]\n
     \t--transcriptList /path/to/transcriptList.txt\n\t\tSet the list of transcripts to use as reference\n
-    \t--txtOut\n\t\tPrint main output in text instead of xls\n
+    \t--txtOut\n\t\tPrint main output in text instead of xlsx\n
     \t--bedOut\n\t\tGet the output in BED format\n
     \t--Graphics\n\t\tDisplay graphics of alternative junctions (Warnings: increase the runtime)\n
     \t-n, --NbIntervals 10\n\t\tNb interval of Neg Binom (Integer) [default= ${NbIntervals}]\n
@@ -129,7 +130,8 @@ messageHelp="Usage: $0 [runMode] [options] <command>\n
     \tIf list of transcripts (--transcriptList):\n
     \t\t--removeOther\n\t\tRemove the genes with unselected transcripts to improve runtime\n
     \tIf graphics (--Graphics):\n
-    \t\t--threshold 1\n\t\tThreshold to shown junctions (%) [default= ${threshold}]\n"
+    \t\t--threshold 1\n\t\tThreshold to shown junctions (%) [default= ${threshold}]\n
+    -h, --help\n\tPrint this help message and exit"
 
 ## exit if not enough arguments
 if [ $# -lt 1 ]; then
@@ -225,7 +227,7 @@ while [[ $# -gt 0 ]]; do
        memory="$2"
        shift 2 # shift past argument and past value
        ;;
-       
+
        -B|--bam)
        bam_path="`readlink -v -f $2`"
        shift 2 # shift past argument and past value
@@ -279,6 +281,11 @@ while [[ $# -gt 0 ]]; do
        --threshold)
        threshold="`readlink -v -f $2`"
        shift 2 # shift past argument and past value
+       ;;
+
+       -h|--help)
+       echo -e "${messageHelp}"
+       exit # shift past argument and past value
        ;;
 
        *)  # unknown option
@@ -384,12 +391,16 @@ if [[ ${install} = "TRUE" ]]; then
     sed -i "s#^BEDrefPath=.*#BEDrefPath=\"${BEDrefPath}\"#" ${conf_file}
     sed -i "s#^spliceLaucherAnnot=.*#spliceLaucherAnnot=\"${spliceLaucherAnnot}\"#" ${conf_file}
     sed -i "s#^SJDBannot=.*#SJDBannot=\"${SJDBannot}\"#" ${conf_file}
+    echo "Calculate genomeSAsparseD"
+    genomeSAsparseD=`echo "31000000000 / ${memory}" | bc `
+    genomeSAsparseD=`echo "${genomeSAsparseD} + 1" | bc `
+    echo "Calculate genomeSAsparseD"
 
     mkdir -p ${genome}
     cmd="${STAR} \
     --runMode genomeGenerate \
     --runThreadN ${threads} \
-    --genomeSAsparseD 2 \
+    --genomeSAsparseD ${genomeSAsparseD} \
     --limitGenomeGenerateRAM ${memory} \
     --genomeDir ${genome} \
     --genomeFastaFiles ${fasta_path} \
@@ -476,7 +487,7 @@ if [[ ${spliceLauncher} = "TRUE" ]]; then
     mkdir -p ${out_path}
     echo "Will run SpliceLauncher"
 
-    if [ -z ${TranscriptList+x} ]; then transcriptList_cmd=""; else transcriptList_cmd="--transcriptList ${TranscriptList}"; fi
+    if [ -z ${TranscriptList+x} ]; then transcriptList_cmd=""; else transcriptList_cmd="--TranscriptList ${TranscriptList}"; fi
     if [ -z ${SampleNames+x} ]; then SampleNames_cmd=""; else SampleNames_cmd="--SampleNames ${SampleNames}"; fi
 
 
