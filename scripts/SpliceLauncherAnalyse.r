@@ -1371,6 +1371,7 @@ fit.gamma.negbinomial<-function(data, jid, negbinom.n=10){
     }
 
     # Assay negative binomiale distribution with intervalls of negbinom.n of same size
+    tryCatch({
     step<-max(x)/negbinom.n
     y<-as.numeric(cuter(x, cuts=c(seq(step, max(x), step)), mod="]]"))-1
 
@@ -1397,7 +1398,12 @@ fit.gamma.negbinomial<-function(data, jid, negbinom.n=10){
       model[[j]][["size"]]<-size
       next
     }
-
+    },
+    error=function(cond) {
+        message("Here's the original error message:")
+        message(cond)
+        model[[j]][["model"]]<-"Aucun"
+    })
     model[[j]][["model"]]<-"Aucun"
   }
 
