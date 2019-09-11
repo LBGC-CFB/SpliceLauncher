@@ -349,7 +349,7 @@ if [[ ${runMode} = "Count" ]]; then
                 ${BEDtoolsPath} closest -d -t first -a stdin -b ${BEDrefPath} | \
                 awk 'BEGIN{OFS="\t"}{if($13<200){print $0}else{print $1,$2,$3,$4,$5,$6,".","-1","-1",".","-1",".","-1" }}' | \
                 awk 'BEGIN{OFS="\t"}{if($8>0){split($4,counts,"_"); split($10,nm,"|");print $1,$2,$3,$6,nm[1],counts[1],counts[2],counts[3],counts[4]}}' \
-                >  ${ClosestExPath}/${file%_juncs.bed}.txt
+                >  ${ClosestExPath}/${file%_juncs.bed}.count
         done
     else
         for file in *.Aligned.sortedByCoord.out.bam; do
