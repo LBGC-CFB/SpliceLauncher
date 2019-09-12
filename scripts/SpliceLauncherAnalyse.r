@@ -112,7 +112,7 @@ while (i <= length(args)){
     }else if(args[i]=="--removeOther"){
         removeOther="YES";i = i+1
     }else if(args[i]=="-n"|args[i]=="--NbIntervals"){
-        negbinom.n=args[i+1];i = i+2
+        negbinom.n=as.numeric(args[i+1]);i = i+2
     }else if(args[i]=="-h"|args[i]=="--help"){
         message(helpMessage);q(save="no")
     }else{
@@ -1371,7 +1371,6 @@ fit.gamma.negbinomial<-function(data, jid, negbinom.n=10){
     }
 
     # Assay negative binomiale distribution with intervalls of negbinom.n of same size
-    tryCatch({
     step<-max(x)/negbinom.n
     y<-as.numeric(cuter(x, cuts=c(seq(step, max(x), step)), mod="]]"))-1
 
@@ -1383,12 +1382,7 @@ fit.gamma.negbinomial<-function(data, jid, negbinom.n=10){
     th<-dnbinom(0:(max(y)-1), size=size, prob=prob) ; th<-c(th,1-sum(th))
 	tryCatch({
 		test<-chisq.test(obs, p=th)$p.value
-	},
-	error=function(cond) {
-		message("Here's the original error message:")
-		message(cond)
-		test = 0
-	})
+
 	if(is.na(test)) test=0
     if(test>=0.01){ # acceptable adequation to the negative binomiale distribution
       model[[j]][["model"]]<-paste("Negative binomial ",negbinom.n,"c",sep="")
