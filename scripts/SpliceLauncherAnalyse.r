@@ -238,18 +238,23 @@ data_junction = tmp[,c("Conca","chr","start","end","strand","Strand_transcript",
 message("   Remove Opposite junctions...")
 
 idDoublon = c(which(duplicated(data_junction$Conca,fromLast=T)),which(duplicated(data_junction$Conca)))
-data_junctionUnique = data_junction[-idDoublon,]
-data_junctionDoublon = data_junction[idDoublon,]
 
-JuncNoFilt = nrow(data_junctionDoublon)
-data_junctionDoublon = data_junctionDoublon[(data_junctionDoublon$Strand_transcript=="forward" & data_junctionDoublon$strand=="+")|
+if(length(idDoublon)==0){
+	message("No junction to remove")
+}else{
+	data_junctionUnique = data_junction[-idDoublon,]
+	data_junctionDoublon = data_junction[idDoublon,]
+
+	JuncNoFilt = nrow(data_junctionDoublon)
+	data_junctionDoublon = data_junctionDoublon[(data_junctionDoublon$Strand_transcript=="forward" & data_junctionDoublon$strand=="+")|
 						(data_junctionDoublon$Strand_transcript=="reverse" & data_junctionDoublon$strand=="-"),]
-JuncFilt = nrow(data_junctionDoublon)
-nbJuncOpp = JuncNoFilt-JuncFilt
+	JuncFilt = nrow(data_junctionDoublon)
+	nbJuncOpp = JuncNoFilt-JuncFilt
 
-data_junction = rbind(data_junctionUnique,data_junctionDoublon)
+	data_junction = rbind(data_junctionUnique,data_junctionDoublon)
 
-message(paste("   Nb junctions removed:",nbJuncOpp))
+	message(paste("   Nb junctions removed:",nbJuncOpp))
+}
 
 #index of column containing read counts
 input= 9:dim(data_junction)[2]
