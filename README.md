@@ -384,8 +384,8 @@ If graphics (-g, --Graphics):
 * Raphael Leman - [raphaelleman](https://github.com/raphaelleman/ "tittle")
     * You can contact me at: r.leman@baclesse.unicancer.fr or raphael.leman@orange.fr
 
-> **Cite as:** SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data.
-Raphaël Leman, Valentin Harter, Alexandre Atkinson, Grégoire Davy, Antoine Rousselin, Etienne Muller, Laurent Castéra, Fréderic Lemoine, Pierre de la Grange, Marine Guillaud-Bataille, Dominique Vaur, Sophie Krieger
+> **Cite as:** SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data
+Raphaël Leman, Valentin Harter, Alexandre Atkinson, Grégoire Davy, Antoine Rousselin, Etienne Muller, Laurent Castéra, Fréderic Lemoine, Pierre de la Grange, Marine Guillaud-Bataille, Dominique Vaur, Sophie Krieger, [Bioinformatics](https://doi.org/10.1093/bioinformatics/btz784 "tittle")
 
 ## License <a id="18"></a>
 
