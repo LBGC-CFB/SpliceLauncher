@@ -211,8 +211,9 @@ if [[ ${runMode} = "Align" ]]; then
                     --outSJfilterOverhangMin -1 8 8 8 \
                     --outSJfilterCountUniqueMin -1 1 1 1 \
                     --outSJfilterCountTotalMin -1 1 1 1 \
-                    --outSJfilterDistToOtherSJmin 3 0 3 3 \
-                    --outSJfilterIntronMaxVsReadN 500000 500000 500000 \
+                    --outSJfilterDistToOtherSJmin 0 0 0 0 \
+                    --alignSJstitchMismatchNmax 0 -1 -1 -1 \
+                    --outSJfilterIntronMaxVsReadN 500000 \
                     --limitBAMsortRAM ${memory} \
                     --outSAMheaderHD \@HD VN:1.4 SO:SortedByCoordinate \
                     --outFileNamePrefix ${bam_path}/${file%_R1_001.fastq.gz}. \
@@ -242,8 +243,9 @@ if [[ ${runMode} = "Align" ]]; then
                     --outSJfilterOverhangMin -1 8 8 8 \
                     --outSJfilterCountUniqueMin -1 1 1 1 \
                     --outSJfilterCountTotalMin -1 1 1 1 \
-                    --outSJfilterDistToOtherSJmin 3 0 3 3 \
-                    --outSJfilterIntronMaxVsReadN 500000 500000 500000 \
+                    --outSJfilterDistToOtherSJmin 0 0 0 0 \
+                    --alignSJstitchMismatchNmax 0 -1 -1 -1 \
+                    --outSJfilterIntronMaxVsReadN 500000 \
                     --limitBAMsortRAM ${memory} \
                     --outSAMheaderHD \@HD VN:1.4 SO:SortedByCoordinate \
                     --outFileNamePrefix ${bam_path}/${file%.fastq.gz}. \

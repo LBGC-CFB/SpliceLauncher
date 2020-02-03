@@ -241,6 +241,7 @@ idDoublon = c(which(duplicated(data_junction$Conca,fromLast=T)),which(duplicated
 
 if(length(idDoublon)==0){
 	message("No junction to remove")
+    nbJuncOpp = 0
 }else{
 	data_junctionUnique = data_junction[-idDoublon,]
 	data_junctionDoublon = data_junction[idDoublon,]

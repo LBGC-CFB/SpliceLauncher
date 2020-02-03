@@ -18,8 +18,9 @@ while(<SJ>){
     $strand =~s/2/-/;
     $strand =~s/1/+/;
     $start-=1;
-    print $chr."\t".$start."\t".$end."\tINTRON_".$count."\t255\t".$strand."\n";
-
+    if($count ne "0"){
+        print $chr."\t".$start."\t".$end."\tINTRON_".$count."\t255\t".$strand."\n";
+    }
 }
 
 close(SJ);
