@@ -113,7 +113,6 @@ messageHelp="Usage: $0 [runMode] [options] <command>\n
     Option for Count mode\n
     \t-B, --bam /path/to/BAM files\n
     \t-O, --output /path/to/output/\n\t\tdirectory of the output files\n
-    \t--samtools\t/path/to/samtools executable \t[default: ${samtools}]\n
     \t--bedtools\t/path/to/bedtools/bin folder \t[default: ${bedtools}]\n
     \t-b, --BEDannot /path/to/your_annotation_file.bed\n\t\tpath to exon coordinates file (in BED format)\t[default: ${BEDrefPath}]\n
     \n
@@ -470,7 +469,7 @@ if [[ ${count} = "TRUE" ]]; then
     # run count
     mkdir -p ${out_path}
     echo "Will run counting."
-    cmd="${scriptPath}/pipelineRNAseq.sh --runMode Count -B ${bam_path} -O ${out_path} --bedannot ${BEDrefPath} --samtools ${samtools} --bedtools ${bedtools} --perlscript ${scriptPath} ${endType}"
+    cmd="${scriptPath}/pipelineRNAseq.sh --runMode Count -B ${bam_path} -O ${out_path} --bedannot ${BEDrefPath} --bedtools ${bedtools} --perlscript ${scriptPath}"
     echo -e "cmd = $cmd"
     $cmd
 

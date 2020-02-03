@@ -208,6 +208,11 @@ if [[ ${runMode} = "Align" ]]; then
                     --runThreadN ${threads} \
                     --outSAMunmapped Within \
                     --outSAMtype BAM SortedByCoordinate \
+                    --outSJfilterOverhangMin -1 8 8 8 \
+                    --outSJfilterCountUniqueMin -1 1 1 1 \
+                    --outSJfilterCountTotalMin -1 1 1 1 \
+                    --outSJfilterDistToOtherSJmin 3 0 3 3 \
+                    --outSJfilterIntronMaxVsReadN 500000 500000 500000 \
                     --limitBAMsortRAM ${memory} \
                     --outSAMheaderHD \@HD VN:1.4 SO:SortedByCoordinate \
                     --outFileNamePrefix ${bam_path}/${file%_R1_001.fastq.gz}. \
@@ -234,6 +239,11 @@ if [[ ${runMode} = "Align" ]]; then
                     --runThreadN ${threads} \
                     --outSAMunmapped Within \
                     --outSAMtype BAM SortedByCoordinate \
+                    --outSJfilterOverhangMin -1 8 8 8 \
+                    --outSJfilterCountUniqueMin -1 1 1 1 \
+                    --outSJfilterCountTotalMin -1 1 1 1 \
+                    --outSJfilterDistToOtherSJmin 3 0 3 3 \
+                    --outSJfilterIntronMaxVsReadN 500000 500000 500000 \
                     --limitBAMsortRAM ${memory} \
                     --outSAMheaderHD \@HD VN:1.4 SO:SortedByCoordinate \
                     --outFileNamePrefix ${bam_path}/${file%.fastq.gz}. \
@@ -268,13 +278,10 @@ if [[ ${runMode} = "Count" ]]; then
     echo "####Your options:"
     echo -e "    path to output = ${pathToRun}"
     echo -e "    path to input = ${bam_path}"
-    echo -e "    path to samtools = ${SamtoolsPath}"
     echo -e "    path to bedtools = ${BEDtoolsPath}"
     echo -e "    path to the bed annot file = ${BEDrefPath}"
     echo -e "    path to perl scripts = ${ScriptPath}"
     echo -e "    name of run = ${runName}"
-    echo -e "    threads = ${threads}"
-    echo -e "    end type analysis = ${endType}"
 
     echo "####Check your options"
     for directory in ${bam_path}; do
@@ -288,8 +295,7 @@ if [[ ${runMode} = "Count" ]]; then
     done
 
     #check the softs
-    for soft in ${SamtoolsPath} \
-     "${ScriptPath}/bedBlocks2IntronsCoords.pl" \
+    for soft in "${ScriptPath}/getBEDtoSJ.pl" \
      "${ScriptPath}/joinJuncFiles.pl" \
      "${BEDtoolsPath}"; do \
         command -v ${soft} >/dev/null 2>&1 || { ${in_error}=1; echo >&2 "****The ${soft} is required but it's not installed. Aborting.****";}
@@ -308,7 +314,6 @@ if [[ ${runMode} = "Count" ]]; then
         echo -e $messageHelp
         exit 1;
     else
-        echo "    The Samtools soft: ${SamtoolsPath}... OK"
         echo "    The perl Scripts: ${ScriptPath}... OK"
         echo "    The BEDtools soft: ${BEDtoolsPath}... OK"
     fi
@@ -323,51 +328,14 @@ if [[ ${runMode} = "Count" ]]; then
 
     cd $bam_path
 
-    if [[ ${endType} = "paired" ]]
-    then
-        for file in *.Aligned.sortedByCoord.out.bam; do
-            echo "treatment of $file for forward read..."
-            ${SamtoolsPath} view -b -f 0x40 $file | \
-                ${BEDtoolsPath} bamtobed -bed12 -i stdin | \
-                awk '{if($10>1){print $0}}' | \
-                perl ${ScriptPath}/bedBlocks2IntronsCoords.pl y - | \
-                awk '{if($5==255){print $0}}'  > ${file%.Aligned.sortedByCoord.out.bam}_juncs.bed
-            echo "treatment of $file for reverse read..."
-            ${SamtoolsPath} view -b -f 0x80 $file | \
-                ${BEDtoolsPath} bamtobed -bed12 -i stdin | \
-                awk '{if($10>1){print $0}}' | \
-                perl ${ScriptPath}/bedBlocks2IntronsCoords.pl n - | \
-                awk '{if($5==255){print $0}}'  >> ${file%.Aligned.sortedByCoord.out.bam}_juncs.bed
-        done
-
-        echo "###### count junctions ######"
-        for file in *_juncs.bed; do
-            echo "treatment of $file..."
-            sort -k1,1 -k2,2n $file | \
-                uniq -c | \
-                awk 'BEGIN{OFS="\t"}{print $2,$3,$4,$5 "_" $1,$6,$7}' | \
-                ${BEDtoolsPath} closest -d -t first -a stdin -b ${BEDrefPath} | \
-                awk 'BEGIN{OFS="\t"}{if($13<200){print $0}else{print $1,$2,$3,$4,$5,$6,".","-1","-1",".","-1",".","-1" }}' | \
-                awk 'BEGIN{OFS="\t"}{if($8>0){split($4,counts,"_"); split($10,nm,"|");print $1,$2,$3,$6,nm[1],counts[1],counts[2],counts[3],counts[4]}}' \
-                >  ${ClosestExPath}/${file%_juncs.bed}.count
-        done
-    else
-        for file in *.Aligned.sortedByCoord.out.bam; do
-            echo "treatment of $file..."
-            ${BEDtoolsPath} bamtobed -bed12 -i $file | \
-                awk '{if($10>1){print $0}}' | \
-                perl ${ScriptPath}/bedBlocks2IntronsCoords.pl y - | \
-                awk '{if($5==255){print $0}}' | \
-                sort -k1,1 -k2,2n | \
-                uniq -c | \
-                awk 'BEGIN{OFS="\t"}{print $2,$3,$4,$5 "_" $1,$6,$7}' | \
-                tee ${ClosestExPath}/${file%.Aligned.sortedByCoord.out.bam}.sort_count.bed | \
-                ${BEDtoolsPath} closest -d -t first -a stdin -b ${BEDrefPath} | \
-                awk 'BEGIN{OFS="\t"}{if($13<200){print $0}else{print $1,$2,$3,$4,$5,$6,".","-1","-1",".","-1",".","-1" }}' | \
-                awk 'BEGIN{OFS="\t"}{if($8>0){split($4,counts,"_"); split($10,nm,"|");print $1,$2,$3,$6,nm[1],counts[1],counts[2],counts[3],counts[4]}}' \
-                >  ${ClosestExPath}/${file%.Aligned.sortedByCoord.out.bam}.count
-        done
-    fi
+    for file in *.SJ.out.tab; do
+        echo "treatment of $file..."
+        perl ${ScriptPath}/getBEDtoSJ.pl $file | \
+            sort -k1,1 -k2,2n | \
+            ${BEDtoolsPath} closest -d -t first -a stdin -b ${BEDrefPath} | \
+            awk 'BEGIN{OFS="\t"}{if($13<200){split($4,counts,"_"); split($10,nm,"|");print $1,$2,$3,$6,nm[1],counts[1],counts[2],counts[4]}}' \
+            >  ${ClosestExPath}/${file%.SJ.out.tab}.count
+    done
 
     #######################
     #Final count
