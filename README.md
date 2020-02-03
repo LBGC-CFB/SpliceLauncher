@@ -331,9 +331,6 @@ The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, t
 **-O, --output** /path/to/output/
 * Repository of the output files
 
-**--samtools** /path/to/samtools
-* Path to the samtools executable, **only** if you to use a samtools software different of the samtools defined in config.cfg file
-
 **--bedtools**\t/path/to/bedtools
 * Path to the bedtools executable, **only** if you to use a bedtools software different of the bedtools defined in config.cfg file
 
