@@ -38,6 +38,7 @@ messageHelp="Usage: $0
         \t--bedtools /path/to/bedtoolsFolder/\n\t\tpath to repository of bedtools executables\n
         \t--bedannot /path/to/bedannot\n\t\tpath to exon coordinates (in BED format)\n
         \t--perlscript /path/to/perlscript/\n\t\trepository of perl scripts used by the pipeline\n
+        \t--fastCount improve junction count runtime\n\t\tDecrease runtime but less sensitive in junction detection\n
         \t-t, --threads N\n\t\tNb threads used for the alignment\n
         \t-m, --memory N\n\t\tMemory used for the alignment\n
     [Options]\n
@@ -54,7 +55,7 @@ fi
 #check directory
 in_error=0 #stop program if in_error = 1
 endType=""
-
+fastCount=false
 
 while [[ $# -gt 0 ]]; do
    key=$1
@@ -92,6 +93,11 @@ while [[ $# -gt 0 ]]; do
         --bedtools)
         BEDtoolsPath="$2"
         shift 2 # shift past argument and past value
+        ;;
+
+        --fastCount)
+        fastCount=true
+        shift # shift past argument
 
         ;;
         --bedannot)
@@ -320,34 +326,127 @@ if [[ ${runMode} = "Count" ]]; then
         echo "    The BEDtools soft: ${BEDtoolsPath}... OK"
     fi
 
-    #####################
-    #Creating BED files
-    #####################
-    echo "###### Make BED files and junction count ######"
+    if ${fastCount} ; then
 
-    ClosestExPath="${pathToRun}/getClosestExons"
-    mkdir -p ${ClosestExPath}
+        #####################
+        #Creating BED files
+        #####################
+        echo "###### Make BED files and junction count ######"
 
-    cd $bam_path
+        ClosestExPath="${pathToRun}/getClosestExons"
+        mkdir -p ${ClosestExPath}
 
-    for file in *.SJ.out.tab; do
-        echo "treatment of $file..."
-        perl ${ScriptPath}/getBEDtoSJ.pl $file | \
-            sort -k1,1 -k2,2n | \
-            ${BEDtoolsPath} closest -d -t first -a stdin -b ${BEDrefPath} | \
-            awk 'BEGIN{OFS="\t"}{if($13<200){split($4,counts,"_"); split($10,nm,"|");print $1,$2,$3,$6,nm[1],counts[1],counts[2],counts[4]}}' \
-            >  ${ClosestExPath}/${file%.SJ.out.tab}.count
-    done
+        cd $bam_path
 
-    #######################
-    #Final count
-    #######################
-    echo "###### Merge the junction counts ######"
+        for file in *.SJ.out.tab; do
+            echo "treatment of $file..."
+            perl ${ScriptPath}/getBEDtoSJ.pl $file | \
+                sort -k1,1 -k2,2n | \
+                ${BEDtoolsPath} closest -d -t first -a stdin -b ${BEDrefPath} | \
+                awk 'BEGIN{OFS="\t"}{if($13<200){split($4,counts,"_"); split($10,nm,"|");print $1,$2,$3,$6,nm[1],counts[1],counts[2],counts[4]}}' \
+                >  ${ClosestExPath}/${file%.SJ.out.tab}.count
+        done
 
-    cd $ClosestExPath
+        #######################
+        #Final count
+        #######################
+        echo "###### Merge the junction counts ######"
 
-    perl ${ScriptPath}/joinJuncFiles.pl *.count > ${pathToRun}/${runName}.txt
+        cd $ClosestExPath
 
+        perl ${ScriptPath}/joinJuncFiles.pl *.count > ${pathToRun}/${runName}.txt
+
+    else
+        ###############################################################
+        ############################ Count ############################
+        ###############################################################
+
+        echo "####Your options:"
+        echo -e "    path to samtools = ${SamtoolsPath}"
+        echo -e "    end type analysis = ${endType}"
+
+        #check the softs
+        for soft in ${SamtoolsPath} \
+         "${ScriptPath}/bedBlocks2IntronsCoords.pl" \
+         "${ScriptPath}/getClosestExons.pl" ; do \
+            command -v ${soft} >/dev/null 2>&1 || { ${in_error}=1; echo >&2 "****The ${soft} is required but it's not installed. Aborting.****";}
+        done
+
+        if [ ${in_error} -eq 1 ]; then
+            echo -e $messageHelp
+            exit 1;
+        else
+            echo "    The Samtools soft: ${SamtoolsPath}... OK"
+            echo "    The perl Scripts: ${ScriptPath}... OK"
+        fi
+
+        #####################
+        #Creating BED files
+        #####################
+        echo "###### Make BED files and junction count ######"
+
+        ClosestExPath="${pathToRun}/getClosestExons"
+        mkdir -p ${ClosestExPath}
+
+        cd $bam_path
+
+        if [[ ${endType} = "paired" ]]
+        then
+            for file in *.Aligned.sortedByCoord.out.bam; do
+                echo "treatment of $file for forward read..."
+                ${SamtoolsPath} view -b -f 0x40 $file | \
+                    ${BEDtoolsPath} bamtobed -bed12 -i stdin | \
+                    awk '{if($10>1){print $0}}' | \
+                    perl ${ScriptPath}/bedBlocks2IntronsCoords.pl y - | \
+                    awk '{if($5==255){print $0}}'  > ${file%.Aligned.sortedByCoord.out.bam}_juncs.bed
+                echo "treatment of $file for reverse read..."
+                ${SamtoolsPath} view -b -f 0x80 $file | \
+                    ${BEDtoolsPath} bamtobed -bed12 -i stdin | \
+                    awk '{if($10>1){print $0}}' | \
+                    perl ${ScriptPath}/bedBlocks2IntronsCoords.pl n - | \
+                    awk '{if($5==255){print $0}}'  >> ${file%.Aligned.sortedByCoord.out.bam}_juncs.bed
+            done
+
+            echo "###### count junctions ######"
+            for file in *_juncs.bed; do
+                echo "treatment of $file..."
+                sort -k1,1 -k2,2n $file | \
+                    uniq -c | \
+                    awk 'BEGIN{OFS="\t"}{print $2,$3,$4,$5 "_" $1,$6,$7}' | \
+                    ${BEDtoolsPath} closest -d -t first -a stdin -b ${BEDrefPath} | \
+                    awk 'BEGIN{OFS="\t"}{if($13<200){print $0}else{print $1,$2,$3,$4,$5,$6,".","-1","-1",".","-1",".","-1" }}' | \
+                    awk 'BEGIN{OFS="\t"}{if($8>0){split($4,counts,"_"); split($10,nm,"|");print $1,$2,$3,$6,nm[1],counts[1],counts[2],counts[3],counts[4]}}' \
+                    >  ${ClosestExPath}/${file%_juncs.bed}.count
+            done
+        else
+            for file in *.Aligned.sortedByCoord.out.bam; do
+                echo "treatment of $file..."
+                ${BEDtoolsPath} bamtobed -bed12 -i $file | \
+                    awk '{if($10>1){print $0}}' | \
+                    perl ${ScriptPath}/bedBlocks2IntronsCoords.pl y - | \
+                    awk '{if($5==255){print $0}}' | \
+                    sort -k1,1 -k2,2n | \
+                    uniq -c | \
+                    awk 'BEGIN{OFS="\t"}{print $2,$3,$4,$5 "_" $1,$6,$7}' | \
+                    tee ${ClosestExPath}/${file%.Aligned.sortedByCoord.out.bam}.sort_count.bed | \
+                    ${BEDtoolsPath} closest -d -t first -a stdin -b ${BEDrefPath} | \
+                    awk 'BEGIN{OFS="\t"}{if($13<200){print $0}else{print $1,$2,$3,$4,$5,$6,".","-1","-1",".","-1",".","-1" }}' | \
+                    awk 'BEGIN{OFS="\t"}{if($8>0){split($4,counts,"_"); split($10,nm,"|");print $1,$2,$3,$6,nm[1],counts[1],counts[2],counts[3],counts[4]}}' \
+                    >  ${ClosestExPath}/${file%.Aligned.sortedByCoord.out.bam}.count
+            done
+        fi
+
+        #######################
+        #Final count
+        #######################
+        echo "###### Merge the junction counts ######"
+
+        cd $ClosestExPath
+
+        perl ${ScriptPath}/joinJuncFiles.pl *.count > ${pathToRun}/${runName}.txt
+
+
+    fi
 fi
 
 echo "###### Finished! ######"

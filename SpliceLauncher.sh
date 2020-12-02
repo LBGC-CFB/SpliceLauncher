@@ -34,6 +34,7 @@ workFolder=$(readlink -f $(dirname $0))
 conf_file="${workFolder}/config.cfg"
 scriptPath="${workFolder}/scripts"
 BEDrefPath="${workFolder}/refData/refExons.bed"
+fastCount=false
 removeOther=""
 text=""
 Graphics=""
@@ -115,6 +116,9 @@ messageHelp="Usage: $0 [runMode] [options] <command>\n
     \t-O, --output /path/to/output/\n\t\tdirectory of the output files\n
     \t--bedtools\t/path/to/bedtools/bin folder \t[default: ${bedtools}]\n
     \t-b, --BEDannot /path/to/your_annotation_file.bed\n\t\tpath to exon coordinates file (in BED format)\t[default: ${BEDrefPath}]\n
+    \t--fastCount improve junction count runtime\n\t\tDecrease runtime but less sensitive in junction detection\t[default: ${fastCount}]\n
+    \t-p paired-end analysis\n\t\tprocesses to paired-end analysis\t[default: ${endType}]\n
+    \t--samtools /path/to/samtools\n\t\tpath to samtools executable\t[default: ${samtools}]\n
     \n
     Option for SpliceLauncher mode\n
     \t-I, --input /path/to/inputFile\n\t\tRead count matrix (.txt)\n
@@ -214,6 +218,11 @@ while [[ $# -gt 0 ]]; do
 
        -p)
        endType="-p"
+       shift # shift past argument
+       ;;
+
+       --fastCount)
+       fastCount=true
        shift # shift past argument
        ;;
 
@@ -469,7 +478,11 @@ if [[ ${count} = "TRUE" ]]; then
     # run count
     mkdir -p ${out_path}
     echo "Will run counting."
-    cmd="${scriptPath}/pipelineRNAseq.sh --runMode Count -B ${bam_path} -O ${out_path} --bedannot ${BEDrefPath} --bedtools ${bedtools} --perlscript ${scriptPath}"
+    if ${fastCount}; then
+        cmd="${scriptPath}/pipelineRNAseq.sh --runMode Count -B ${bam_path} -O ${out_path} --bedannot ${BEDrefPath} --bedtools ${bedtools} --fastCount --perlscript ${scriptPath}"
+    else
+        cmd="${scriptPath}/pipelineRNAseq.sh --runMode Count -B ${bam_path} -O ${out_path} --bedannot ${BEDrefPath} --bedtools ${bedtools} --perlscript ${scriptPath} --samtools ${samtools} ${endType}"
+    fi
     echo -e "cmd = $cmd"
     $cmd
 
