@@ -337,6 +337,15 @@ The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, t
 **-b, --BEDannot** /path/to/your_annotation_file.bed
 * Path to exon coordinates file (in BED format), **only** if you to use exon coordinates different of the coordinates defined in config.cfg file
 
+**--fastCount**
+* improve junction count runtime, in addtition increase the specificty but reduce the sensitivity
+
+**-p**
+* Processes to paired-end analysis, deprecated if use `--fastCount` option
+
+**--samtools** /path/to/samtools
+* Path to the samtools executable, **only** if you to use a samtools software different of the samtools defined in config.cfg file, deprecated if use `--fastCount` option
+
 ### Option for SpliceLauncher mode <a id="16"></a>
 
 **-I, --input**/path/to/inputFile
