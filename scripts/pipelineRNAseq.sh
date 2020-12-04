@@ -392,19 +392,19 @@ if [[ ${runMode} = "Count" ]]; then
 
         if [[ ${endType} = "paired" ]]
         then
-            for file in *.Aligned.sortedByCoord.out.bam; do
+            for file in *.bam; do
                 echo "treatment of $file for forward read..."
                 ${SamtoolsPath} view -b -f 0x40 $file | \
                     ${BEDtoolsPath} bamtobed -bed12 -i stdin | \
                     awk '{if($10>1){print $0}}' | \
                     perl ${ScriptPath}/bedBlocks2IntronsCoords.pl y - | \
-                    awk '{if($5==255){print $0}}'  > ${file%.Aligned.sortedByCoord.out.bam}_juncs.bed
+                    awk '{if($5==255){print $0}}'  > ${file%.bam}_juncs.bed
                 echo "treatment of $file for reverse read..."
                 ${SamtoolsPath} view -b -f 0x80 $file | \
                     ${BEDtoolsPath} bamtobed -bed12 -i stdin | \
                     awk '{if($10>1){print $0}}' | \
                     perl ${ScriptPath}/bedBlocks2IntronsCoords.pl n - | \
-                    awk '{if($5==255){print $0}}'  >> ${file%.Aligned.sortedByCoord.out.bam}_juncs.bed
+                    awk '{if($5==255){print $0}}'  >> ${file%.bam}_juncs.bed
             done
 
             echo "###### count junctions ######"
@@ -419,7 +419,7 @@ if [[ ${runMode} = "Count" ]]; then
                     >  ${ClosestExPath}/${file%_juncs.bed}.count
             done
         else
-            for file in *.Aligned.sortedByCoord.out.bam; do
+            for file in *.bam; do
                 echo "treatment of $file..."
                 ${BEDtoolsPath} bamtobed -bed12 -i $file | \
                     awk '{if($10>1){print $0}}' | \
@@ -428,11 +428,11 @@ if [[ ${runMode} = "Count" ]]; then
                     sort -k1,1 -k2,2n | \
                     uniq -c | \
                     awk 'BEGIN{OFS="\t"}{print $2,$3,$4,$5 "_" $1,$6,$7}' | \
-                    tee ${ClosestExPath}/${file%.Aligned.sortedByCoord.out.bam}.sort_count.bed | \
+                    tee ${ClosestExPath}/${file%.bam}.sort_count.bed | \
                     ${BEDtoolsPath} closest -d -t first -a stdin -b ${BEDrefPath} | \
                     awk 'BEGIN{OFS="\t"}{if($13<200){print $0}else{print $1,$2,$3,$4,$5,$6,".","-1","-1",".","-1",".","-1" }}' | \
                     awk 'BEGIN{OFS="\t"}{if($8>0){split($4,counts,"_"); split($10,nm,"|");print $1,$2,$3,$6,nm[1],counts[1],counts[2],counts[3],counts[4]}}' \
-                    >  ${ClosestExPath}/${file%.Aligned.sortedByCoord.out.bam}.count
+                    >  ${ClosestExPath}/${file%.bam}.count
             done
         fi
 
