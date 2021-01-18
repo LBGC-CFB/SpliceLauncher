@@ -1292,13 +1292,17 @@ na<-function(x, to = FALSE){
     x
 }
 
+change.na<-function(x){
+    x[is.na(x)]<-0
+    return(x)
+}
+
 #Function to transform a table jid*sid in sid*jid
 # a : initial table
 # sid : samples ID (names of columns from a)
 # jid.column : name of column with junctions ID
 
 js2sj<-function(a, sid, jid.column){
-
   if(!all(c(jid.column,sid)%in%names(a))){
     stop("***** The 'jid' and 'sid' don't find in the columns of table")
   }else if(length(unique(a[,jid.column]))!=nrow(a)){
@@ -1309,12 +1313,12 @@ js2sj<-function(a, sid, jid.column){
   a = a[a$nbSamp>=5,]
 
   for(i in 1:n_ech){
+  a[,sid[i]] = change.na(a[,sid[i]])
   a = a[a[,sid[i]]<=1000,]
   }
   data = as.data.frame (t(a[,sid]))
   names(data) = a[,jid.column]
   row.names(data) = sid
-  data = data[,apply(data,2,function(data) !any(is.na(data)))]
   return(data)
 }
 
@@ -1327,7 +1331,6 @@ js2sj<-function(a, sid, jid.column){
 fit.gamma.negbinomial<-function(data, jid, negbinom.n=10){
 
   model<-list()
-
   for(j in jid){
 
     model[[j]]<-list()
