@@ -20,7 +20,7 @@ SpliceLauncher is a pipeline tool to study the alternative splicing. It works in
 * [Installing SpliceLauncher](#7)
     * [Download the reference files](#8)
     * [Configure SpliceLauncher with INSTALL mode](#9)
-    * [Docker image](#10)
+    * [Singularity image](#10)
 * [Running the SpliceLauncher tests](#11)
 * [SpliceLauncher options](#12)
     * [Option for INSTALL mode](#13)
@@ -195,36 +195,26 @@ Use INSTALL mode of SpliceLauncher:
         --fasta /path/to/fasta
     ```
 
-### Docker image <a id="10"></a>
+### Singularity image <a id="10"></a>
 
-SpliceLauncher and all its dependencies are also integrated in a Docker image:
+SpliceLauncher and all its dependencies are also integrated in a Singularity image:
 
 1. To build it:
 
-```
-docker build . -t evolbioinfo/splicelauncher
+```Bash
+sudo singularity build /path/to/SpliceLauncher.simg /path/to/splicelauncher.recipe
 ```
 
-2. To download an already existing Docker image from Docker hub:
+2. To use it
 
 ```Bash
-docker pull evolbioinfo/splicelauncher
+sudo singularity run /path/to/SpliceLauncher.simg --help
 ```
 
-or with singularity
+3. To get linux consol in the image
 
 ```Bash
-singularity pull docker://evolbioinfo/splicelauncher
-```
-
-3. To open a shell in the container:
-```Bash
-docker run -ti -w $PWD -v $PWD:$PWD --entrypoint bash evolbioinfo/splicelauncher
-```
-or
-
-```Bash
-singularity shell splicelauncher-latest.simg
+singularity shell SpliceLauncher.simg
 ```
 
 
