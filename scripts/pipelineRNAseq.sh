@@ -394,13 +394,13 @@ if [[ ${runMode} = "Count" ]]; then
         then
             for file in *.bam; do
                 echo "treatment of $file for forward read..."
-                ${SamtoolsPath} view -b -f 0x40 $file | \
+                ${SamtoolsPath} view -b -f 0x40 -F 1024 $file | \
                     ${BEDtoolsPath} bamtobed -bed12 -i stdin | \
                     awk '{if($10>1){print $0}}' | \
                     perl ${ScriptPath}/bedBlocks2IntronsCoords.pl y - | \
                     awk '{if($5==255){print $0}}'  > ${file%.bam}_juncs.bed
                 echo "treatment of $file for reverse read..."
-                ${SamtoolsPath} view -b -f 0x80 $file | \
+                ${SamtoolsPath} view -b -f 0x80 -F 1024 $file | \
                     ${BEDtoolsPath} bamtobed -bed12 -i stdin | \
                     awk '{if($10>1){print $0}}' | \
                     perl ${ScriptPath}/bedBlocks2IntronsCoords.pl n - | \
