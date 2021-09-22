@@ -1503,6 +1503,8 @@ data_junction$DistribAjust = NA
 data_junction$DistribAjust[data_junction$Conca%in%data_junction_pvalue$Jonction] = data_junction_pvalue$Ajustement
 significative = apply(data_junction_pvalue[,7:ncol(data_junction_pvalue)],1,getSign,names(data_junction)[input])
 data_junction$Significative[data_junction$Conca%in%data_junction_pvalue$Jonction] = significative
+data_junction$filterInterpretation[substr(as.character(data_junction$Significative),1,3)=="Yes"] = "Aberrant junction"
+data_junction$filterInterpretation[is.na(nchar(as.character(data_junction$Significative))) & apply(data_junction[,SampleOutput],1,max,na.rm = TRUE)>1] = "Unique junction"
 
 dataToPrint = subset( data_junction, select = -c(ID_gene, constitutive))
 dataToPrint=dataToPrint[order(dataToPrint$Gene),]

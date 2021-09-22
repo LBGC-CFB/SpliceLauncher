@@ -253,6 +253,7 @@ The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, t
 | nbSamp | 11 | Number of time that the junction has been seen in samples |
 | DistribAjust | - | The Distribution of junction expression (Gamma/N.binom) |
 | Significative | NO | If a sample shown an abnormal expression of the junction |
+| filterInterpretation | Unique junction | If a sample had an abnormal expression: Aberrant junction<br/>For unmodelized junction, if max expression >1%: Unique junction  |
 
 ## SpliceLauncher options <a id="12"></a>
 
