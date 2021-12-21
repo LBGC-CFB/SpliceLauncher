@@ -18,6 +18,7 @@ SpliceLauncher is a pipeline tool to study the alternative splicing. It works in
     * [BEDtools](#5)
     * [Install R libraries](#6)
 * [Installing SpliceLauncher](#7)
+    * [Conda environment](#conda-environment)
     * [Download the reference files](#8)
     * [Configure SpliceLauncher with INSTALL mode](#9)
     * [Singularity image](#10)
@@ -48,6 +49,9 @@ The SpliceLauncher pipeline needs to install the following tools and R librairie
 * BEDtools (v2.17 or later)
 * R with *WriteXLS* and *Cairo* packages
 * Perl
+* seqkt
+
+You can install all dependencies with [conda](https://docs.conda.io/en/latest/) (see section: [conda environment](#conda-environment))
 
 ### STAR <a id="3"></a>
 
@@ -126,6 +130,25 @@ Download the latest release from of SpliceLauncher source using git
 ```Bash
 git clone https://github.com/raphaelleman/SpliceLauncher
 cd ./SpliceLauncher
+```
+
+### Conda environment
+
+You can install all dependencies with [conda](https://docs.conda.io/en/latest/).
+
+Install the latest version of conda: [see here](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).
+
+For example on Ubuntu x86 :
+```bash
+wget https://repo.anaconda.com/archive/Anaconda3-2021.11-Linux-x86_64.sh
+bash Anaconda3-2021.11-Linux-x86_64.sh
+source ~/.bashrc
+```
+
+Then you can install all dependencies and create a virtual environment named ***spliceLauncher*** with :
+```bash
+conda env create -f environment.yml
+conda activate spliceLauncher
 ```
 
 ### Download the reference files <a id="8"></a>
