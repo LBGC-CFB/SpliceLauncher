@@ -287,7 +287,7 @@ while [[ $# -gt 0 ]]; do
        ;;
 
        --threshold)
-       threshold="`readlink -v -f $2`"
+       threshold="$2"
        shift 2 # shift past argument and past value
        ;;
 
@@ -502,7 +502,7 @@ if [[ ${spliceLauncher} = "TRUE" ]]; then
     if [ -z ${SampleNames+x} ]; then SampleNames_cmd=""; else SampleNames_cmd="--SampleNames ${SampleNames}"; fi
 
 
-    cmd="${Rscript} ${scriptPath}/SpliceLauncherAnalyse.r --input ${input_path} -O ${out_path} --RefSeqAnnot ${spliceLaucherAnnot} -n ${NbIntervals} ${transcriptList_cmd} ${SampleNames_cmd} ${removeOther} ${text} ${bedOut} ${Graphics}"
+    cmd="${Rscript} ${scriptPath}/SpliceLauncherAnalyse.r --input ${input_path} -O ${out_path} --RefSeqAnnot ${spliceLaucherAnnot} -n ${NbIntervals} ${transcriptList_cmd} ${SampleNames_cmd} ${removeOther} ${text} ${bedOut} ${Graphics} --threshold ${threshold}"
     echo -e "cmd = $cmd"
     $cmd
 
