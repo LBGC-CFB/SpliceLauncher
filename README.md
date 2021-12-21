@@ -183,17 +183,17 @@ SpliceLauncher comes with a ready to use config.cfg file. It contains the paths 
 
 Use INSTALL mode of SpliceLauncher:
 
-    ```Bash
-    cd /path/to/SpliceLauncher/
-    mkdir ./refSpliceLauncher # Here this folder will contain the reference files used by SpliceLauncher
-    bash ./SpliceLauncher.sh --runMode INSTALL \
-        -O ./refSpliceLauncher \
-        --STAR /path/to/STAR \
-        --samtools /path/to/samtools \
-        --bedtools /path/to/bedtools \
-        --gff /path/to/gff \
-        --fasta /path/to/fasta
-    ```
+```Bash
+cd /path/to/SpliceLauncher/
+mkdir ./refSpliceLauncher # Here this folder will contain the reference files used by SpliceLauncher
+bash ./SpliceLauncher.sh --runMode INSTALL \
+    -O ./refSpliceLauncher \
+    --STAR /path/to/STAR \
+    --samtools /path/to/samtools \
+    --bedtools /path/to/bedtools \
+    --gff /path/to/gff \
+    --fasta /path/to/fasta
+```
 
 ### Singularity image <a id="10"></a>
 
@@ -345,7 +345,7 @@ The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, t
 **-O, --output** /path/to/output/
 * Directory to save the results
 
-**--TranscriptList** /path/to/transcriptList.txt
+**--transcriptList** /path/to/transcriptList.txt
 * Set the list of transcripts to use as reference
 
 **--txtOut**
