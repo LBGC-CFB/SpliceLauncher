@@ -1,6 +1,5 @@
 # SpliceLauncher
 # https://github.com/raphaelleman/SpliceLauncher
-# Commit f2aa2efec29f173ad1dda4edd9c190e6e423cd3d
 
 # base image: Ubuntu
 Bootstrap: docker
@@ -11,8 +10,8 @@ From: ubuntu:16.04
     MAINTAINER Frederic Lemoine <frederic.lemoine@pasteur.fr>
 
 %environment
-    export STAR_VERSION=2.6.0a
-    export SAMTOOLS_VERSION=1.9
+    export STAR_VERSION=2.7.8a
+    export SAMTOOLS_VERSION=1.12
     export BEDTOOLS_VERSION=2.28.0
 
     export SPLICELAUNCHER_DIR=/usr/local/SpliceLauncher
@@ -22,15 +21,12 @@ From: ubuntu:16.04
     export LANG="C"
     export LANGUAGE="C"
 
-    export CRANREPO="'http://cran.univ-paris1.fr/'"
+    export CRANREPO="'http://cloud.r-project.org/'"
     export RLIBPATH="'/usr/local/lib/R/site-library/'"
 
-%files
-    /stockage/stockage-01/gitlab/containers/splicelauncher/ressources/SpliceLauncher.zip /usr/local/
-    
 %post
-    export STAR_VERSION=2.6.0a
-    export SAMTOOLS_VERSION=1.9
+    export STAR_VERSION=2.7.8a
+    export SAMTOOLS_VERSION=1.12
     export BEDTOOLS_VERSION=2.28.0
 
     export SPLICELAUNCHER_DIR=/usr/local/SpliceLauncher
@@ -71,30 +67,20 @@ From: ubuntu:16.04
 
     ## INSTALL SAMTOOLS
     cd /usr/local/
-    wget -O samtools.zip "https://github.com/samtools/samtools/archive/${SAMTOOLS_VERSION}.zip"
-    unzip samtools.zip
+    wget --no-check-certificate -O samtools.tar.bz2 "https://github.com/samtools/samtools/releases/${SAMTOOLS_VERSION}/samtools-${SAMTOOLS_VERSION}.tar.bz2"
+    tar -xjvf samtools.tar.bz2
+    rm -rf samtools.tar.bz2
     cd samtools-${SAMTOOLS_VERSION}
-    wget -O htslib.zip "https://github.com/samtools/htslib/archive/${SAMTOOLS_VERSION}.zip"
-    unzip htslib.zip
-    cd htslib-${SAMTOOLS_VERSION}
-    autoheader
-    autoconf
     ./configure
-    make
-    make install
-    cd ..
-    autoheader
-    autoconf -Wno-syntax
-    ./configure
-    make
-    make install
+    make all all-htslib
+    make install install-htslib
     cd /usr/local
 
     ## INSTALL BEDTOOLS
-    cd /usr/local/
-    wget --no-check-certificate -O bedtools.zip "https://github.com/arq5x/bedtools2/archive/v${BEDTOOLS_VERSION}.zip"
-    unzip bedtools.zip
-    cd bedtools2-${BEDTOOLS_VERSION}
+    wget --no-check-certificate -O bedtools.tar.gz "https://github.com/arq5x/bedtools2/releases/download/v${BEDTOOLS_VERSION}/bedtools-${BEDTOOLS_VERSION}.tar.gz"
+    tar -xzvf bedtools.tar.gz
+    rm -rf bedtools.tar.gz
+    cd bedtools2
     make
     mv bin/* /usr/local/bin
     cd /usr/local
