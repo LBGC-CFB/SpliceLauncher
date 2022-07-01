@@ -1468,7 +1468,7 @@ for(j in names(model)){
 
 message("   tmp file with p-values...")
 output1<-"output with adjustments.csv"
-write(paste("Jonction;Nb Tuckey's outliers;Ajustement;Moyenne;Ecart-type;p-value Goodness of fit;",paste(EchName,collapse=";"), sep=""), output1)
+write(paste("Jonction;Nb Tuckeys outliers;Ajustement;Moyenne;Ecart-type;p-value Goodness of fit;",paste(EchName,collapse=";"), sep=""), output1)
 
 err = NULL
 for(j in names(model)){
