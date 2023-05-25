@@ -316,6 +316,13 @@ message("Merge CDS files ...")
 proteinInfo = cbind(proteinInfo,proteinInfotmp)
 proteinInfo = extractCDS(proteinInfo)
 
+# remove transcripts with only one exon
+message("Remove transcripts with only one exon ...")
+nbExonByTranscript = table(exonCoord$transcript_id)
+transcript_1_exon = names(nbExonByTranscript[nbExonByTranscript==1])
+exonCoord = exonCoord[-which(exonCoord$transcript_id%in%transcript_1_exon),]
+proteinInfo = proteinInfo[-which(proteinInfo$transcript_id%in%transcript_1_exon),]
+
 # get BED file
 message("Generate BED annotation ...")
 bedFile = getBEDfile(exonCoord)
