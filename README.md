@@ -7,7 +7,7 @@ SpliceLauncher is a pipeline tool to study the alternative splicing. It works in
 * Generate data files used hereafter (B step in diagram below)
 * Run SpliceLauncher from a read count matrix (C step and furthermore in diagram below).
 
-![SpliceLauncher](https://github.com/raphaelleman/SpliceLauncher/blob/master/doc/Figure1.png)
+![SpliceLauncher](https://github.com/LGBC-CFB/SpliceLauncher/blob/master/doc/Figure1.png)
 
 **Table of contents**
 
@@ -125,7 +125,7 @@ install.packages("Cairo")
 Download the latest release from of SpliceLauncher source using git
 
 ```Bash
-git clone https://github.com/raphaelleman/SpliceLauncher
+git clone https://github.com/LBGC-CFB/SpliceLauncher
 cd ./SpliceLauncher
 ```
 
@@ -215,7 +215,7 @@ sudo singularity run /path/to/SpliceLauncher.simg --help
 ## Running the SpliceLauncher tests<a id="11"></a>
 
 
-The example files are provided in [dataTest](https://github.com/raphaelleman/SpliceLauncher/tree/master/dataTest "tittle"), with the example data provided in single end RNAseq (1x75pb) on *BRCA1* and *BRCA2* transcripts:
+The example files are provided in [dataTest](https://github.com/LBGC-CFB/SpliceLauncher/tree/master/dataTest "tittle"), with the example data provided in single end RNAseq (1x75pb) on *BRCA1* and *BRCA2* transcripts:
 
 ```Bash
 cd /path/to/SpliceLauncher
@@ -387,4 +387,4 @@ Raphaël Leman, Valentin Harter, Alexandre Atkinson, Grégoire Davy, Antoine Rou
 ## License <a id="18"></a>
 
 
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/raphaelleman/SpliceLauncher/blob/master/LICENSE "tittle") file for details
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/LBGC-CFB/SpliceLauncher/blob/master/LICENSE "tittle") file for details
