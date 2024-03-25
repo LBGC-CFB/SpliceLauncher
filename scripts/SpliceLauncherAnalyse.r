@@ -24,24 +24,7 @@
 
 options(stringsAsFactors=FALSE)
 
-tryCatch({
-library(WriteXLS)
-},
-	error=function(cond) {
-		message("Here's the original error message:")
-		message(cond)
-		message("*****You need to install \'WriteXLS\' library")
-})
-
-tryCatch({
-library(Cairo)
-},
-	error=function(cond) {
-		message("Here's the original error message:")
-		message(cond)
-		message("*****You need to install \'Cairo\' library")
-})
-message("SpliceLauncherV2")
+message("SpliceLauncherV3")
 
 #####################
 #import of arguments#
@@ -60,27 +43,29 @@ thr=1
 StatAnalysis='YES'
 negbinom.n=10
 printText=FALSE
+min_cov=5
 
 argsFull <- commandArgs()
 
 helpMessage=paste("Usage: SpliceLauncherAnalyse.r\n
     [Mandatory] \n
         -I, --input /path/to/inputFile\n\t\tRead count matrix (.txt)
-        -O, --output /path/to/output/\n\t\tDirectory to save the results\n
+        -O, --output /path/to/output/\n\t\tDirectory to save the results
+        -R, --RefSeqAnnot /path/to/RefSpliceLauncher.txt\n\t\tRefSeq or Gencode annotation file name\n
     [Options] \n
-        -R, --RefSeqAnnot /path/to/RefSpliceLauncher.txt\n\t\tRefSeq or Gencode annotation file name
+        -m, --min_cov 5\n\t\tMinimal number of read supporting a junction [default=",min_cov,"]
         --TranscriptList /path/to/transcriptList.txt\n\t\tSet the list of transcripts to use as reference
         --text\n\t\tPrint main output in txt instead of excel
         --bedOut\n\t\tGet the output in BED format
         --Graphics\n\t\tDisplay graphics of alternative junctions (Warnings: increase the runtime)
         -n, --NbIntervals 10\n\t\tNb interval of Neg Binom (Integer) [default=",negbinom.n,"]
-        --SampleNames name1|name2|name3\n\t\tSample names, '|'-separated, by default use the sample file names\n
+        --SampleNames \"name1|name2|name3\"\n\t\tSample names, '|'-separated, by default use the sample file names\n
         If list of transcripts (--TranscriptList):
             --removeOther\n\t\tRemove the genes with unselected transcripts to improve runtime
-        If graphics (-g, --Graphics):
+        If graphics (--Graphics):
             --threshold 1\n\t\tThreshold to shown junctions (%) [default=",thr,"]
     h, --help\n\t\tprint this help message and exit\n
-   You could : Rscript SpliceLauncherAnalyse.r -I ./dataTest/MatrixCountExample.txt -O ./outputTest/")
+   You could : Rscript SpliceLauncherAnalyse.r -I ./dataTest/MatrixCountExample.txt -O ./outputTest/ -R /path/to/SpliceLauncherAnnot.txt")
 
 #get script argument
 if (length(which(argsFull=="--args"))==0){message(helpMessage);q(save = "no")}
@@ -109,6 +94,8 @@ while (i <= length(args)){
         printText=TRUE;i = i+1
     }else if(args[i]=="--threshold"){
         thr=args[i+1];i = i+2
+    }else if(args[i]=="-m"|args[i]=="--min_cov"){
+        min_cov=as.numeric(args[i+1]);i = i+2
     }else if(args[i]=="--removeOther"){
         removeOther="YES";i = i+1
     }else if(args[i]=="-n"|args[i]=="--NbIntervals"){
@@ -130,7 +117,7 @@ outputDir = normalizePath(outputDir)
 if(!is.null(pathTranscript) & removeOther=="NO"){
     cat("You defined a transcript list\n Do you want to remove other transcript ? [y/n] ");
     removeOther <- readLines("stdin",n=1);
-    removeOther = if(removeOther=="y"|removeOther=="Y"){"YES"}
+    removeOther = if(removeOther=="y"|removeOther=="Y"){"YES"}else{"NO"}
 }
 
 message(paste("Matrix count:", inputFile))
@@ -143,6 +130,7 @@ message(paste("List of transcripts:",pathTranscript))
 message(paste("Remove the other genes:",removeOther))
 message(paste("BED annotation:",checkBEDannot))
 message(paste("Display graphics:",DisplayGraph))
+message(paste("Minimal coverage:",min_cov,"reads"))
 message(paste("Threshold:",thr))
 message(paste("nb intervals for Neg Binom:",negbinom.n))
 
@@ -166,7 +154,7 @@ T1<-Sys.time()
 message("   Import matrix count...")
 tmp=read.table(file=inputFile, sep="\t", header=T)
 
-SampleInput=names(tmp)[c(7:ncol(tmp))]
+SampleInput=names(tmp)[c(6:ncol(tmp))]
 
 if(!is.null(EchName)){
     EchName = unlist(strsplit(EchName,"|",fixed=TRUE))
@@ -174,92 +162,103 @@ if(!is.null(EchName)){
 		stop("***** All sample were not named")
 	}else{
         SampleInput = EchName
-        names(tmp)[c(7:ncol(tmp))] = SampleInput
+        names(tmp)[c(6:ncol(tmp))] = SampleInput
     }
 }else{
 	EchName = SampleInput
 }
+message("   Remove junction with low coverage...")
+max_cov = apply(tmp[,c(6:ncol(tmp))],1,max)
+n1 = nrow(tmp)
+tmp = tmp[max_cov>min_cov,]
+n2 = nrow(tmp)
+message(paste("      ",n1-n2,"junctions removed"))
 
-tmp$Conca=paste(tmp$chr,tmp$start,tmp$end,sep="_")
+tmp$Conca=paste(tmp$chr,tmp$start,tmp$end,tmp$gene,sep="_")
 
-message("   Download RefSeq File...")
+message("   Download annotation file...")
 
 tableConvert=read.table(file = RefFile, sep="\t", header=T)
 
-message("   Get gene name...")
+message("   Check gene name...")
 
-tableTomerge = tableConvert[,c("Gene","transcrit","Strand")]
-tableTomerge = tableTomerge[-which(duplicated(tableTomerge$transcrit)),]
+tableUniqueGene = tableConvert[,c("Gene","Strand")]
+tableUniqueTranscript = tableConvert[,c("Gene","transcrit","Strand","MANE_status")]
+tableUniqueGene = tableUniqueGene[-which(duplicated(tableUniqueGene$Gene)),]
+tableUniqueTranscript = tableUniqueTranscript[-which(duplicated(tableUniqueTranscript$transcrit)),]
 
-tmp <- merge(tmp, tableTomerge, by.x="NM", by.y="transcrit", all.x=TRUE)
+sampleUniqueGene = unique(tmp$gene)
 
-missingNM = tmp[is.na(tmp$Gene),"NM"]
-missingNM = missingNM[-which(duplicated(missingNM))]
-message(paste("   I don't find",length(missingNM),"transcrit(s) (",paste(missingNM,collapse = ", "),")"))
-
-tmp = tmp[!is.na(tmp$Gene),]
-
-tmp$Strand_transcript[tmp$Strand=="+"] = "forward"
-tmp$Strand_transcript[tmp$Strand=="-"] = "reverse"
-
-getTransMaj <- function (x){
-	trans = names(which(x==max(x)))
-	return(trans[1])
+missingGene = sampleUniqueGene[-which(sampleUniqueGene%in%tableUniqueGene$Gene)]
+if(length(missingGene)>0){
+	message(paste("   I don't find",length(missingGene),"gene(s) (",paste(missingGene,collapse = ", "),")"))
 }
 
+tmp = tmp[-which(tmp$gene%in%missingGene),]
+
+tmp$Strand_transcript[tmp$strand=="+"] = "forward"
+tmp$Strand_transcript[tmp$strand=="-"] = "reverse"
+
+tmp$transcrit=NA
 if(!is.null(pathTranscript)){
     message('   Apply transcripts list...')
     SelectTranscrit = readLines(pathTranscript)
-    tableSelect = tableTomerge[which(tableTomerge$transcrit%in%SelectTranscrit),c("Gene","transcrit")]
+    tableSelect = tableUniqueTranscript[which(tableUniqueTranscript$transcrit%in%SelectTranscrit),c("Gene","transcrit")]
     if(max(as.numeric(table(tableSelect[,"Gene"])))>1){
         stop(paste("***** Multiple reference transcripts found for the",
                 names(table(tableSelect[,"Gene"]))[as.numeric(table(tableSelect[,"Gene"]))>1]))
     }
-    if(removeOther=="YES"){
-        tmp = tmp[which(tmp$Gene%in%tableSelect[,"Gene"]),]
-    }
     for(gene in tableSelect[,"Gene"]){
-        tmp$NM[tmp$Gene==gene] <- tableSelect[tableSelect$Gene==gene,"transcrit"]
+        tmp$transcrit[tmp$gene==gene] <- tableSelect[tableSelect$Gene==gene,"transcrit"]
     }
-}
+    if(removeOther=="YES"){
+        tmp = tmp[which(tmp$gene%in%tableSelect[,"Gene"]),]
+    }else{
+		message("   Add MANE transcripts...")
+		GeneWoTrans = unique(tmp$gene[is.na(tmp$transcrit)])
+		tableSelect = tableUniqueTranscript[which(tableUniqueTranscript$Gene%in%GeneWoTrans),c("Gene","transcrit","MANE_status")]
+		tableSelect = tableSelect[tableSelect$MANE_status=="mane",]
+		tmp = merge(tmp,tableSelect[,c("Gene","transcrit")],by.x="gene",by.y="Gene",all.x=TRUE)
+		tmp$transcrit = tmp$transcrit.y
+		tmp = tmp[,-which(colnames(tmp)%in%c("transcrit.x","transcrit.y"))]
+		if(anyNA(tmp$transcrit)){
+			message("   Add missing transcripts...")
+			GeneWoTrans = unique(tmp$gene[is.na(tmp$transcrit)])
+			for(gene in GeneWoTrans){
+				dataToAnalyze = tableConvert[tableConvert$Gene==gene,]
+				t = aggregate(x=dataToAnalyze$lenEx, by = list(transcript=dataToAnalyze$transcrit),FUN= sum)
+				longuestTrans = t$transcript[t$x==max(t$x)]
+				tmp$transcrit[tmp$gene==gene] = longuestTrans[1]
+			}
+		}
+	}
+}else{
+	message("   Add MANE transcripts...")
 
-message('   Merge transcrit...')
-message(length(unique(tmp$NM)))
-MatGeneTrans = table(tmp$NM,tmp$Gene)
-TransMaj = apply(MatGeneTrans,2,getTransMaj)
-convertTransMaj = data.frame(Gene = names(TransMaj),NMadjust = TransMaj,row.names=1:length(TransMaj))
-tmp <- merge(tmp, convertTransMaj, by="Gene")
-tmp$NM = tmp$NMadjust
-message(length(unique(tmp$NM)))
+	tmp = merge(tmp,tableUniqueTranscript[tableUniqueTranscript$MANE_status=="mane",c("Gene","transcrit")],by.x="gene",by.y="Gene",all.x=TRUE)
+	tmp$transcrit = tmp$transcrit.y
+	tmp = tmp[,-which(colnames(tmp)%in%c("transcrit.x","transcrit.y"))]
+
+	if(anyNA(tmp$transcrit)){
+		message("   Add missing transcripts...")
+		GeneWoTrans = unique(tmp$gene[is.na(tmp$transcrit)])
+		for(gene in GeneWoTrans){
+			dataToAnalyze = tableConvert[tableConvert$Gene==gene,]
+			t = aggregate(x=dataToAnalyze$lenEx, by = list(transcript=dataToAnalyze$transcrit),FUN= sum)
+			longuestTrans = t$transcript[t$x==max(t$x)]
+			tmp$transcrit[tmp$gene==gene] = longuestTrans[1]
+		}
+	}
+
+}
 
 message("   Generate matrix for SpliceLauncher calculation...")
-data_junction = tmp[,c("Conca","chr","start","end","strand","Strand_transcript","NM","Gene",SampleInput)]
+data_junction = tmp[,c("Conca","chr","start","end","strand","Strand_transcript","transcrit","gene",SampleInput)]
 
-message("   Remove Opposite junctions...")
-
-idDoublon = c(which(duplicated(data_junction$Conca,fromLast=T)),which(duplicated(data_junction$Conca)))
-
-if(length(idDoublon)==0){
-	message("No junction to remove")
-    nbJuncOpp = 0
-}else{
-	data_junctionUnique = data_junction[-idDoublon,]
-	data_junctionDoublon = data_junction[idDoublon,]
-
-	JuncNoFilt = nrow(data_junctionDoublon)
-	data_junctionDoublon = data_junctionDoublon[(data_junctionDoublon$Strand_transcript=="forward" & data_junctionDoublon$strand=="+")|
-						(data_junctionDoublon$Strand_transcript=="reverse" & data_junctionDoublon$strand=="-"),]
-	JuncFilt = nrow(data_junctionDoublon)
-	nbJuncOpp = JuncNoFilt-JuncFilt
-
-	data_junction = rbind(data_junctionUnique,data_junctionDoublon)
-
-	message(paste("   Nb junctions removed:",nbJuncOpp))
-}
+colnames(data_junction) = c("Conca","chr","start","end","strand","Strand_transcript","NM","Gene",SampleInput)
 
 #index of column containing read counts
-input= 9:dim(data_junction)[2]
-
+input= 9:ncol(data_junction)
 n_ech=length(input)
 
 if(n_ech<5){
@@ -784,6 +783,12 @@ data_junction$event_type[IdTrans] = calcul
 data_junction$AnnotJuncs[IdTrans] = AnnotJuncs
 data_junction$cStart[IdTrans] = cStart
 data_junction$cEnd[IdTrans] = cEnd
+nConstitutiveByTrans = as.data.frame(table(data_junction$NM,data_junction$constitutive))
+TransWOphysio = as.character(nConstitutiveByTrans$Var1[nConstitutiveByTrans$Var2=="Physio" & nConstitutiveByTrans$Freq<1])
+if(length(TransWOphysio)>0){
+	message(paste("\n",length(TransWOphysio),"Transcripts without physiological junctions and then removed"))
+	data_junction = data_junction[-which(data_junction$NM%in%TransWOphysio),]
+}
 
 #######################################
 #perrcentage calculation of junctions #
@@ -792,19 +797,19 @@ message("\n######################")
 message("#Calcul Junction...")
 message("######################")
 
-
 getJunctionPhysioDonFor <- function(PosCryptic){
 
 	tableTranscrit=tableTranscrit[order(tableTranscrit$gStart),]
 
 	if(PosCryptic<=tableTranscrit$gEnd[1]){
-		JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gEnd[1],tableTranscrit$gStart[2],sep="_")
+		JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gEnd[1],tableTranscrit$gStart[2],tableTranscrit$Gene[1],sep="_")
 	}else if (PosCryptic>tableTranscrit$gEnd[(nrow(tableTranscrit)-1)]){
-		JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gEnd[(nrow(tableTranscrit)-1)],tableTranscrit$gStart[nrow(tableTranscrit)],sep="_")
+		JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gEnd[(nrow(tableTranscrit)-1)],
+							tableTranscrit$gStart[nrow(tableTranscrit)],tableTranscrit$Gene[1],sep="_")
 	}else{
 		IdSupp = which(tableTranscrit$gStart>PosCryptic)[1]
 		IdInf = which(tableTranscrit$gStart<PosCryptic)[length(which(tableTranscrit$gStart<PosCryptic))]
-		JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gEnd[IdInf],tableTranscrit$gStart[IdSupp],sep="_")
+		JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gEnd[IdInf],tableTranscrit$gStart[IdSupp],tableTranscrit$Gene[1],sep="_")
 	}
 	return(JunctPhysio)
 }
@@ -814,13 +819,14 @@ getJunctionPhysioDonRev <- function(PosCryptic){
 	tableTranscrit=tableTranscrit[order(tableTranscrit$gStart,decreasing=TRUE),]
 
 	if(PosCryptic>=tableTranscrit$gEnd[1]){
-		JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gStart[2],tableTranscrit$gEnd[1],sep="_")
+		JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gStart[2],tableTranscrit$gEnd[1],tableTranscrit$Gene[1],sep="_")
 	}else if (PosCryptic<=tableTranscrit$gEnd[(nrow(tableTranscrit)-1)]){
-		JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gStart[nrow(tableTranscrit)],tableTranscrit$gEnd[(nrow(tableTranscrit)-1)],sep="_")
+		JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gStart[nrow(tableTranscrit)],
+							tableTranscrit$gEnd[(nrow(tableTranscrit)-1)],tableTranscrit$Gene[1],sep="_")
 	}else{
 		IdSupp = which(tableTranscrit$gStart<PosCryptic)[1]
 		IdInf = which(tableTranscrit$gStart>PosCryptic)[length(which(tableTranscrit$gStart>PosCryptic))]
-		JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gStart[IdSupp],tableTranscrit$gEnd[IdInf],sep="_")
+		JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gStart[IdSupp],tableTranscrit$gEnd[IdInf],tableTranscrit$Gene[1],sep="_")
 	}
 	return(JunctPhysio)
 }
@@ -830,13 +836,14 @@ getJunctionPhysioAccFor <- function(PosCryptic){
 	tableTranscrit=tableTranscrit[order(tableTranscrit$gStart),]
 
 	if(PosCryptic<=tableTranscrit$gStart[2]){
-		JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gEnd[1],tableTranscrit$gStart[2],sep="_")
+		JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gEnd[1],tableTranscrit$gStart[2],tableTranscrit$Gene[1],sep="_")
 	}else if (PosCryptic>=tableTranscrit$gStart[nrow(tableTranscrit)]){
-		JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gEnd[(nrow(tableTranscrit)-1)],tableTranscrit$gStart[nrow(tableTranscrit)],sep="_")
+		JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gEnd[(nrow(tableTranscrit)-1)],
+							tableTranscrit$gStart[nrow(tableTranscrit)],tableTranscrit$Gene[1],sep="_")
 	}else{
 		IdSupp = which(tableTranscrit$gEnd>PosCryptic)[1]
 		IdInf = which(tableTranscrit$gEnd<PosCryptic)[length(which(tableTranscrit$gEnd<PosCryptic))]
-		JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gEnd[IdInf],tableTranscrit$gStart[IdSupp],sep="_")
+		JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gEnd[IdInf],tableTranscrit$gStart[IdSupp],tableTranscrit$Gene[1],sep="_")
 	}
 	return(JunctPhysio)
 }
@@ -846,13 +853,14 @@ getJunctionPhysioAccRev <- function(PosCryptic){
 	tableTranscrit=tableTranscrit[order(tableTranscrit$gStart,decreasing=TRUE),]
 
 		if(PosCryptic>=tableTranscrit$gStart[2]){
-			JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gStart[2],tableTranscrit$gEnd[1],sep="_")
+			JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gStart[2],tableTranscrit$gEnd[1],tableTranscrit$Gene[1],sep="_")
 		}else if (PosCryptic<=tableTranscrit$gStart[nrow(tableTranscrit)]){
-			JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gStart[nrow(tableTranscrit)],tableTranscrit$gEnd[(nrow(tableTranscrit)-1)],sep="_")
+			JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gStart[nrow(tableTranscrit)],
+								tableTranscrit$gEnd[(nrow(tableTranscrit)-1)],tableTranscrit$Gene[1],sep="_")
 		}else{
 			IdSupp = which(tableTranscrit$gEnd<PosCryptic)[1]
 			IdInf = which(tableTranscrit$gEnd>PosCryptic)[length(which(tableTranscrit$gEnd>PosCryptic))]
-			JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gStart[IdSupp],tableTranscrit$gEnd[IdInf],sep="_")
+			JunctPhysio = paste(tableTranscrit$Chr[1],tableTranscrit$gStart[IdSupp],tableTranscrit$gEnd[IdInf],tableTranscrit$Gene[1],sep="_")
 		}
 	return(JunctPhysio)
 }
@@ -944,26 +952,33 @@ calcJuncTo1sampleRev <- function(Conca,calcul, start, end){
 
 calcJuncToMultiSampleFor <- function(Conca,calcul, start, end){
 	P_junc=rep(0,n_ech)
-
 	if (calcul=="5AS"){
 
 		JunctPhysio <- getJunctionPhysioDonFor(start)
-		read_physio_don = colMeans(dataTmpPhysio[JunctPhysio,input])
 
-		if (is.null(read_physio_don)){
+		if (anyNA(dataTmpPhysio[JunctPhysio,input])){
 			calcul="No Ref physio"
 		}else{
+			if(nrow(dataTmpPhysio[JunctPhysio,input])>1){
+				read_physio_don = colMeans(dataTmpPhysio[JunctPhysio,input])
+			}else{
+				read_physio_don = c(unlist(dataTmpPhysio[JunctPhysio,input]))
+			}
 			read_alt=as.numeric(dataTmp[Conca,input])
 			P_junc =as.numeric((read_alt/read_physio_don)*100)
 		}
 	}else if (calcul=="3AS"){
 
 		JunctPhysio <- getJunctionPhysioAccFor(end)
-		read_physio_acc = colMeans(dataTmpPhysio[JunctPhysio,input])
 
-		if (is.null(read_physio_acc)){
+		if (anyNA(dataTmpPhysio[JunctPhysio,input])){
 			calcul="No Ref physio"
 		}else{
+			if(nrow(dataTmpPhysio[JunctPhysio,input])>1){
+				read_physio_acc = colMeans(dataTmpPhysio[JunctPhysio,input])
+			}else{
+				read_physio_acc = c(unlist(dataTmpPhysio[JunctPhysio,input]))
+			}
 			read_alt_acc=as.numeric(dataTmp[Conca,input])
 			P_junc =as.numeric((read_alt_acc/read_physio_acc)*100)
 		}
@@ -990,22 +1005,28 @@ calcJuncToMultiSampleRev <- function(Conca,calcul, start, end){
 	if (calcul=="5AS"){
 
 		JunctPhysio <- getJunctionPhysioDonRev(end)
-		read_physio_don = colMeans(dataTmpPhysio[JunctPhysio,input])
-
-		if (is.null(read_physio_don)){
+		if (anyNA(dataTmpPhysio[JunctPhysio,input])){
 			calcul="No Ref physio"
 		}else{
+			if(nrow(dataTmpPhysio[JunctPhysio,input])>1){
+				read_physio_don = colMeans(dataTmpPhysio[JunctPhysio,input])
+			}else{
+				read_physio_don = c(unlist(dataTmpPhysio[JunctPhysio,input]))
+			}
 			read_alt=as.numeric(dataTmp[Conca,input])
 			P_junc =as.numeric((read_alt/read_physio_don)*100)
 		}
 	}else if (calcul=="3AS"){
 
 		JunctPhysio <- getJunctionPhysioAccRev(start)
-		read_physio_acc = colMeans(dataTmpPhysio[JunctPhysio,input])
-
-		if (is.null(read_physio_acc)){
+		if (anyNA(dataTmpPhysio[JunctPhysio,input])){
 			calcul="No Ref physio"
 		}else{
+			if(nrow(dataTmpPhysio[JunctPhysio,input])>1){
+				read_physio_acc = colMeans(dataTmpPhysio[JunctPhysio,input])
+			}else{
+				read_physio_acc = c(unlist(dataTmpPhysio[JunctPhysio,input]))
+			}
 			read_alt_acc=as.numeric(dataTmp[Conca,input])
 			P_junc =as.numeric((read_alt_acc/read_physio_acc)*100)
 		}
@@ -1088,7 +1109,7 @@ eval(parse(text=paste("data_junction[,",output,"] <- as.numeric(data_junction[,"
 #infinite value are fixed to 100 %
 
 data_junction$mean_percent[data_junction$mean_percent=='Inf']=100
-
+data_junction$event_type[is.na(data_junction$event_type)]="NoData"
 data_junction=data_junction[order(data_junction$Gene),]
 
 #comptage nb times of junctions
@@ -1120,13 +1141,13 @@ getBEDannot<-function(chr,start,end,name,strand,cStart,cEnd,meanP,rowSamples,cal
     rgb[ind[sortCalc=="3AS"]]=rgbSA
     rgb[ind[sortCalc=="5AS"]]=rgbSD
     #get annot
-    annot = apply(rowSamples,1,function(x){paste(paste(SampleOutput,x,sep=": "),collapse="|")})
+    annot = apply(rowSamples,1,function(x){paste(paste(SampleOutput,x,sep=":"),collapse="|")})
     #get BED
     name = sub(BlackInvTriangle,"ins_",name)
     name = sub(DeltaSymb,"del_",name)
     bedAnnot = c(paste("track name=",run,
                     " type=bedDetail description=\"Alternative junction from ",run,
-                    " RNAseq\" db=hg19 itemRgb=\"On\" visibility=\"full\"",sep=""),
+                    " RNAseq\" itemRgb=\"On\" visibility=\"full\"",sep=""),
                 paste(as.character(chr), start, end,name,meanP,as.character(strand),start,end,rgb,1,
                     paste(cStart,cEnd,sep="_"),annot,sep="\t"))
     return(bedAnnot)
@@ -1134,11 +1155,11 @@ getBEDannot<-function(chr,start,end,name,strand,cStart,cEnd,meanP,rowSamples,cal
 
 if(checkBEDannot=="YES"){
     message("\nGet BED annot...")
-    bedAnnot = getBEDannot(data_junction$chr[calcul!="Physio"&calcul!="NoData"],data_junction$start[calcul!="Physio"&calcul!="NoData"],
-                            data_junction$end[calcul!="Physio"&calcul!="NoData"],data_junction$AnnotJuncs[calcul!="Physio"&calcul!="NoData"],
-                            data_junction$strand[calcul!="Physio"&calcul!="NoData"],data_junction$cStart[calcul!="Physio"&calcul!="NoData"],
-                            data_junction$cEnd[calcul!="Physio"&calcul!="NoData"],data_junction$mean_percent[calcul!="Physio"&calcul!="NoData"],
-                            data_junction[calcul!="Physio"&calcul!="NoData",SampleOutput],data_junction$event_type[calcul!="Physio"&calcul!="NoData"])
+    bedAnnot = getBEDannot(data_junction$chr[ data_junction$event_type!="Physio" & data_junction$event_type!="NoData" ], data_junction$start[ data_junction$event_type!="Physio" & data_junction$event_type!="NoData"],
+                            data_junction$end[ data_junction$event_type!="Physio" & data_junction$event_type!="NoData" ], data_junction$AnnotJuncs[ data_junction$event_type!="Physio" & data_junction$event_type!="NoData"],
+                            data_junction$strand[ data_junction$event_type!="Physio" & data_junction$event_type!="NoData" ], data_junction$cStart[ data_junction$event_type!="Physio" & data_junction$event_type!="NoData"],
+                            data_junction$cEnd[ data_junction$event_type!="Physio" & data_junction$event_type!="NoData" ], data_junction$mean_percent[ data_junction$event_type!="Physio" & data_junction$event_type!="NoData"],
+                            data_junction[ data_junction$event_type!="Physio" & data_junction$event_type!="NoData", SampleOutput ], data_junction$event_type[ data_junction$event_type!="Physio" & data_junction$event_type!="NoData"])
     cat(bedAnnot,file=paste(chem_results,run,".bed",sep=""),sep="\n")
 }
 
@@ -1163,6 +1184,16 @@ dataToPrint = checkSizeOutput(dataToPrint)
 if(StatAnalysis=="NO"){
 	message("\n   Data are saving...")
     if(!printText){
+		# load WriteXLS library
+		tryCatch({
+			library(WriteXLS)
+			},
+				error=function(cond) {
+					message("Here's the original error message:")
+					message(cond)
+					message("*****You need to install \'WriteXLS\' library")
+		})
+
         tryCatch({
          WriteXLS(dataToPrint, ExcelFileName =paste(chem_results,name_output,sep=""),row.names=F,SheetNames=run,Encoding = "UTF-8",na="")
         },
@@ -1501,7 +1532,7 @@ getSign = function(v,n){
 
 data_junction$DistribAjust = NA
 data_junction$DistribAjust[data_junction$Conca%in%data_junction_pvalue$Jonction] = data_junction_pvalue$Ajustement
-significative = apply(data_junction_pvalue[,7:ncol(data_junction_pvalue)],1,getSign,names(data_junction)[input])
+significative = apply(data_junction_pvalue[,6:ncol(data_junction_pvalue)],1,getSign,names(data_junction)[input])
 data_junction$Significative[data_junction$Conca%in%data_junction_pvalue$Jonction] = significative
 data_junction$filterInterpretation[substr(as.character(data_junction$Significative),1,3)=="Yes"] = "Aberrant junction"
 max_expr = unlist(apply(data_junction[,SampleOutput],1,max,na.rm = TRUE))
@@ -1521,6 +1552,16 @@ if(file.exists("output without adjustment.csv")){
 }
 
 if(!printText){
+	# load WriteXLS library
+	tryCatch({
+		library(WriteXLS)
+		},
+			error=function(cond) {
+				message("Here's the original error message:")
+				message(cond)
+				message("*****You need to install \'WriteXLS\' library")
+	})
+
     tryCatch({
      WriteXLS(dataToPrint, ExcelFileName =paste(chem_results,name_output,sep=""),row.names=F,SheetNames=run,Encoding = "UTF-8",na="")
     },
@@ -1542,6 +1583,15 @@ if(!printText){
 }
 
 if(DisplayGraph=="YES"){
+	# load Cairo library
+	tryCatch({
+	library(Cairo)
+	},
+		error=function(cond) {
+			message("Here's the original error message:")
+			message(cond)
+			message("*****You need to install \'Cairo\' library")
+	})
 
 	chem_dessin=paste(chem_results ,run,"_figures_output/",sep="")
 	dir.create(chem_dessin,showWarnings=FALSE)
@@ -1814,11 +1864,10 @@ chem_dessin = ""
 }
 
 chapitre=c("date of analysis","name of input file", "run id", "Nb of samples", rep("sample",n_ech),
-"path to output", "name of output file", "path to graphics output",
-"Junctions out of strand","average depth")
+"path to output", "name of output file", "path to graphics output","average depth")
 name_input=inputFile
 donnee=c(paste(date_analyse,"; Time to analysis:",Tdiff,"min"),name_input,run,n_ech,names(data_junction)[input],
-			outputDir,name_output,chem_dessin,nbJuncOpp,mean(data_junction$read_mean))
+			outputDir,name_output,chem_dessin,mean(data_junction$read_mean))
 
 rapport=data.frame(chapitre,donnee)
 write.table(rapport,file=paste(chem_rapport,run,"_report_",format(Sys.time(), "%m-%d-%Y"),".txt",sep=""),dec=".",row.names=F,

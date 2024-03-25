@@ -2,17 +2,26 @@
 T1<-as.numeric(format(Sys.time(), "%s"))
 options(scipen=50,stringsAsFactors=FALSE)
 
+argsFull <- commandArgs()
+file = argsFull[4]
+file = gsub("--file=","",file)
+scriptPath = dirname(normalizePath(file))
+MANE_list_path = paste(scriptPath,"MANE.to.splicelauncher.txt",sep="/")
+
 #Get SpliceLauncher databases
 
-helpMessage="Usage: generateSpliceLauncherDB.r\n
+helpMessage=paste("Usage: generateSpliceLauncherDB.r\n
     [Mandatory] \n
         -i, --input /path/to/inputFile
             RefSeq GFF annotation file, downloadable at UCSC: https://genome.ucsc.edu/cgi-bin/hgTables\n
         -o, --output /path/to/directory/
             Directory to output databases\n
+    [Optional] \n
+        --mane /path/to/MANElistFile.txt
+            List of MANE transcripts, by default [",MANE_list_path,"]
     -h, --help
         print this help message and exit\n
-   You could : Rscript generateRefSeqsjdb.r -i ./RefSeqAnnot.gff -o ./RefSeqAnnot.sjdb"
+   You could : Rscript generateRefSeqsjdb.r -i /path/to/annot.gff -o /path/to/output/")
 
 args <- commandArgs(trailingOnly = TRUE)
 
@@ -28,6 +37,8 @@ while (i <= length(args)){
            outputPath = normalizePath(outputPath)
        }else if(args[i]=="-h"|args[i]=="--help"){
            message(helpMessage);stop()
+       }else if(args[i]=="--mane"){
+           MANE_list_path=normalizePath(path=args[i+1]);i = i+2
        }else{
            message(paste("********Unknown option:",args[i],"\n"));message(helpMessage);stop()
        }
@@ -71,17 +82,17 @@ convertNCtoChr <- function (NCname){
     return(Chrname)
 }
 
-getBEDfile <- function(exonCoord){
-    tmp = data.frame(V1 = exonCoord$chr,
-        V2 = as.numeric(exonCoord$start)-1,
-        V3 = exonCoord$end,
-        V4 = paste(
-                substr(exonCoord$transcript_id,rep(1,length(exonCoord$transcript_id)),as.numeric(regexpr(".",exonCoord$transcript_id,fixed =TRUE))-1),
-                "exon",0,0,exonCoord$chr,exonCoord$start,exonCoord$strand,sep="|"),
-        V5 = rep(0,nrow(exonCoord)),
-        V6 = exonCoord$strand)
-    tmp[,4] = sub(pattern = "|-", replacement="|r", tmp[,4],fixed = TRUE)
-    tmp[,4] = sub(pattern = "|+", replacement="|f", tmp[,4],fixed = TRUE)
+getBEDfile <- function(gffData){
+    geneData = gffData[gffData$seqType=='gene',]
+    Infotmp = unlist(strsplit(geneData$info, ";", fixed=TRUE))
+    GeneInfo = Infotmp[substr(Infotmp,1,5)=="gene="]
+    GeneInfo = sub("gene=","",GeneInfo)
+    tmp = data.frame(V1 = geneData[,"chr"], 
+                    V2 = as.numeric(geneData[,"start"]),
+                    V3 = as.numeric(geneData[,"end"]),
+                    V4 = GeneInfo,
+                    V5 = rep(0,nrow(geneData)),
+                    V6 = geneData[,"strand"])
     tmp = tmp[order(tmp$V2),]
     tmp = tmp[order(tmp$V1),]
     return(tmp)
@@ -92,7 +103,6 @@ getSJDBfile <- function(exonCoord){
         V2 = rep(NA,nrow(exonCoord)-1),
         V3 = rep(NA,nrow(exonCoord)-1),
         V4 = exonCoord$strand[-nrow(exonCoord)])
-    # print(summary(tmp))
     tmp$V2[tmp$V4=="+"] = as.numeric(exonCoord$end[which(tmp$V4=="+")])+1
     tmp$V3[tmp$V4=="+"] = as.numeric(exonCoord$start[which(tmp$V4=="+")+1])-1
     tmp$V2[tmp$V4=="-"] = as.numeric(exonCoord$end[which(tmp$V4=="-")+1])+1
@@ -100,11 +110,11 @@ getSJDBfile <- function(exonCoord){
     t1 = exonCoord$transcript_id[-nrow(exonCoord)]
     t2 = exonCoord$transcript_id[-1]
     tmp = tmp[-which(t1!=t2),]
-    # print(summary(tmp))
     return(tmp)
 }
 
 extractCDS<-function(proteinInfo){
+    # induce a lag in parent name to have only the first CDS start end last CDS end
     sp1 = proteinInfo$Parent
     sp2 = c("toto",proteinInfo$Parent[-nrow(proteinInfo)])
     ep1 = proteinInfo$Parent
@@ -122,6 +132,8 @@ extractCDS<-function(proteinInfo){
 getSpliceLauncherDB <- function(transcrit){
     tmp = tmpData[tmpData$transcript_id==transcrit,]
     tmp = tmp[order(tmp$start),]
+	mane = tmp$MANE_status[1]
+	
     printInfo=TRUE
     if(nrow(tmp)<2){
         printInfo=FALSE
@@ -156,6 +168,7 @@ getSpliceLauncherDB <- function(transcrit){
                 }
             }
             if(printInfo){
+                
                 cStart[idEx==ExCDSstart]=gStart[idEx==ExCDSstart]-gCDSstart
                 cEnd[idEx==ExCDSstart]=gEnd[idEx==ExCDSstart]-gCDSstart
 
@@ -237,9 +250,14 @@ getSpliceLauncherDB <- function(transcrit){
             }
         }
         if(printInfo){
-            result <<-data.frame(Gene=tmp$gene,Strand=tmp$strand,gCDSstart=rep(gCDSstart,length(tailleExon)),
+            result = data.frame(Gene=tmp$gene,Strand=tmp$strand,gCDSstart=rep(gCDSstart,length(tailleExon)),
                 gCDSend=rep(gCDSend,length(tailleExon)),transcrit=tmp$transcript_id,Chr = tmp$chr,
-                idEx,lenEx,gStart,gEnd,cStart,cEnd)
+                idEx,lenEx,gStart,gEnd,cStart,cEnd,mane = rep(mane,length(tailleExon)))
+            # if(is.null(result) | nrow(result)==0){
+                # result = data.frame(Gene = ".",Strand = 0,gCDSstart = 0, gCDSend = 0,transcrit = ".",
+                            # Chr = ".", idEx = 0,lenEx = 0,gStart = 0,gEnd = 0,cStart = 0,cEnd = ".",mane = ".")
+            # }
+            return(result)
         }
     }
 }
@@ -247,6 +265,14 @@ getSpliceLauncherDB <- function(transcrit){
 ###################
 #RefSeq
 ###################
+message("Import list of MANE transcripts...")
+MANElist = read.table(MANE_list_path,sep="\t",header=FALSE)
+colnames(MANElist) <- c("symbol","RefSeq_nuc","Ensembl_nuc","chr_strand")
+tmpTranscript = unlist(strsplit(as.character(MANElist$RefSeq_nuc),".",fixed=TRUE))
+MANElist$RefSeq_nuc = tmpTranscript[nchar(tmpTranscript)>5]
+tmpTranscript = unlist(strsplit(as.character(MANElist$Ensembl_nuc),".",fixed=TRUE))
+MANElist$Ensembl_nuc = tmpTranscript[nchar(tmpTranscript)>5]
+
 message("Read GFF file ...")
 gffData =readLines(inputFile)
 
@@ -291,7 +317,6 @@ if(nrow(exonCoord)==0){
 }
 message("Extract exon annotation ...")
 colNames = extractHeader(exonCoord$info)
-#print(colNames)
 exonCoordtmp = strsplit(exonCoord$info, ";", fixed=TRUE)
 tmp = unlist(lapply(exonCoordtmp,extractInfo,header = colNames))
 exonCoordtmp = as.data.frame(matrix(tmp, ncol = length(colNames),byrow = TRUE))
@@ -307,7 +332,6 @@ if(nrow(proteinInfo)==0){
 }
 message("Extract CDS annotation ...")
 colNames = extractHeader(proteinInfo$info)
-#print(colNames)
 proteinInfotmp = strsplit(proteinInfo$info, ";", fixed=TRUE)
 tmp = unlist(lapply(proteinInfotmp,extractInfo,header = colNames))
 proteinInfotmp = as.data.frame(matrix(tmp, ncol = length(colNames),byrow = TRUE))
@@ -318,14 +342,14 @@ proteinInfo = extractCDS(proteinInfo)
 
 # remove transcripts with only one exon
 message("Remove transcripts with only one exon ...")
-nbExonByTranscript = table(exonCoord$transcript_id)
-transcript_1_exon = names(nbExonByTranscript[nbExonByTranscript==1])
-exonCoord = exonCoord[-which(exonCoord$transcript_id%in%transcript_1_exon),]
-proteinInfo = proteinInfo[-which(proteinInfo$transcript_id%in%transcript_1_exon),]
+nbExonByParent = table(exonCoord$Parent)
+Parent_1_exon = names(nbExonByParent[nbExonByParent==1])
+exonCoord = exonCoord[-which(exonCoord$Parent%in%Parent_1_exon),]
+proteinInfo = proteinInfo[-which(proteinInfo$Parent%in%Parent_1_exon),]
 
 # get BED file
 message("Generate BED annotation ...")
-bedFile = getBEDfile(exonCoord)
+bedFile = getBEDfile(gffData)
 write.table(bedFile,paste(outputPath,"BEDannotation.bed",sep="/"),sep="\t",quote=F,row.names=F,col.names=F)
 
 # Get sjdb file
@@ -348,58 +372,144 @@ mergeData$start_CDS[is.na(mergeData$start_CDS)] = mergeData$start[is.na(mergeDat
 mergeData$end_CDS[is.na(mergeData$end_CDS)] = mergeData$end[is.na(mergeData$end_CDS)]
 
 message("   Get SpliceLauncher Reference file ...")
+stepBystep = 5000
 trans = unique(mergeData$transcript_id)
-nIter = length(trans)%/%5000
+nIter = length(trans)%/%stepBystep
 message(paste0("   Number of transcripts= ",length(trans)))
 
-j=1
-for(i in 1:nIter){
-    indStart = j
-    indEnd = j + 4999
-    message(paste("   Get transcript info for:",j,"to",j+4999))
-    j = j+5000
-    tmpTrans = trans[indStart:indEnd]
-    tmpData = mergeData[which(mergeData$transcript_id%in%tmpTrans),]
-    tmp <- unlist(mapply(getSpliceLauncherDB, transcrit = tmpTrans))
-    dataConvertPool = data.frame(Gene = tmp[grep("Gene",names(tmp))],
-                                Strand = tmp[grep("Strand",names(tmp))],
-                                gCDSstart = tmp[grep("gCDSstart",names(tmp))],
-                                gCDSend = tmp[grep("gCDSend",names(tmp))],
-                                transcrit = tmp[grep("transcrit",names(tmp))],
-                                Chr = tmp[grep("Chr",names(tmp))],
-                                idEx = tmp[grep("idEx",names(tmp))],
-                                lenEx = tmp[grep("lenEx",names(tmp))],
-                                gStart = tmp[grep("gStart",names(tmp))],
-                                gEnd = tmp[grep("gEnd",names(tmp))],
-                                cStart = tmp[grep("cStart",names(tmp))],
-                                cEnd = tmp[grep("cEnd",names(tmp))])
-    if(i==1){
-        write.table(dataConvertPool,paste(outputPath,"SpliceLauncherAnnot.txt",sep="/"),sep="\t",quote=F,row.names=F,col.names=TRUE,append=FALSE)
-    }else{
-        write.table(dataConvertPool,paste(outputPath,"SpliceLauncherAnnot.txt",sep="/"),sep="\t",quote=F,row.names=F,col.names=F,append=TRUE)
-    }
+message("   Add MANE status...")
+mergeData$MANE_status="unknown"
+mergeData$MANE_status[which(mergeData$gene%in%MANElist$symbol)] = "no.mane"
+if(substr(mergeData$transcript_id[1],1,1)=="N"){
+    mergeData$MANE_status[which(mergeData$transcript_id%in%MANElist$RefSeq_nuc)] = "mane"
+}else if(substr(mergeData$transcript_id[1],1,1)=="E"){
+    mergeData$MANE_status[which(mergeData$transcript_id%in%MANElist$Ensembl_nuc)] = "mane"
+}
+uniqueGene = mergeData$gene[!duplicated(mergeData$transcript_id)]
+uniqueMANE = mergeData$MANE_status[!duplicated(mergeData$transcript_id)]
+uniqueGene_Mane = uniqueGene[uniqueMANE=="mane"]
+countGene_Mane = table(uniqueGene_Mane)
+if(max(as.numeric(countGene_Mane))>1){
+	message("   Remove MANE duplicates...")
+	dupGene = names(countGene_Mane)[countGene_Mane>1]
+	mergeData$MANE_status[which(mergeData$gene%in%dupGene)] = "no.mane"
 }
 
-rest = length(trans)%%5000
+j=1
+Gene = NULL
+Strand = NULL
+gCDSstart = NULL
+gCDSend = NULL
+transcrit = NULL
+Chr = NULL
+idEx = NULL
+lenEx = NULL
+gStart = NULL
+gEnd = NULL
+cStart = NULL
+cEnd = NULL
+MANE_status = NULL
 
-tmpTrans = trans[(nIter*5000+1):(nIter*5000+rest)]
+for(i in 1:nIter){
+    indStart = j
+    indEnd = j + (stepBystep-1)
+    message(paste("   Get transcript info for:",j,"to",j+(stepBystep-1)))
+    j = j+stepBystep
+    tmpTrans = trans[indStart:indEnd]
+    tmpData = mergeData[which(mergeData$transcript_id%in%tmpTrans),]
+    tmp <- mapply(getSpliceLauncherDB, transcrit = tmpTrans)
+	check_trans_err = lapply(tmp,is.null)
+	trans_wo_err = names(tmp)
+	if(length(which(unlist(check_trans_err)))>0){
+		trans_w_err = trans_wo_err[which(unlist(check_trans_err))]
+		message(paste("the following transcripts lead to error:",paste(trans_w_err,collapse="; ")))
+        message("the analysis of the rmaining transcripts will take few more time")
+		trans_wo_err = trans_wo_err[-which(unlist(check_trans_err))]
+        nb_trans_wo_err = length(trans_wo_err)
+        nIter_err = 1
+        modulo = 50
+		for(i in trans_wo_err){
+			if(nIter_err%%modulo==0){
+                message(paste(nIter_err,"transcripts on",nb_trans_wo_err))
+            }
+            Gene=c(Gene,as.character(tmp[i][[1]][,1]))
+			Strand=c(Strand,as.character(tmp[i][[1]][,2]))
+			gCDSstart=c(gCDSstart,tmp[i][[1]][,3])
+			gCDSend=c(gCDSend,tmp[i][[1]][,4])
+			transcrit=c(transcrit,as.character(tmp[i][[1]][,5]))
+			Chr=c(Chr,as.character(tmp[i][[1]][,6]))
+			idEx=c(idEx,tmp[i][[1]][,7])
+			lenEx=c(lenEx,tmp[i][[1]][,8])
+			gStart=c(gStart,tmp[i][[1]][,9])
+			gEnd=c(gEnd,tmp[i][[1]][,10])
+			cStart=c(cStart,tmp[i][[1]][,11])
+			cEnd=c(cEnd,tmp[i][[1]][,12])
+			MANE_status=c(MANE_status,as.character(tmp[i][[1]][,13]))
+            nIter_err = nIter_err+1
+		}
+        message(paste(nIter_err-1,"transcripts on",nb_trans_wo_err))
+	}else{
+		Gene=c(Gene,as.character(unlist(tmp[1,])))
+		Strand=c(Strand,as.character(unlist(tmp[2,])))
+		gCDSstart=c(gCDSstart,unlist(tmp[3,]))
+		gCDSend=c(gCDSend,unlist(tmp[4,]))
+		transcrit=c(transcrit,as.character(unlist(tmp[5,])))
+		Chr=c(Chr,as.character(unlist(tmp[6,])))
+		idEx=c(idEx,unlist(tmp[7,]))
+		lenEx=c(lenEx,unlist(tmp[8,]))
+		gStart=c(gStart,unlist(tmp[9,]))
+		gEnd=c(gEnd,unlist(tmp[10,]))
+		cStart=c(cStart,unlist(tmp[11,]))
+		cEnd=c(cEnd,unlist(tmp[12,]))
+		MANE_status=c(MANE_status,as.character(unlist(tmp[13,])))
+	}
+}
+
+rest = length(trans)%%stepBystep
+message(paste("   Get transcript info for:",(nIter*stepBystep+1),"to",(nIter*stepBystep+rest)))
+
+tmpTrans = trans[(nIter*stepBystep+1):(nIter*stepBystep+rest)]
 tmpData = mergeData[which(mergeData$transcript_id%in%tmpTrans),]
-tmp <- unlist(mapply(getSpliceLauncherDB, transcrit = unique(tmpData$transcript_id)))
-message("   Format SpliceLauncher file...")
-dataConvertPool = data.frame(Gene = tmp[grep("Gene",names(tmp))],
-                            Strand = tmp[grep("Strand",names(tmp))],
-                            gCDSstart = tmp[grep("gCDSstart",names(tmp))],
-                            gCDSend = tmp[grep("gCDSend",names(tmp))],
-                            transcrit = tmp[grep("transcrit",names(tmp))],
-                            Chr = tmp[grep("Chr",names(tmp))],
-                            idEx = tmp[grep("idEx",names(tmp))],
-                            lenEx = tmp[grep("lenEx",names(tmp))],
-                            gStart = tmp[grep("gStart",names(tmp))],
-                            gEnd = tmp[grep("gEnd",names(tmp))],
-                            cStart = tmp[grep("cStart",names(tmp))],
-                            cEnd = tmp[grep("cEnd",names(tmp))])
+tmp <- mapply(getSpliceLauncherDB, transcrit = tmpTrans)
+check_trans_err = lapply(tmp,is.null)
+trans_wo_err = names(tmp)
+if(length(which(unlist(check_trans_err)))>0){
+	trans_w_err = trans_wo_err[which(unlist(check_trans_err))]
+	message(paste("the following transcripts lead to error:",paste(trans_w_err,collapse="; ")))
+	trans_wo_err = trans_wo_err[-which(unlist(check_trans_err))]
+	for(i in trans_wo_err){
+		Gene=c(Gene,as.character(tmp[i][[1]][,1]))
+		Strand=c(Strand,as.character(tmp[i][[1]][,2]))
+		gCDSstart=c(gCDSstart,tmp[i][[1]][,3])
+		gCDSend=c(gCDSend,tmp[i][[1]][,4])
+		transcrit=c(transcrit,as.character(tmp[i][[1]][,5]))
+		Chr=c(Chr,as.character(tmp[i][[1]][,6]))
+		idEx=c(idEx,tmp[i][[1]][,7])
+		lenEx=c(lenEx,tmp[i][[1]][,8])
+		gStart=c(gStart,tmp[i][[1]][,9])
+		gEnd=c(gEnd,tmp[i][[1]][,10])
+		cStart=c(cStart,tmp[i][[1]][,11])
+		cEnd=c(cEnd,tmp[i][[1]][,12])
+		MANE_status=c(MANE_status,as.character(tmp[i][[1]][,13]))
+	}
+}else{
+	Gene=c(Gene,as.character(unlist(tmp[1,])))
+	Strand=c(Strand,as.character(unlist(tmp[2,])))
+	gCDSstart=c(gCDSstart,unlist(tmp[3,]))
+	gCDSend=c(gCDSend,unlist(tmp[4,]))
+	transcrit=c(transcrit,as.character(unlist(tmp[5,])))
+	Chr=c(Chr,as.character(unlist(tmp[6,])))
+	idEx=c(idEx,unlist(tmp[7,]))
+	lenEx=c(lenEx,unlist(tmp[8,]))
+	gStart=c(gStart,unlist(tmp[9,]))
+	gEnd=c(gEnd,unlist(tmp[10,]))
+	cStart=c(cStart,unlist(tmp[11,]))
+	cEnd=c(cEnd,unlist(tmp[12,]))
+	MANE_status=c(MANE_status,as.character(unlist(tmp[13,])))
+}
+dataConvertPool = data.frame(Gene, Strand, gCDSstart, gCDSend, transcrit, Chr, idEx, lenEx, gStart, gEnd, cStart, cEnd, MANE_status)
 
-write.table(dataConvertPool,paste(outputPath,"SpliceLauncherAnnot.txt",sep="/"),sep="\t",quote=F,row.names=F,col.names=F,append=TRUE)
+write.table(dataConvertPool,paste(outputPath,"SpliceLauncherAnnot.txt",sep="/"),sep="\t",quote=FALSE,row.names=FALSE,col.names=TRUE,append=FALSE)
 
 T2<-as.numeric(format(Sys.time(), "%s"))
-#print(T2-T1)
+print(T2-T1)

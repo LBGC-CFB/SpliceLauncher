@@ -18,7 +18,6 @@ SpliceLauncher is a pipeline tool to study the alternative splicing. It works in
     * [BEDtools](#5)
     * [Install R libraries](#6)
 * [Installing SpliceLauncher](#7)
-    * [Conda environment](#conda-environment)
     * [Download the reference files](#8)
     * [Configure SpliceLauncher with INSTALL mode](#9)
     * [Singularity image](#10)
@@ -44,14 +43,11 @@ SpliceLauncher is a pipeline tool to study the alternative splicing. It works in
 
 The SpliceLauncher pipeline needs to install the following tools and R librairies:
 
-* STAR (v2.6 or later)
+* STAR (v2.7 or later)
 * samtools (v1.3 or later)
 * BEDtools (v2.17 or later)
 * R with *WriteXLS* and *Cairo* packages
 * Perl
-* seqkt
-
-You can install all dependencies with [conda](https://docs.conda.io/en/latest/) (see section: [conda environment](#conda-environment))
 
 ### STAR <a id="3"></a>
 
@@ -69,9 +65,10 @@ Download the [latest release](https://github.com/alexdobin/STAR/releases/latest 
 
 ```Bash
 # Get latest STAR source
-wget https://github.com/alexdobin/STAR/archive/2.7.0c.tar.gz
-tar -xzf 2.7.0c.tar.gz
-cd STAR-2.7.0c
+version="2.7.0c"
+wget https://github.com/alexdobin/STAR/archive/${version}.tar.gz
+tar -xzf ${version}.tar.gz
+cd STAR-${version}
 
 # Alternatively, get STAR source using git
 git clone https://github.com/alexdobin/STAR.git
@@ -132,25 +129,6 @@ git clone https://github.com/raphaelleman/SpliceLauncher
 cd ./SpliceLauncher
 ```
 
-### Conda environment
-
-You can install all dependencies with [conda](https://docs.conda.io/en/latest/).
-
-Install the latest version of conda: [see here](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).
-
-For example on Ubuntu x86 :
-```bash
-wget https://repo.anaconda.com/archive/Anaconda3-2021.11-Linux-x86_64.sh
-bash Anaconda3-2021.11-Linux-x86_64.sh
-source ~/.bashrc
-```
-
-Then you can install all dependencies and create a virtual environment named ***spliceLauncher*** with :
-```bash
-conda env create -f environment.yml
-conda activate spliceLauncher
-```
-
 ### Download the reference files <a id="8"></a>
 
 
@@ -202,7 +180,7 @@ grep -f chr_names_id GRCh37_latest_genomic.gff >> GRCh37_latest_genomic.sub.gff
 
 ### Configure SpliceLauncher with INSTALL mode <a id="9"></a>
 
-SpliceLauncher comes with a ready to use config.cfg file. It contains the paths of software and files used by SpliceLauncher. The INSTALL mode of SpliceLauncher updates this config.cfg file. If you define the path to GFF (v3) file and path to the FASTA genome, the INSTALL mode will extract all necessary information from this GFF and indexing the STAR genome. This informations are stored in a BED file that contains the exon coordinates, in a sjdb file that contains the intron coordinates and a text file that contains the details of transcript structures. You need to define where these files will saving by the `-O, --output` argument
+SpliceLauncher comes with a ready to use config.cfg file. It contains the paths of software and files used by SpliceLauncher. The INSTALL mode of SpliceLauncher updates this config cfg file. If you define the path to GFF (v3) file and path to the FASTA genome, the INSTALL mode will extract all necessary information from this GFF and indexing the STAR genome. This informations are stored in a BED file that contains the exon coordinates, in a sjdb file that contains the intron coordinates and a text file that contains the details of transcript structures. You need to define where these files will saving by the `-O, --output` argument
 
 Use INSTALL mode of SpliceLauncher:
 
@@ -233,13 +211,6 @@ sudo singularity build /path/to/SpliceLauncher.simg /path/to/splicelauncher.reci
 ```Bash
 sudo singularity run /path/to/SpliceLauncher.simg --help
 ```
-
-3. To get linux consol in the image
-
-```Bash
-singularity shell SpliceLauncher.simg
-```
-
 
 ## Running the SpliceLauncher tests<a id="11"></a>
 
@@ -311,6 +282,9 @@ The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, t
 **--fasta** /path/to/fasta
 * Path to the genome fasta file
 
+**--mane** /path/to/MANElistFile.txt
+* List of MANE transcripts, current version donwloaded from https://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/current/MANE.GRCh38.v1.1.summary.txt.gz
+
 **-t, --threads** N
 * Nb threads used to index the STAR genome
 
@@ -327,6 +301,9 @@ The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, t
 
 **-t, --threads** N
 * Nb threads used for the alignment
+
+**--tmpDir** /path/to/tmp directory of files from alignment
+* path to directory where tempory files will saved during alignment, please point toward empty directory
 
 **-g, --genome** /path/to/genome
 * Path to the genome directory, **only** if you to use a genome directory different of the genome defined in config.cfg file

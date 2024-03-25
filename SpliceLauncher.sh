@@ -33,9 +33,11 @@ in_error=0 # will be 1 if a file or cmd not exist
 workFolder=$(readlink -f $(dirname $0))
 conf_file="${workFolder}/config.cfg"
 scriptPath="${workFolder}/scripts"
+manePath="${scriptPath}/MANE.to.splicelauncher.txt"
 BEDrefPath="${workFolder}/refData/refExons.bed"
 fastCount=false
 removeOther=""
+tmpAlignDir=""
 text=""
 Graphics=""
 NbIntervals=10
@@ -100,6 +102,7 @@ messageHelp="Usage: $0 [runMode] [options] <command>\n
     \t--fasta\t/path/to/fasta genome file\n
     \t-t, --threads N\n\t\tNb threads used to index genome\t[default: ${threads}]\n
     \t-m, --memory N\n\t\tMax Memory allowed to index genome, in bytes\t[default: ${memory}]\n
+    \t--mane /path/to/MANElistFile.txt\n\t\tList of MANE transcripts\t[default: ${manePath}]
     \n
     Option for Align mode\n
     \t-F, --fastq /path/to/fastq/\n\t\trepository of the FASTQ files\n
@@ -109,6 +112,7 @@ messageHelp="Usage: $0 [runMode] [options] <command>\n
     \t-m, --memory\n\t\tMax Memory allowed for the alignment\t[default: ${memory}]\n
     \t-g, --genome /path/to/genome\n\t\tpath to the STAR genome\t[default: ${genome}]\n
     \t--STAR /path/to/STAR\n\t\tpath to the STAR executable\t[default: ${STAR}]\n
+    \t--tmpDir /path/to/tmp directory of files from alignment\n
     \t--samtools /path/to/samtools\n\t\tpath to samtools executable\t[default: ${samtools}]\n
     \n
     Option for Count mode\n
@@ -176,6 +180,16 @@ while [[ $# -gt 0 ]]; do
 
        --STAR)
        STAR="$2"
+       shift 2 # shift past argument and past value
+       ;;
+
+        --tmpDir)
+        tmpAlignDir="--tmpDir $2"
+        shift 2 # shift past argument and past value
+        ;;
+
+       --mane)
+       manePath="$2"
        shift 2 # shift past argument and past value
        ;;
 
@@ -375,12 +389,15 @@ if [[ ${install} = "TRUE" ]]; then
     # run generateSpliceLauncherDB
     mkdir -p ${out_path}
     echo "Will run generateSpliceLauncherDB."
-    cmd="${Rscript} ${scriptPath}/generateSpliceLauncherDB.r -i ${gff_path} -o ${out_path}"
+    cmd="${Rscript} ${scriptPath}/generateSpliceLauncherDB.r -i ${gff_path} -o ${out_path} --mane ${manePath}"
     echo -e "$cmd"
+    echo -e "${conf_file}"
     $cmd
     BEDrefPath=${out_path}/BEDannotation.bed
     spliceLaucherAnnot=${out_path}/SpliceLauncherAnnot.txt
     SJDBannot=${out_path}/SJDBannotation.sjdb
+
+    echo -e "${conf_file}"
 
     # Test if output files exist
     for i in BEDrefPath spliceLaucherAnnot SJDBannot; do
@@ -393,6 +410,8 @@ if [[ ${install} = "TRUE" ]]; then
         echo -e "=> Aborting."
         exit
     fi
+    
+    echo -e "${conf_file}"
 
     genome="${out_path}/STARgenome"
     sed -i "s#^genome=.*#genome=\"${genome}\"#" ${conf_file}
@@ -444,7 +463,7 @@ if [[ ${align} = "TRUE" ]]; then
     # run alignment
     mkdir -p ${out_path}
     echo "Will run alignment."
-    cmd="${scriptPath}/pipelineRNAseq.sh --runMode Align -F ${fastq_path} -O ${out_path} -g ${genome} --STAR ${STAR} --samtools ${samtools} -t ${threads} -m ${memory} ${endType}"
+    cmd="${scriptPath}/pipelineRNAseq.sh --runMode Align -F ${fastq_path} -O ${out_path} -g ${genome} --STAR ${STAR} --samtools ${samtools} -t ${threads} -m ${memory} ${endType} ${tmpAlignDir}"
     echo -e "cmd = $cmd"
     $cmd
 
@@ -479,7 +498,7 @@ if [[ ${count} = "TRUE" ]]; then
     mkdir -p ${out_path}
     echo "Will run counting."
     if ${fastCount}; then
-        cmd="${scriptPath}/pipelineRNAseq.sh --runMode Count -B ${bam_path} -O ${out_path} --bedannot ${BEDrefPath} --bedtools ${bedtools} --fastCount --perlscript ${scriptPath}"
+        cmd="${scriptPath}/pipelineRNAseq.sh --runMode Count -B ${bam_path} -O ${out_path} --bedannot ${BEDrefPath} --bedtools ${bedtools} --fastCount --perlscript ${scriptPath} "
     else
         cmd="${scriptPath}/pipelineRNAseq.sh --runMode Count -B ${bam_path} -O ${out_path} --bedannot ${BEDrefPath} --bedtools ${bedtools} --perlscript ${scriptPath} --samtools ${samtools} ${endType}"
     fi

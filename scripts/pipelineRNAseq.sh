@@ -38,12 +38,13 @@ messageHelp="Usage: $0
         \t--bedtools /path/to/bedtoolsFolder/\n\t\tpath to repository of bedtools executables\n
         \t--bedannot /path/to/bedannot\n\t\tpath to exon coordinates (in BED format)\n
         \t--perlscript /path/to/perlscript/\n\t\trepository of perl scripts used by the pipeline\n
+    [Options]\n
+        \t-m, --memory N\n\t\tMemory used for the alignment\n
         \t--fastCount improve junction count runtime\n\t\tDecrease runtime but less sensitive in junction detection\n
         \t-t, --threads N\n\t\tNb threads used for the alignment\n
-        \t-m, --memory N\n\t\tMemory used for the alignment\n
-    [Options]\n
-        \t-p paired-end analysis\n\t\tprocesses to paired-end analysis\n\n
+        \t-p paired-end analysis\n\t\tprocesses to paired-end analysis\n
         \t-B, --bam /path/to/BAM input files\n
+        \t--tmpDir /path/to/tmp directory of files from alignment\n
    You could : $0 -F /path/to/FASTQfolder/ -O /path/to/output/ -g /path/to/STARgenome/ --star /path/to/STAR
    --samtools /path/to/samtools --bedtools /path/to/BEDtools/bin/ --bedannot /path/to/BEDannot"
 
@@ -80,8 +81,14 @@ while [[ $# -gt 0 ]]; do
         genomeDirectory="`readlink -v -f $2`"
         shift 2 # shift past argument and past value
         ;;
+
         --STAR)
         STARPath="$2"
+        shift 2 # shift past argument and past value
+        ;;
+
+        --tmpDir)
+        tmpAlignDir="$2"
         shift 2 # shift past argument and past value
         ;;
 
@@ -143,8 +150,10 @@ done
 if [[ ${runMode} = "Align" ]]; then
 
     bam_path="${pathToRun}/Bam"
+    if [ -z ${tmpAlignDir+x} ]; then tmpAlignDir="${pathToRun}/Bam/temp"; fi
+    if [ -d ${tmpAlignDir} ]; then rm -r ${tmpAlignDir}; fi
     mkdir -p ${bam_path}
-
+    
     ###############################################################
     ########################## Alignment ##########################
     ###############################################################
@@ -152,6 +161,7 @@ if [[ ${runMode} = "Align" ]]; then
     echo "####Your options:"
     echo -e "    path to fastq = ${pathToFastq}"
     echo -e "    path to output = ${pathToRun}"
+    echo -e "    path to tmp files = ${tmpAlignDir}"
     echo -e "    path to STAR genome files = ${genomeDirectory}"
     echo -e "    path to STAR = ${STARPath}"
     echo -e "    path to samtools = ${SamtoolsPath}"
@@ -213,7 +223,7 @@ if [[ ${runMode} = "Align" ]]; then
                     --readFilesCommand zcat \
                     --runThreadN ${threads} \
                     --outSAMunmapped Within \
-                    --outSAMtype BAM SortedByCoordinate \
+                    --outSAMtype BAM Unsorted \
                     --outSJfilterOverhangMin -1 8 8 8 \
                     --outSJfilterCountUniqueMin -1 1 1 1 \
                     --outSJfilterCountTotalMin -1 1 1 1 \
@@ -221,9 +231,11 @@ if [[ ${runMode} = "Align" ]]; then
                     --alignSJstitchMismatchNmax 0 -1 -1 -1 \
                     --outSJfilterIntronMaxVsReadN 500000 \
                     --limitBAMsortRAM ${memory} \
-                    --outSAMheaderHD \@HD VN:1.4 SO:SortedByCoordinate \
+                    --twopassMode Basic \
+                    --outTmpDir ${tmpAlignDir} \
+                    --outSAMheaderHD \@HD VN:1.4 SO:Unsorted \
                     --outFileNamePrefix ${bam_path}/${file%_R1_001.fastq.gz}. \
-                    --genomeLoad LoadAndKeep > ${bam_path}/${file%_R1_001.fastq.gz}.log 2>&1
+                    --genomeLoad NoSharedMemory > ${bam_path}/${file%_R1_001.fastq.gz}.log 2>&1
             else
                 echo -e "****the file $file doesn't exist, Please rename your file in XXXXX_R1(2)_001.fastq.gz format****\n****XXXXX_R1_001.fastq.gz for R1 read and XXXXX_R2_001.fastq.gz for R2 read****\n"
                 echo -e $messageHelp
@@ -245,17 +257,19 @@ if [[ ${runMode} = "Align" ]]; then
                     --readFilesCommand zcat \
                     --runThreadN ${threads} \
                     --outSAMunmapped Within \
-                    --outSAMtype BAM SortedByCoordinate \
+                    --outSAMtype BAM Unsorted \
                     --outSJfilterOverhangMin -1 8 8 8 \
                     --outSJfilterCountUniqueMin -1 1 1 1 \
                     --outSJfilterCountTotalMin -1 1 1 1 \
                     --outSJfilterDistToOtherSJmin 0 0 0 0 \
                     --alignSJstitchMismatchNmax 0 -1 -1 -1 \
                     --outSJfilterIntronMaxVsReadN 500000 \
+                    --twopassMode Basic \
+                    --outTmpDir ${tmpAlignDir} \
                     --limitBAMsortRAM ${memory} \
-                    --outSAMheaderHD \@HD VN:1.4 SO:SortedByCoordinate \
+                    --outSAMheaderHD \@HD VN:1.4 SO:Unsorted \
                     --outFileNamePrefix ${bam_path}/${file%.fastq.gz}. \
-                    --genomeLoad LoadAndKeep > ${bam_path}/${file%.fastq.gz}.log 2>&1
+                    --genomeLoad NoSharedMemory > ${bam_path}/${file%.fastq.gz}.log 2>&1
             else
                 echo "****the file $file doesn't exist, Please rename your file in XXXXX.fastq.gz****"
                 echo -e $messageHelp
@@ -263,16 +277,15 @@ if [[ ${runMode} = "Align" ]]; then
             fi
         done
     fi
-    # unload genome reference from shared memory
-    ${STARPath} --genomeDir ${genomeDirectory} --genomeLoad Remove
 
     echo "###### Make BAM index ######"
 
     cd $bam_path
     ls -lh *.bam
-    for file in *sortedByCoord.out.bam; do
+    for file in *Aligned.out.bam; do
         echo "treatment of $file..."
-        ${SamtoolsPath} index $file
+        ${SamtoolsPath} sort -o ${file%Aligned.out.bam}Aligned.sortedByCoord.out.bam --output-fmt BAM --write-index --threads ${threads} ${file}
+        rm ${file}
     done
 fi
 
@@ -342,8 +355,8 @@ if [[ ${runMode} = "Count" ]]; then
             echo "treatment of $file..."
             perl ${ScriptPath}/getBEDtoSJ.pl $file | \
                 sort -k1,1 -k2,2n | \
-                ${BEDtoolsPath} closest -d -t first -a stdin -b ${BEDrefPath} | \
-                awk 'BEGIN{OFS="\t"}{if($13<200){split($4,counts,"_"); split($10,nm,"|");print $1,$2,$3,$6,nm[1],counts[1],counts[2],counts[4]}}' \
+                ${BEDtoolsPath} intersect -s -wa -wb -a stdin -b ${BEDrefPath} | \
+                awk 'BEGIN{OFS="\t"}{print $1,$2,$3,$6,$10,$4}' \
                 >  ${ClosestExPath}/${file%.SJ.out.tab}.count
         done
 
@@ -412,10 +425,9 @@ if [[ ${runMode} = "Count" ]]; then
                 echo "treatment of $file..."
                 sort -k1,1 -k2,2n $file | \
                     uniq -c | \
-                    awk 'BEGIN{OFS="\t"}{print $2,$3,$4,$5 "_" $1,$6,$7}' | \
-                    ${BEDtoolsPath} closest -d -t first -a stdin -b ${BEDrefPath} | \
-                    awk 'BEGIN{OFS="\t"}{if($13<200){print $0}else{print $1,$2,$3,$4,$5,$6,".","-1","-1",".","-1",".","-1" }}' | \
-                    awk 'BEGIN{OFS="\t"}{if($8>0){split($4,counts,"_"); split($10,nm,"|");print $1,$2,$3,$6,nm[1],counts[1],counts[2],counts[3],counts[4]}}' \
+                    awk 'BEGIN{OFS="\t"}{print $2,$3,$4,$1,$6,$7}' | \
+                    ${BEDtoolsPath} intersect -s -wa -wb -a stdin -b ${BEDrefPath} | \
+                    awk 'BEGIN{OFS="\t"}{print $1,$2,$3,$6,$10,$4}' \
                     >  ${ClosestExPath}/${file%_juncs.bed}.count
             done
         else
@@ -427,11 +439,10 @@ if [[ ${runMode} = "Count" ]]; then
                     awk '{if($5==255){print $0}}' | \
                     sort -k1,1 -k2,2n | \
                     uniq -c | \
-                    awk 'BEGIN{OFS="\t"}{print $2,$3,$4,$5 "_" $1,$6,$7}' | \
+                    awk 'BEGIN{OFS="\t"}{print $2,$3,$4,$1,$6,$7}' | \
                     tee ${ClosestExPath}/${file%.bam}.sort_count.bed | \
-                    ${BEDtoolsPath} closest -d -t first -a stdin -b ${BEDrefPath} | \
-                    awk 'BEGIN{OFS="\t"}{if($13<200){print $0}else{print $1,$2,$3,$4,$5,$6,".","-1","-1",".","-1",".","-1" }}' | \
-                    awk 'BEGIN{OFS="\t"}{if($8>0){split($4,counts,"_"); split($10,nm,"|");print $1,$2,$3,$6,nm[1],counts[1],counts[2],counts[3],counts[4]}}' \
+                    ${BEDtoolsPath} intersect -s -wa -wb -a stdin -b ${BEDrefPath} | \
+                    awk 'BEGIN{OFS="\t"}{print $1,$2,$3,$6,$10,$4}' \
                     >  ${ClosestExPath}/${file%.bam}.count
             done
         fi
