@@ -18,9 +18,9 @@ SpliceLauncher is a pipeline tool to study the alternative splicing. It works in
     * [BEDtools](#5)
     * [Install R libraries](#6)
 * [Installing SpliceLauncher](#7)
-    * [Download the reference files](#8)
-    * [Configure SpliceLauncher with INSTALL mode](#9)
-    * [Singularity image](#10)
+    * [Singularity image](#8)
+    * [Download the reference files](#9)
+    * [Configure SpliceLauncher with INSTALL mode](#10)
 * [Running the SpliceLauncher tests](#11)
 * [SpliceLauncher options](#12)
     * [Option for INSTALL mode](#13)
@@ -129,7 +129,24 @@ git clone https://github.com/LBGC-CFB/SpliceLauncher
 cd ./SpliceLauncher
 ```
 
-### Download the reference files <a id="8"></a>
+### Singularity image <a id="8"></a>
+
+As the config file in the Singularity image is not writebale, you need to use a local version of the [config file](https://github.com/LBGC-CFB/SpliceLauncher/blob/master/config.cfg "tittle")
+SpliceLauncher and all its dependencies are also integrated in a Singularity image:
+
+1. To build it:
+
+```Bash
+sudo singularity build /path/to/SpliceLauncher.simg /path/to/splicelauncher.recipe
+```
+
+2. To use it
+
+```Bash
+sudo singularity run /path/to/SpliceLauncher.simg --config /path/to/my_config.cfg --help
+```
+
+### Download the reference files <a id="9"></a>
 
 
 The reference files are the genome (Fasta) and the corresponding annotation file (GFF3):
@@ -178,7 +195,7 @@ head -n 9 GRCh37_latest_genomic.gff > GRCh37_latest_genomic.sub.gff
 grep -f chr_names_id GRCh37_latest_genomic.gff >> GRCh37_latest_genomic.sub.gff
 ```
 
-### Configure SpliceLauncher with INSTALL mode <a id="9"></a>
+### Configure SpliceLauncher with INSTALL mode <a id="10"></a>
 
 SpliceLauncher comes with a ready to use config.cfg file. It contains the paths of software and files used by SpliceLauncher. The INSTALL mode of SpliceLauncher updates this config cfg file. If you define the path to GFF (v3) file and path to the FASTA genome, the INSTALL mode will extract all necessary information from this GFF and indexing the STAR genome. This informations are stored in a BED file that contains the exon coordinates, in a sjdb file that contains the intron coordinates and a text file that contains the details of transcript structures. You need to define where these files will saving by the `-O, --output` argument
 
@@ -193,23 +210,8 @@ bash ./SpliceLauncher.sh --runMode INSTALL \
     --samtools /path/to/samtools \
     --bedtools /path/to/bedtools \
     --gff /path/to/gff \
+    --threads < number of thread > \
     --fasta /path/to/fasta
-```
-
-### Singularity image <a id="10"></a>
-
-SpliceLauncher and all its dependencies are also integrated in a Singularity image:
-
-1. To build it:
-
-```Bash
-sudo singularity build /path/to/SpliceLauncher.simg /path/to/splicelauncher.recipe
-```
-
-2. To use it
-
-```Bash
-sudo singularity run /path/to/SpliceLauncher.simg --help
 ```
 
 ## Running the SpliceLauncher tests<a id="11"></a>

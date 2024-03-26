@@ -26,7 +26,7 @@ set -e
 
 ## initialize default value
 threads="1"
-memory=`free -t | grep "Mem:" | awk ' { print $2 } ' | awk '{printf "%.f", $1*0.8}'`
+memory=`free -t | grep "Mem:" | awk ' { print $2 } ' | awk '{printf "%.f", $1*0.5}'`
 memory=`echo "${memory}*1000" | bc`
 endType=""
 in_error=0 # will be 1 if a file or cmd not exist

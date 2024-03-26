@@ -1,5 +1,5 @@
 # SpliceLauncher
-# https://github.com/raphaelleman/SpliceLauncher
+# https://github.com/LBGC-CFB/SpliceLauncher 
 
 # base image: Ubuntu
 Bootstrap: docker
@@ -53,7 +53,7 @@ From: ubuntu:16.04
 
     mkdir -p ${SPLICELAUNCHER_DIR}
     cd ${SPLICELAUNCHER_DIR}
-    git clone http://github.com/raphaelleman/SpliceLauncher.git
+    git clone https://github.com/LBGC-CFB/SpliceLauncher.git
     chmod -R +x ${SPLICELAUNCHER_DIR}/SpliceLauncher/*
     
     ## INSTALL STAR
