@@ -131,7 +131,7 @@ cd ./SpliceLauncher
 
 ### Singularity image <a id="8"></a>
 
-As the config file in the Singularity image is not writebale, you need to use a local version of the [config file](https://github.com/LBGC-CFB/SpliceLauncher/blob/master/config.cfg "tittle")
+As the Singularity image config file is not writable, you need to use a local version of the  [config file](https://github.com/LBGC-CFB/SpliceLauncher/blob/master/config.cfg "tittle")
 SpliceLauncher and all its dependencies are also integrated in a Singularity image:
 
 1. To build it:
