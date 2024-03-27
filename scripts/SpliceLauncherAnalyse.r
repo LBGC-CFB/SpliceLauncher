@@ -197,7 +197,6 @@ if(length(missingGene)>0){
 
 tmp$Strand_transcript[tmp$strand=="+"] = "forward"
 tmp$Strand_transcript[tmp$strand=="-"] = "reverse"
-print(summary(tmp))
 
 tmp$transcrit=NA
 if(!is.null(pathTranscript)){

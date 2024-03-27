@@ -160,7 +160,7 @@ Steps:
 For example, human hg19 genome file from RefSeq:
 ```Bash
 #the ftp URL depends on your assembly genome choice
-wget ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_genomic.fna.gz
+wget https://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_genomic.fna.gz
 gunzip ./GRCh37_latest_genomic.fna.gz
 ```
 
@@ -168,7 +168,7 @@ gunzip ./GRCh37_latest_genomic.fna.gz
 
 For example, human hg19 annotation file from RefSeq:
 ```Bash
-wget ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_genomic.gff.gz
+wget https://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_genomic.gff.gz
 gunzip ./GRCh37_latest_genomic.gff.gz
 head ./GRCh37_latest_genomic.gff
 ##gff-version 3
