@@ -192,12 +192,12 @@ sampleUniqueGene = unique(tmp$gene)
 missingGene = sampleUniqueGene[-which(sampleUniqueGene%in%tableUniqueGene$Gene)]
 if(length(missingGene)>0){
 	message(paste("   I don't find",length(missingGene),"gene(s) (",paste(missingGene,collapse = ", "),")"))
+	tmp = tmp[-which(tmp$gene%in%missingGene),]
 }
-
-tmp = tmp[-which(tmp$gene%in%missingGene),]
 
 tmp$Strand_transcript[tmp$strand=="+"] = "forward"
 tmp$Strand_transcript[tmp$strand=="-"] = "reverse"
+print(summary(tmp))
 
 tmp$transcrit=NA
 if(!is.null(pathTranscript)){

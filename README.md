@@ -221,7 +221,12 @@ The example files are provided in [dataTest](https://github.com/LBGC-CFB/SpliceL
 
 ```Bash
 cd /path/to/SpliceLauncher
-bash ./SpliceLauncher.sh --runMode Align,Count,SpliceLauncher -F ./dataTest/fastq/ -O ./testSpliceLauncher/
+bash ./SpliceLauncher.sh --runMode Align,Count,SpliceLauncher -F ./dataTest/fastq/ -O ./testSpliceLauncher/ \
+    # Optional \
+    -t <number of thread> \
+    -m <allowed memory in bits> \
+    --Graphics \
+    --tmpDir /path/to/tmpDir # path to save tmp file during alignment
  ```
 
 After running, the BAM files from alignment are in a *Bam* folder, the count files are in *getClosestExons* and the results of SpliceLauncher analysis are in *testSpliceLauncher_result*.
