@@ -290,7 +290,7 @@ The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, t
 * Path to the genome fasta file
 
 **--mane** /path/to/MANElistFile.txt
-* List of MANE transcripts, current version donwloaded from https://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/current/MANE.GRCh38.v1.1.summary.txt.gz
+* List of MANE transcripts, current version donwloaded from https://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/release_1.1/MANE.GRCh38.v1.1.summary.txt.gz
 
 **-t, --threads** N
 * Nb threads used to index the STAR genome
