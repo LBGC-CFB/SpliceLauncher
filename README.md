@@ -7,7 +7,7 @@ SpliceLauncher is a pipeline tool to study the alternative splicing. It works in
 * Generate data files used hereafter (B step in diagram below)
 * Run SpliceLauncher from a read count matrix (C step and furthermore in diagram below).
 
-![SpliceLauncher](https://github.com/LGBC-CFB/SpliceLauncher/blob/master/doc/Figure1.png)
+![SpliceLauncher](https://github.com/LBGC-CFB/SpliceLauncher/blob/master/doc/Figure1.png)
 
 **Table of contents**
 
