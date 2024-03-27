@@ -55,7 +55,7 @@ fi
 
 #check directory
 in_error=0 #stop program if in_error = 1
-endType=""
+endType="single"
 fastCount=false
 
 while [[ $# -gt 0 ]]; do

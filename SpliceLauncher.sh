@@ -29,6 +29,7 @@ threads="1"
 memory=`free -t | grep "Mem:" | awk ' { print $2 } ' | awk '{printf "%.f", $1*0.5}'`
 memory=`echo "${memory}*1000" | bc`
 endType=""
+min_cov="5"
 in_error=0 # will be 1 if a file or cmd not exist
 workFolder=$(readlink -f $(dirname $0))
 conf_file="${workFolder}/config.cfg"
@@ -131,6 +132,7 @@ messageHelp="Usage: $0 [runMode] [options] <command>\n
     \t--transcriptList /path/to/transcriptList.txt\n\t\tSet the list of transcripts to use as reference\n
     \t--txtOut\n\t\tPrint main output in text instead of xlsx\n
     \t--bedOut\n\t\tGet the output in BED format\n
+    \t--min_cov 5\n\t\tMinimal number of read supporting a junction [default= ${min_cov}]\n
     \t--Graphics\n\t\tDisplay graphics of alternative junctions (Warnings: increase the runtime)\n
     \t-n, --NbIntervals 10\n\t\tNb interval of Neg Binom (Integer) [default= ${NbIntervals}]\n
     \t--SampleNames name1|name2|name3\n\t\tSample names, '|'-separated, by default use the sample file names\n
@@ -302,6 +304,11 @@ while [[ $# -gt 0 ]]; do
 
        --threshold)
        threshold="$2"
+       shift 2 # shift past argument and past value
+       ;;
+
+       --min_cov)
+       min_cov="$2"
        shift 2 # shift past argument and past value
        ;;
 
@@ -521,7 +528,7 @@ if [[ ${spliceLauncher} = "TRUE" ]]; then
     if [ -z ${SampleNames+x} ]; then SampleNames_cmd=""; else SampleNames_cmd="--SampleNames ${SampleNames}"; fi
 
 
-    cmd="${Rscript} ${scriptPath}/SpliceLauncherAnalyse.r --input ${input_path} -O ${out_path} --RefSeqAnnot ${spliceLaucherAnnot} -n ${NbIntervals} ${transcriptList_cmd} ${SampleNames_cmd} ${removeOther} ${text} ${bedOut} ${Graphics} --threshold ${threshold}"
+    cmd="${Rscript} ${scriptPath}/SpliceLauncherAnalyse.r --input ${input_path} -O ${out_path} --RefSeqAnnot ${spliceLaucherAnnot} -n ${NbIntervals} ${transcriptList_cmd} ${SampleNames_cmd} ${removeOther} ${text} ${bedOut} ${Graphics} --threshold ${threshold} --min_cov ${min_cov}"
     echo -e "cmd = $cmd"
     $cmd
 

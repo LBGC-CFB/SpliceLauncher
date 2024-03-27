@@ -367,6 +367,9 @@ The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, t
 **-n, --NbIntervals** 10
 * Nb interval of Neg Binom (Integer)
 
+**--min_cov** 5
+* Minimal number of read supporting a junction (Integer)
+
 **--SampleNames** name1|name2|name3
 * Sample names, '|'-separated, by default use the sample file names
 
