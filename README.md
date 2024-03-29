@@ -189,7 +189,10 @@ NC_000001.10	BestRefSeq	transcript	11874	14409	.	+	.	ID=rna0;Parent=gene0;Dbxref
 NC_000001.10	BestRefSeq	exon	11874	12227	.	+	.	ID=id1;Parent=rna0;Dbxref=GeneID:100287102,Genbank:NR_046018.2,HGNC:HGNC:37102;gbkey=misc_RNA;gene=DDX11L1;product=DEAD/H-box helicase 11 like 1;transcript_id=NR_046018.2
 ```
 
-3. [Optionnal] To reduce needed memory, we can also restrict the analysis to the primary assembly, without unplaced contigs:
+3. [Optional] Convert contig of RefSeq to UCSC chromosome names, you will need to download the assembly report, an example of this report is provide in dataTest folder but is a truncating example so do not use for your own genome. For url example of an assembly report of GRCh37 opf RefSeq can be dowload from https://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_assembly_report.txt 
+Use the **--assembly_report** of INSTALL mode to launch the convertion.
+
+4. [Optionnal] To reduce needed memory, we can also restrict the analysis to the primary assembly, without unplaced contigs:
 ```
 grep ">" GRCh37_latest_genomic.fna | grep -v "unplaced genomic contig"| grep -v "unlocalized genomic contig" | grep -v "genomic patch"| grep -v "alternate locus" | sed 's/^>//' > chr_names
 seqtk subseq GRCh37_latest_genomic.fna chr_names > GRCh37_latest_genomic.sub.fna
@@ -316,6 +319,9 @@ The final results are displayed in the file *{run name}_outputSpliceLauncher.xls
 
 **--mane** /path/to/MANElistFile.txt
 * List of MANE transcripts, current version donwloaded from https://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/release_1.1/MANE.GRCh38.v1.1.summary.txt.gz
+
+**--assembly_report** /path/to/GRChXX_latest_assembly_report.txt
+* Path to assembly report to convert contig in UCSC chromosome names
 
 **-t, --threads** N
 * Nb threads used to index the STAR genome

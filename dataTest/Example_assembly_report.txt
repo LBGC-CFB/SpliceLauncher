@@ -1,0 +1,51 @@
+# WARNINGS This is a truncating example of assembly report DO NOT USE for your own genome
+# Assembly name:  GRCh37.p13
+# Description:    Genome Reference Consortium Human Build 37 patch release 13 (GRCh37.p13)
+# Organism name:  Homo sapiens (human)
+# Taxid:          9606
+# BioProject:     PRJNA31257
+# Submitter:      Genome Reference Consortium
+# Date:           2013-06-28
+# Synonyms:       hg19	
+# Assembly type:  haploid-with-alt-loci
+# Release type:   patch
+# Assembly level: Chromosome
+# Genome representation: full
+# GenBank assembly accession: GCA_000001405.14
+# RefSeq assembly accession: GCF_000001405.25
+# RefSeq assembly and GenBank assemblies identical: yes
+#
+## Assembly-Units:
+## GenBank Unit Accession	RefSeq Unit Accession	Assembly-Unit name
+## GCA_000001305.1	GCF_000001305.13	Primary Assembly
+## GCA_000005045.13	GCF_000005045.12	PATCHES
+## GCA_000001315.1	GCF_000001315.1	ALT_REF_LOCI_1
+## GCA_000001325.1	GCF_000001325.2	ALT_REF_LOCI_2
+## GCA_000001335.1	GCF_000001335.1	ALT_REF_LOCI_3
+## GCA_000001345.1	GCF_000001345.1	ALT_REF_LOCI_4
+## GCA_000001355.1	GCF_000001355.1	ALT_REF_LOCI_5
+## GCA_000001365.1	GCF_000001365.2	ALT_REF_LOCI_6
+## GCA_000001375.1	GCF_000001375.1	ALT_REF_LOCI_7
+## GCA_000001385.1	GCF_000001385.1	ALT_REF_LOCI_8
+## GCA_000001395.1	GCF_000001395.1	ALT_REF_LOCI_9
+## GCA_000006015.1	GCF_000006015.1	non-nuclear
+#
+# Ordered by chromosome/plasmid; the chromosomes/plasmids are followed by
+# unlocalized scaffolds.
+# Unplaced scaffolds are listed at the end.
+# RefSeq is equal or derived from GenBank object.
+#
+# Sequence-Name	Sequence-Role	Assigned-Molecule	Assigned-Molecule-Location/Type	GenBank-Accn	Relationship	RefSeq-Accn	Assembly-Unit	Sequence-Length	UCSC-style-name
+1	assembled-molecule	1	Chromosome	CM000663.1	=	NC_000001.10	Primary Assembly	249250621	chr1
+2	assembled-molecule	2	Chromosome	CM000664.1	=	NC_000002.11	Primary Assembly	243199373	chr2
+3	assembled-molecule	3	Chromosome	CM000665.1	=	NC_000003.11	Primary Assembly	198022430	chr3
+4	assembled-molecule	4	Chromosome	CM000666.1	=	NC_000004.11	Primary Assembly	191154276	chr4
+5	assembled-molecule	5	Chromosome	CM000667.1	=	NC_000005.9	Primary Assembly	180915260	chr5
+6	assembled-molecule	6	Chromosome	CM000668.1	=	NC_000006.11	Primary Assembly	171115067	chr6
+7	assembled-molecule	7	Chromosome	CM000669.1	=	NC_000007.13	Primary Assembly	159138663	chr7
+8	assembled-molecule	8	Chromosome	CM000670.1	=	NC_000008.10	Primary Assembly	146364022	chr8
+9	assembled-molecule	9	Chromosome	CM000671.1	=	NC_000009.11	Primary Assembly	141213431	chr9
+10	assembled-molecule	10	Chromosome	CM000672.1	=	NC_000010.10	Primary Assembly	135534747	chr10
+11	assembled-molecule	11	Chromosome	CM000673.1	=	NC_000011.9	Primary Assembly	135006516	chr11
+12	assembled-molecule	12	Chromosome	CM000674.1	=	NC_000012.11	Primary Assembly	133851895	chr12
+13	assembled-molecule	13	Chromosome	CM000675.1	=	NC_000013.10	Primary Assembly	115169878	chr13

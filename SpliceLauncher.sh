@@ -43,6 +43,7 @@ text=""
 Graphics=""
 NbIntervals=10
 threshold=1
+pathToConvert="-"
 
 ########## some useful functions
 echo_on_stderr () {
@@ -103,6 +104,7 @@ messageHelp="Usage: $0 [runMode] [options] <command>\n
     \t--fasta\t/path/to/fasta genome file\n
     \t-t, --threads N\n\t\tNb threads used to index genome\t[default: ${threads}]\n
     \t-m, --memory N\n\t\tMax Memory allowed to index genome, in bytes\t[default: ${memory}]\n
+    \t--assembly_report /path/to/GRChXX_latest_assembly_report.txt\n\t\tPath to assembly report to convert contig in UCSC chromosome names\t[default: ${pathToConvert}]\n
     \t--mane /path/to/MANElistFile.txt\n\t\tList of MANE transcripts\t[default: ${manePath}]
     \n
     Option for Align mode\n
@@ -192,6 +194,11 @@ while [[ $# -gt 0 ]]; do
 
        --mane)
        manePath="$2"
+       shift 2 # shift past argument and past value
+       ;;
+
+       --assembly_report)
+       pathToConvert="`readlink -v -f $2`"
        shift 2 # shift past argument and past value
        ;;
 
@@ -391,6 +398,35 @@ if [[ ${install} = "TRUE" ]]; then
     if [ $in_error -eq 1 ]; then
         echo -e "=> Aborting."
         exit
+    fi
+
+    # convert contig in UCSC chromosome names
+    if [ -e ${pathToConvert} ]; then
+        sed -i 's/\x0D//g' ${pathToConvert} # if file download from Windows
+        echo -e "\nConvert contig in UCSC chromosome names using :\n ${pathToConvert}\n On the files:\n${gff_path}\n and\n${fasta_path}\n"
+        grep -v "#" ${pathToConvert} | awk 'BEGIN{OFS="|"}{print $7,$11}' > tmp_convert.txt
+
+        OLDIFS=$IFS
+        IFS=$'\n'
+        for line in $(cat tmp_convert.txt)
+            do 
+            IFS="|"
+            read -a convert <<< $line
+            IFS=$'\n'
+            if [ `echo -e ${#convert[1]}` -gt 3 ]; then
+                ucsc_name=${convert[1]}
+                ucsc_name=${ucsc_name//\\n/""}
+                echo -e "replace ${convert[0]} by ${ucsc_name}"
+                sed -i "s/${convert[0]}/${ucsc_name}/g" ${gff_path}
+                sed -i "s/${convert[0]}/${ucsc_name}/g" ${fasta_path}
+            fi
+        done
+        IFS=$OLDIFS
+
+        rm tmp_convert.txt
+
+    else
+        echo -e "No convert asking"
     fi
 
     # run generateSpliceLauncherDB
