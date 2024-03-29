@@ -22,13 +22,14 @@ SpliceLauncher is a pipeline tool to study the alternative splicing. It works in
     * [Download the reference files](#9)
     * [Configure SpliceLauncher with INSTALL mode](#10)
 * [Running the SpliceLauncher tests](#11)
-* [SpliceLauncher options](#12)
-    * [Option for INSTALL mode](#13)
-    * [Option for Align mode](#14)
-    * [Option for Count mode](#15)
-    * [Option for SpliceLauncher mode](#16)
-* [Authors](#17)
-* [License](#18)
+    * [Output directory tree](#12)
+* [SpliceLauncher options](#13)
+    * [Option for INSTALL mode](#14)
+    * [Option for Align mode](#15)
+    * [Option for Count mode](#16)
+    * [Option for SpliceLauncher mode](#17)
+* [Authors](#18)
+* [License](#19)
 
 ---
 
@@ -112,6 +113,8 @@ For more information, please see the [BEDtools tutorial](http://quinlanlab.org/t
 
 ### Install R libraries <a id="6"></a>
 
+The library WriteXLS allows to save result in xlsx format if you do not want to install it, use the *--txtOut* option. 
+The library Cairo allows to print result in pdf format if you do not want to install it, do not add *--Graphics* option.
 Open the R console:
 
 ```R
@@ -229,9 +232,31 @@ bash ./SpliceLauncher.sh --runMode Align,Count,SpliceLauncher -F ./dataTest/fast
     --tmpDir /path/to/tmpDir # path to save tmp file during alignment
  ```
 
-After running, the BAM files from alignment are in a *Bam* folder, the count files are in *getClosestExons* and the results of SpliceLauncher analysis are in *testSpliceLauncher_result*.
+### Output directory tree <a id="12"></a>
+```
+SpliceLauncher/outdir
+├── Bam
+│   ├── {sample}.Aligned.sortedByCoord.out.bam
+|   ├── {sample}.Aligned.sortedByCoord.out.bam.csi
+|   ├── {sample}.Aligned.sortedByCoord.out_juncs.bed
+|   ├── {sample}.SJ.out.tab
+│   └── ...
+├── getClosestExons
+│   ├── {sample}.Aligned.sortedByCoord.out.count
+│   └── ...
+├── {run name}_results
+│   ├── {run name}_figures_output
+│       ├── {run name}_{sample}.pdf
+│       └── ...
+│   ├── {run name}_outputSpliceLauncher.xlsx
+│   └── {run name}.bed
+├── {run name}.txt
+├── {run name}_report_{run date}.txt
+```
 
-The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, this last is in *testSpliceLauncher_result* folder. The scheme of this file is:
+The results of SpliceLauncher analysis are in **{run name}_results**.
+
+The final results are displayed in the file *{run name}_outputSpliceLauncher.xlsx*. The scheme of this file is:
 
 | Column names | Example | Description |
 |------------:|:--------:|:------------:|
@@ -256,7 +281,7 @@ The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, t
 | Significative | NO | If a sample shown an abnormal expression of the junction |
 | filterInterpretation | Unique junction | If a sample had an abnormal expression: Aberrant junction<br/>For unmodelized junction, if max expression >1%: Unique junction  |
 
-## SpliceLauncher options <a id="12"></a>
+## SpliceLauncher options <a id="13"></a>
 
 
 **--runMode** INSTALL,Align,Count,SpliceLauncher
@@ -266,7 +291,7 @@ The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, t
     * Count: Generates the matrix read count from the BAM files
     * SpliceLauncher: Generates final output from the matrix read count
 
-### Option for INSTALL mode <a id="13"></a>
+### Option for INSTALL mode <a id="14"></a>
 
 **-C, --config** /path/to/configuration file/
 * Path to the config.cfg file, **only** if you want to use your own config file
@@ -295,7 +320,7 @@ The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, t
 **-t, --threads** N
 * Nb threads used to index the STAR genome
 
-### Option for Align mode <a id="14"></a>
+### Option for Align mode <a id="15"></a>
 
 **-F, --fastq** /path/to/fastq/
 * Repository of the FASTQ files
@@ -321,7 +346,7 @@ The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, t
 **--samtools** /path/to/samtools
 * Path to the samtools executable, **only** if you to use a samtools software different of the samtools defined in config.cfg file
 
-### Option for Count mode <a id="15"></a>
+### Option for Count mode <a id="16"></a>
 
 **-B, --bam** /path/to/BAM files
 * Repository of the BAM folder
@@ -344,7 +369,7 @@ The final results are displayed in the file *testSpliceLauncher_outputR.xlsx*, t
 **--samtools** /path/to/samtools
 * Path to the samtools executable, **only** if you to use a samtools software different of the samtools defined in config.cfg file, deprecated if use `--fastCount` option
 
-### Option for SpliceLauncher mode <a id="16"></a>
+### Option for SpliceLauncher mode <a id="17"></a>
 
 **-I, --input**/path/to/inputFile
 * Read count matrix (.txt)
@@ -385,7 +410,7 @@ If graphics (-g, --Graphics):
 * Transcript information file, **only** if you to use a transcript information file different of file defined in config.cfg file
 
 
-## Authors <a id="17"></a>
+## Authors <a id="18"></a>
 
 
 * Raphael Leman - [raphaelleman](https://github.com/raphaelleman/ "tittle")
@@ -394,7 +419,7 @@ If graphics (-g, --Graphics):
 > **Cite as:** SpliceLauncher: a tool for detection, annotation and relative quantification of alternative junctions from RNAseq data
 Raphaël Leman, Valentin Harter, Alexandre Atkinson, Grégoire Davy, Antoine Rousselin, Etienne Muller, Laurent Castéra, Fréderic Lemoine, Pierre de la Grange, Marine Guillaud-Bataille, Dominique Vaur, Sophie Krieger, [Bioinformatics](https://doi.org/10.1093/bioinformatics/btz784 "tittle")
 
-## License <a id="18"></a>
+## License <a id="19"></a>
 
 
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/LBGC-CFB/SpliceLauncher/blob/master/LICENSE "tittle") file for details

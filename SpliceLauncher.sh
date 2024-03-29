@@ -293,7 +293,7 @@ while [[ $# -gt 0 ]]; do
        ;;
 
        --SampleNames)
-       SampleNames="`readlink -v -f $2`"
+       SampleNames="$2"
        shift 2 # shift past argument and past value
        ;;
 
