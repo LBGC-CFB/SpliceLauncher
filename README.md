@@ -189,8 +189,8 @@ NC_000001.10	BestRefSeq	transcript	11874	14409	.	+	.	ID=rna0;Parent=gene0;Dbxref
 NC_000001.10	BestRefSeq	exon	11874	12227	.	+	.	ID=id1;Parent=rna0;Dbxref=GeneID:100287102,Genbank:NR_046018.2,HGNC:HGNC:37102;gbkey=misc_RNA;gene=DDX11L1;product=DEAD/H-box helicase 11 like 1;transcript_id=NR_046018.2
 ```
 
-3. [Optional] Convert contig of RefSeq to UCSC chromosome names, you will need to download the assembly report, an example of this report is provide in dataTest folder but is a truncating example so do not use for your own genome. For url example of an assembly report of GRCh37 opf RefSeq can be dowload from https://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_assembly_report.txt 
-Use the **--assembly_report** of INSTALL mode to launch the convertion.
+3. [Optional] Convert contig of RefSeq to UCSC chromosome names, you will need to download the assembly report, an [example](https://github.com/LBGC-CFB/SpliceLauncher/blob/master/dataTest/Example_assembly_report.txt "tittle") of this report is provide in dataTest folder but it is a truncating example so do not use for your own genome. For url example of an assembly report of GRCh37 opf RefSeq can be dowload from https://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_assembly_report.txt 
+Use the **--assembly_report** of INSTALL mode to launch the convertion. This step usually takes one hour.
 
 4. [Optionnal] To reduce needed memory, we can also restrict the analysis to the primary assembly, without unplaced contigs:
 ```
