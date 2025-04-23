@@ -595,9 +595,9 @@ convertTocNomenFor <- function(gPos){
 		}else if(gPos > endTranscrit){
 			delta = gPos - endTranscrit
 			cPos <<- paste("c.*",tableConvertcNomen$cEnd[nrow(tableConvertcNomen)]+delta-1,sep="")
-		}else if(nrow(tableConvertcNomen[tableConvertcNomen$gStart==gPos,])==1){
+		}else if(nrow(tableConvertcNomen[tableConvertcNomen$gStart==gPos,])==1 & gPos < gCDSend){
 			cPos <<- paste("c.",tableConvertcNomen$cStart[tableConvertcNomen$gStart==gPos],sep="")
-		}else if(nrow(tableConvertcNomen[tableConvertcNomen$gEnd==gPos,])==1){
+		}else if(nrow(tableConvertcNomen[tableConvertcNomen$gEnd==gPos,])==1 & gPos < gCDSend){
 			cPos <<- paste("c.",tableConvertcNomen$cEnd[tableConvertcNomen$gEnd==gPos],sep="")
 		}else if (gPos < gCDSstart){
 			if(gPos > NearestStart & gPos < NearestEnd){
@@ -611,7 +611,11 @@ convertTocNomenFor <- function(gPos){
 				cPos <<- paste("c.",tableConvertcNomen$cEnd[tableConvertcNomen$gEnd==NearestEnd],"+",delta,sep="")
 			}
 		}else if (gPos > gCDSend){
-			if(gPos > NearestStart & gPos < NearestEnd){
+			if(gPos == NearestStart){
+				cPos <<- paste("c.*",tableConvertcNomen$cStart[tableConvertcNomen$gStart==NearestStart],sep="")
+			}else if(gPos == NearestEnd){
+				cPos <<- paste("c.*",tableConvertcNomen$cEnd[tableConvertcNomen$gEnd==NearestEnd],sep="")
+			}else if(gPos > NearestStart & gPos < NearestEnd){
 				delta = NearestEnd - gPos
 				cPos <<- paste("c.*",tableConvertcNomen$cEnd[tableConvertcNomen$gEnd==NearestEnd]-delta-1,sep="")
 			}else if(gPos < NearestStart){
@@ -661,9 +665,9 @@ convertTocNomenRev <- function(gPos){
 		}else if(gPos < endTranscrit){
 			delta = endTranscrit - gPos
 			cPos <<- paste("c.*",tableConvertcNomen$cEnd[1]+delta-1,sep="")
-		}else if(nrow(tableConvertcNomen[tableConvertcNomen$gStart==gPos,])==1){
+		}else if(nrow(tableConvertcNomen[tableConvertcNomen$gStart==gPos,])==1 & gPos > gCDSend){
 			cPos <<- paste("c.",tableConvertcNomen$cStart[tableConvertcNomen$gStart==gPos],sep="")
-		}else if(nrow(tableConvertcNomen[tableConvertcNomen$gEnd==gPos,])==1){
+		}else if(nrow(tableConvertcNomen[tableConvertcNomen$gEnd==gPos,])==1 & gPos > gCDSend){
 			cPos <<- paste("c.",tableConvertcNomen$cEnd[tableConvertcNomen$gEnd==gPos],sep="")
 		}else if (gPos > gCDSstart){
 			if(gPos < NearestStart & gPos > NearestEnd){
@@ -677,7 +681,11 @@ convertTocNomenRev <- function(gPos){
 				cPos <<- paste("c.",tableConvertcNomen$cEnd[tableConvertcNomen$gEnd==NearestEnd],"+",delta,sep="")
 			}
 		}else if (gPos < gCDSend){
-			if(gPos < NearestStart & gPos > NearestEnd){
+			if(gPos == NearestStart){
+				cPos <<- paste("c.*",tableConvertcNomen$cStart[tableConvertcNomen$gStart==NearestStart],sep="")
+			}else if(gPos == NearestEnd){
+				cPos <<- paste("c.*",tableConvertcNomen$cEnd[tableConvertcNomen$gEnd==NearestEnd],sep="")
+			}else if(gPos < NearestStart & gPos > NearestEnd){
 				delta = gPos - NearestEnd
 				cPos <<- paste("c.*",tableConvertcNomen$cEnd[tableConvertcNomen$gEnd==NearestEnd]-delta-1,sep="")
 			}else if(gPos > NearestStart){
