@@ -776,13 +776,13 @@ for (i in unique(data_junction$NM)){
 		tmpAnnot <- mapply(FuncAnnotJuncsRev,data_junction$start[tmpIdTrans],data_junction$end[tmpIdTrans])
 
 	}
-
+	tmpAnnot[sapply(tmpAnnot, is.null)] <- "."
 	constitutive = c(constitutive,unlist(tmpAnnot[1,]))
 	calcul = c(calcul,unlist(tmpAnnot[2,]))
 	AnnotJuncs = c(AnnotJuncs,unlist(tmpAnnot[3,]))
 	cStart = c(cStart,unlist(tmpAnnot[4,]))
 	cEnd = c(cEnd,unlist(tmpAnnot[5,]))
-
+	
 }
 
 data_junction$constitutive[IdTrans] = constitutive
